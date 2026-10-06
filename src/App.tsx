@@ -288,6 +288,7 @@ export default function App() {
           isOpen={isSentenceSetupOpen}
           onClose={() => setIsSentenceSetupOpen(false)}
           onSessionStarted={handleSentencePracticeStarted}
+          config={config}
         />
 
         <AuthModal
