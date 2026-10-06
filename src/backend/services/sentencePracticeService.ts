@@ -326,6 +326,38 @@ export class SentencePracticeService {
     };
   }
 
+  /**
+   * Reset the sentence that was just completed so the user can practice
+   * the same sentence again without advancing the session.
+   */
+  static retryCurrentSentence(sessionId: string, userId: string) {
+    const session = db.findSentencePracticeSessionById(sessionId);
+    if (!session || session.userId !== userId) {
+      throw new Error('句子练习任务不存在');
+    }
+
+    const retryIndex = session.status === 'COMPLETED'
+      ? session.totalCount - 1
+      : Math.max(0, session.currentSentenceIndex - 1);
+    const item = session.items?.[retryIndex];
+    if (!item) {
+      throw new Error('未找到可重做的句子');
+    }
+
+    session.currentSentenceIndex = retryIndex;
+    session.status = 'IN_PROGRESS';
+    item.currentPhase = 'REBUILD';
+    item.currentPhraseIndex = 0;
+    item.completed = false;
+    item.updatedAt = new Date().toISOString();
+    session.updatedAt = new Date().toISOString();
+
+    db.updateSentencePracticeItem(item);
+    db.updateSentencePracticeSession(session);
+
+    return db.findSentencePracticeSessionById(sessionId);
+  }
+
   static cancelSession(sessionId: string, userId: string) {
     return db.cancelSentencePracticeSession(sessionId, userId);
   }
