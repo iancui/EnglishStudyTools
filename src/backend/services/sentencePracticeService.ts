@@ -10,9 +10,8 @@ export class SentencePracticeService {
   /**
    * Preview matching sentences count for difficulty filter
    */
-  static previewPractice(difficulty: string = 'ALL', count: number = 5, dictionaryId?: string) {
+  static previewPractice(count: number = 5, dictionaryId?: string) {
     const all = db.getAllSentences();
-    const diffUpper = (difficulty || 'ALL').toUpperCase();
     const dict = dictionaryId ? db.findDictionaryById(dictionaryId) : undefined;
     const dictWordSet = new Set(
       dictionaryId
@@ -22,19 +21,14 @@ export class SentencePracticeService {
         : []
     );
 
-    const byDifficulty = diffUpper === 'ALL'
-      ? all
-      : all.filter(s => s.level.toUpperCase() === diffUpper);
-
     const matching = dictionaryId && dictWordSet.size > 0
-      ? byDifficulty.filter(s => {
+      ? all.filter(s => {
           const words = s.content.toLowerCase().match(/[a-z']+/g) || [];
           return words.some(w => dictWordSet.has(w));
         })
-      : byDifficulty;
+      : all;
 
     return {
-      difficulty: diffUpper,
       dictionaryId,
       dictionaryName: dict?.name,
       totalInDb: all.length,
@@ -50,7 +44,6 @@ export class SentencePracticeService {
   static createSession(
     userId: string,
     params: {
-      difficulty?: string;
       count?: number;
       dictionaryId?: string;
     }
@@ -60,7 +53,6 @@ export class SentencePracticeService {
       throw new Error('句子库为空，无法开启练习');
     }
 
-    const diffUpper = (params.difficulty || 'ALL').toUpperCase();
     const dictionaryId = params.dictionaryId;
     const dictWordSet = new Set(
       dictionaryId
@@ -70,9 +62,7 @@ export class SentencePracticeService {
         : []
     );
 
-    let candidates = diffUpper === 'ALL'
-      ? [...all]
-      : all.filter(s => s.level.toUpperCase() === diffUpper);
+    let candidates = [...all];
 
     if (dictionaryId && dictWordSet.size > 0) {
       candidates = candidates.filter(s => {
@@ -85,7 +75,7 @@ export class SentencePracticeService {
     // 否则用户会感觉“选择词库”没有生效。
     if (candidates.length === 0) {
       if (dictionaryId) {
-        throw new Error('当前词库下没有符合所选难度的句子，请更换词库或降低难度');
+        throw new Error('当前词库下没有符合条件的句子，请更换词库或调整练习数量');
       }
       throw new Error('当前条件下没有可练习的句子');
     }
