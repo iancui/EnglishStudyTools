@@ -241,7 +241,6 @@ export const api = {
   // Sentence Practice Sessions (Phase 2 core)
   previewSentencePractice: (dictionaryId?: string) =>
     request<{
-      difficulty: string;
       dictionaryId?: string;
       dictionaryName?: string;
       totalInDb: number;
