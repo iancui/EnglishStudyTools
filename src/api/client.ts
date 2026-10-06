@@ -113,6 +113,18 @@ export const api = {
       }
     ),
 
+  // Gemini AI sentence importer
+  analyzeSentencesWithAI: (sentences: string[], model?: string) =>
+    request<any[]>('/api/admin/ai-sentence-tool/analyze', {
+      method: 'POST',
+      body: JSON.stringify({ sentences, model })
+    }),
+  importAISentences: (dictionaryId: string, sentences: any[]) =>
+    request<any>('/api/admin/ai-sentence-tool/import', {
+      method: 'POST',
+      body: JSON.stringify({ dictionaryId, sentences })
+    }),
+
   // Admin Dictionaries
   getAdminDictionaries: () => request<any[]>('/api/admin/dictionaries'),
   createAdminDictionary: (data: any) =>
