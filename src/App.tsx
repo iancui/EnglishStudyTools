@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Navbar } from './components/Navbar.tsx';
 import { HomeView } from './views/HomeView.tsx';
 import { StudySessionView } from './views/StudySessionView.tsx';
@@ -16,7 +16,7 @@ import { UserSettingsView } from './views/UserSettingsView.tsx';
 import { SettingsView } from './views/SettingsView.tsx';
 import { AuthModal } from './views/AuthModal.tsx';
 import { api, authStorage } from './api/client.ts';
-import { DictionaryConfig } from './types/index.ts';
+import { DictionaryConfig, SessionMode } from './types/index.ts';
 
 export default function App() {
   const [currentRoute, setCurrentRoute] = useState<string>(() => {
@@ -26,6 +26,7 @@ export default function App() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isStudySetupOpen, setIsStudySetupOpen] = useState(false);
   const [setupInitialDictId, setSetupInitialDictId] = useState<string | undefined>(undefined);
+  const [setupInitialMode, setSetupInitialMode] = useState<SessionMode>('LEARN_AND_WRITE');
   const [isSentenceSetupOpen, setIsSentenceSetupOpen] = useState(false);
 
   const [config, setConfig] = useState<DictionaryConfig>({
@@ -38,6 +39,13 @@ export default function App() {
     audioType: 'UK',
     enablePhonics: true
   });
+
+  const navigate = useCallback((route: string) => {
+    const target = route.startsWith('/') ? route : `/${route}`;
+    window.history.pushState({}, '', target);
+    setCurrentRoute(target);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
 
   useEffect(() => {
     initApp();
@@ -65,20 +73,15 @@ export default function App() {
     }
   };
 
-  const navigate = (route: string) => {
-    setCurrentRoute(route);
-    window.history.pushState({}, '', route);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
   const handleLogout = () => {
     authStorage.clearToken();
     setUser(null);
     navigate('/');
   };
 
-  const handleOpenStudySetup = (dictId?: string) => {
+  const handleOpenStudySetup = (dictId?: string, mode?: SessionMode) => {
     setSetupInitialDictId(dictId || config.defaultDictionaryId || 'dict-primary-6');
+    setSetupInitialMode(mode || 'LEARN_AND_WRITE');
     setIsStudySetupOpen(true);
   };
 
@@ -96,7 +99,7 @@ export default function App() {
       return (
         <HomeView
           navigate={navigate}
-          onOpenStudySetup={() => handleOpenStudySetup()}
+          onOpenStudySetup={handleOpenStudySetup}
           onOpenSentencePracticeSetup={() => setIsSentenceSetupOpen(true)}
         />
       );
@@ -226,17 +229,27 @@ export default function App() {
     );
   };
 
-  // Independent Study Session Page: Absolutely NO normal Navbar and NO normal Footer!
-  if (currentRoute.startsWith('/study/')) {
+  // Independent Immersive Learning Pages: Absolutely NO normal Navbar and NO normal Footer!
+  if (currentRoute.startsWith('/study/') || currentRoute.startsWith('/sentence-practice/')) {
+    const isSentencePractice = currentRoute.startsWith('/sentence-practice/');
     const sessionId = currentRoute.split('/')[2];
+
     return (
-      <div className="min-h-screen bg-[#FDFBF7] text-stone-900 flex flex-col font-sans selection:bg-amber-200">
+      <div className="min-h-screen bg-[#F7FAFF] text-[#29466F] flex flex-col font-sans selection:bg-[#EBF2FE]">
         <main className="flex-1">
-          <StudySessionView
-            sessionId={sessionId}
-            navigate={navigate}
-            config={config}
-          />
+          {isSentencePractice ? (
+            <SentencePracticeView
+              sessionId={sessionId}
+              navigate={navigate}
+              config={config}
+            />
+          ) : (
+            <StudySessionView
+              sessionId={sessionId}
+              navigate={navigate}
+              config={config}
+            />
+          )}
         </main>
 
         <StudySetupModal
@@ -244,6 +257,13 @@ export default function App() {
           onClose={() => setIsStudySetupOpen(false)}
           onSessionStarted={handleSessionStarted}
           initialDictionaryId={setupInitialDictId}
+          initialMode={setupInitialMode}
+        />
+
+        <SentencePracticeSetupModal
+          isOpen={isSentenceSetupOpen}
+          onClose={() => setIsSentenceSetupOpen(false)}
+          onSessionStarted={handleSentencePracticeStarted}
         />
 
         <AuthModal
@@ -256,7 +276,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FDFBF7] text-stone-900 flex flex-col font-sans selection:bg-amber-200">
+    <div className="min-h-screen bg-[#F7FAFF] text-[#29466F] flex flex-col font-sans selection:bg-[#EBF2FE]">
       <Navbar
         currentRoute={currentRoute}
         navigate={navigate}
@@ -269,15 +289,15 @@ export default function App() {
         {renderCurrentView()}
       </main>
 
-      <footer className="border-t border-stone-200 bg-white py-6 text-center text-xs text-stone-400">
+      <footer className="border-t border-[#E7EEF8] bg-white py-6 text-center text-xs text-[#8BA0BD]">
         <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <span className="font-semibold text-stone-700">LinguaStep</span>
+            <span className="font-bold text-[#29466F]">LinguaStep</span>
             <span>·</span>
             <span>英语单词 + 句子渐进式学习平台</span>
           </div>
           <div>
-            基于认知闭环与学习会话架构 · 单词 (学 $\to$ 背写) $\to$ 渐进式长句
+            现代沉浸式英语认知闭环 · 单词拼写输入 $\to$ 渐进式长句输出
           </div>
         </div>
       </footer>
@@ -288,6 +308,7 @@ export default function App() {
         onClose={() => setIsStudySetupOpen(false)}
         onSessionStarted={handleSessionStarted}
         initialDictionaryId={setupInitialDictId}
+        initialMode={setupInitialMode}
       />
 
       {/* Sentence Practice Configuration Modal */}

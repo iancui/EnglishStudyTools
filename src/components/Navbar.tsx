@@ -19,27 +19,27 @@ export const Navbar: React.FC<NavbarProps> = ({
   const isAdmin = user?.role === 'ADMIN';
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-stone-200">
+    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#E7EEF8]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         {/* Zone 1: Single text element wordmark */}
         <button
           onClick={() => navigate('/')}
-          className="text-xl font-bold tracking-tight text-stone-900 flex items-center gap-2 hover:opacity-90 transition-opacity"
+          className="text-lg font-bold tracking-tight text-[#29466F] flex items-center gap-2.5 hover:opacity-90 transition-opacity"
         >
-          <span className="w-8 h-8 rounded-lg bg-stone-900 text-amber-50 flex items-center justify-center font-serif text-lg">
+          <span className="w-8 h-8 rounded-xl bg-[#4F7DF3] text-white flex items-center justify-center font-bold text-base shadow-xs">
             L
           </span>
-          <span>LinguaStep</span>
+          <span className="tracking-tight">LinguaStep</span>
         </button>
 
         {/* Zone 2: Desktop navigation - Exactly 首页 | 错词本 | 学习记录 | 设置 */}
-        <nav className="hidden md:flex items-center gap-7 text-sm font-medium">
+        <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
           <button
             onClick={() => navigate('/')}
             className={`transition-colors pb-1 border-b-2 ${
               currentRoute === '/'
-                ? 'border-stone-900 text-stone-900'
-                : 'border-transparent text-stone-600 hover:text-stone-900'
+                ? 'border-[#4F7DF3] text-[#29466F] font-semibold'
+                : 'border-transparent text-[#8BA0BD] hover:text-[#29466F]'
             }`}
           >
             首页
@@ -48,8 +48,8 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={() => navigate('/words/wrong')}
             className={`transition-colors pb-1 border-b-2 ${
               currentRoute === '/words/wrong'
-                ? 'border-stone-900 text-stone-900'
-                : 'border-transparent text-stone-600 hover:text-stone-900'
+                ? 'border-[#4F7DF3] text-[#29466F] font-semibold'
+                : 'border-transparent text-[#8BA0BD] hover:text-[#29466F]'
             }`}
           >
             错词本
@@ -58,8 +58,8 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={() => navigate('/statistics')}
             className={`transition-colors pb-1 border-b-2 ${
               currentRoute === '/statistics'
-                ? 'border-stone-900 text-stone-900'
-                : 'border-transparent text-stone-600 hover:text-stone-900'
+                ? 'border-[#4F7DF3] text-[#29466F] font-semibold'
+                : 'border-transparent text-[#8BA0BD] hover:text-[#29466F]'
             }`}
           >
             学习记录
@@ -68,8 +68,8 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={() => navigate('/settings')}
             className={`transition-colors pb-1 border-b-2 ${
               currentRoute.startsWith('/settings')
-                ? 'border-stone-900 text-stone-900'
-                : 'border-transparent text-stone-600 hover:text-stone-900'
+                ? 'border-[#4F7DF3] text-[#29466F] font-semibold'
+                : 'border-transparent text-[#8BA0BD] hover:text-[#29466F]'
             }`}
           >
             设置
@@ -77,10 +77,10 @@ export const Navbar: React.FC<NavbarProps> = ({
           {isAdmin && (
             <button
               onClick={() => navigate('/admin/dictionaries')}
-              className={`transition-colors pb-1 border-b-2 text-rose-700 flex items-center gap-1 ${
+              className={`transition-colors pb-1 border-b-2 text-rose-600 flex items-center gap-1 ${
                 currentRoute.startsWith('/admin')
-                  ? 'border-rose-900 font-bold'
-                  : 'border-transparent hover:text-rose-900'
+                  ? 'border-rose-600 font-bold'
+                  : 'border-transparent hover:text-rose-700'
               }`}
             >
               <Shield className="w-3.5 h-3.5" />
@@ -94,11 +94,11 @@ export const Navbar: React.FC<NavbarProps> = ({
           {user ? (
             <button
               onClick={() => navigate('/settings')}
-              className="px-3 py-1.5 text-xs font-medium text-stone-700 bg-stone-100 rounded-lg hover:bg-stone-200 transition-colors whitespace-nowrap flex items-center gap-1.5"
+              className="px-3.5 py-1.5 text-xs font-semibold text-[#29466F] bg-[#F7FAFF] border border-[#E7EEF8] rounded-xl hover:bg-white transition-colors whitespace-nowrap flex items-center gap-1.5 shadow-2xs"
             >
               <span>{user.username}</span>
               {isAdmin && (
-                <span className="text-[10px] bg-rose-100 text-rose-800 px-1 py-0.2 rounded font-bold">
+                <span className="text-[10px] bg-rose-50 text-rose-600 px-1.5 py-0.2 rounded font-bold">
                   ADMIN
                 </span>
               )}
@@ -106,7 +106,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           ) : (
             <button
               onClick={onOpenAuth}
-              className="px-4 py-2 text-xs font-medium text-white bg-stone-900 rounded-lg hover:bg-stone-800 transition-colors whitespace-nowrap"
+              className="px-4 py-2 text-xs font-semibold text-white bg-[#4F7DF3] hover:bg-[#3D6CE5] rounded-xl transition-all shadow-xs"
             >
               登录 / 注册
             </button>

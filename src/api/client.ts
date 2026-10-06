@@ -147,6 +147,7 @@ export const api = {
 
   createStudySession: (params: {
     dictionaryId?: string;
+    wordIds?: string[];
     count?: number;
     excludeMastered?: boolean;
     sortMode?: string;

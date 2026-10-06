@@ -54,12 +54,13 @@ export class StudySessionService {
   }
 
   /**
-   * Create and initialize a study session with a fixed word set
+   * Create and initialize a study session with a fixed word set or custom wordIds
    */
   static createSession(
     userId: string,
     params: {
       dictionaryId?: string;
+      wordIds?: string[];
       count?: number;
       excludeMastered?: boolean;
       sortMode?: SessionSortMode;
@@ -68,71 +69,102 @@ export class StudySessionService {
   ) {
     let { dictionaryId } = params;
     const {
+      wordIds,
       count = 20,
       excludeMastered = true,
       sortMode = 'RANDOM',
       mode = 'LEARN_AND_WRITE'
     } = params;
 
-    // Fallback to default dictionary if not specified
-    if (!dictionaryId) {
-      const config = DictionaryService.getConfig(userId);
-      dictionaryId = config.defaultDictionaryId || 'dict-primary-6';
-    }
+    let selected: { wordId: string; word: Word; sequence: number }[] = [];
 
-    const dict = db.findDictionaryById(dictionaryId);
-    if (!dict) throw new Error('所选辞书不存在');
-
-    const dictWords = db.getDictionaryWords(dictionaryId);
-    if (dictWords.length === 0) {
-      throw new Error('该辞书中暂无单词');
-    }
-
-    // Filter candidates
-    let candidates = dictWords
-      .map(dw => ({ ...dw, word: dw.word || db.findWordById(dw.wordId) }))
-      .filter((dw): dw is typeof dw & { word: Word } => Boolean(dw.word));
-
-    if (excludeMastered) {
-      const nonMastered = candidates.filter(dw => {
-        const progress = db.getWordProgress(userId, dw.wordId);
-        return !WordProgressService.isMastered(progress);
-      });
-      // If all words are mastered, relax filter so user can still study
-      if (nonMastered.length > 0) {
-        candidates = nonMastered;
+    // Case 1: Specific wordIds provided (e.g. from WrongWordsView or selection from dictionary)
+    if (wordIds && Array.isArray(wordIds) && wordIds.length > 0) {
+      // Deduplicate wordIds
+      const uniqueWordIds = Array.from(new Set(wordIds.filter(Boolean)));
+      if (uniqueWordIds.length === 0) {
+        throw new Error('未选择任何有效单词');
       }
-    }
 
-    // Apply Sorting Strategy
-    if (sortMode === 'RANDOM') {
-      // True Fisher-Yates shuffle
-      for (let i = candidates.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
-      }
-    } else if (sortMode === 'REVIEW_FIRST') {
-      const now = new Date().getTime();
-      candidates.sort((a, b) => {
-        const progA = db.getWordProgress(userId, a.wordId);
-        const progB = db.getWordProgress(userId, b.wordId);
-
-        const aDue = progA?.nextReviewAt ? new Date(progA.nextReviewAt).getTime() <= now : false;
-        const bDue = progB?.nextReviewAt ? new Date(progB.nextReviewAt).getTime() <= now : false;
-        if (aDue && !bDue) return -1;
-        if (!aDue && bDue) return 1;
-
-        const scoreA = !progA ? 3 : progA.status === 'REVIEW' ? 0 : progA.status === 'LEARNING' ? 1 : 2;
-        const scoreB = !progB ? 3 : progB.status === 'REVIEW' ? 0 : progB.status === 'LEARNING' ? 1 : 2;
-        return scoreA - scoreB;
+      const foundWords: { wordId: string; word: Word; sequence: number }[] = [];
+      uniqueWordIds.forEach((wid, idx) => {
+        const w = db.findWordById(wid);
+        if (w) {
+          foundWords.push({ wordId: wid, word: w, sequence: idx + 1 });
+        }
       });
+
+      if (foundWords.length === 0) {
+        throw new Error('所选单词均不存在');
+      }
+
+      selected = foundWords;
+      if (!dictionaryId) {
+        dictionaryId = 'dict-custom-selection';
+      }
     } else {
-      // SEQUENCE
-      candidates.sort((a, b) => a.sequence - b.sequence);
+      // Case 2: Select from dictionary
+      // Fallback to default dictionary if not specified
+      if (!dictionaryId) {
+        const config = DictionaryService.getConfig(userId);
+        dictionaryId = config.defaultDictionaryId || 'dict-primary-6';
+      }
+
+      const dict = db.findDictionaryById(dictionaryId);
+      if (!dict) throw new Error('所选辞书不存在');
+
+      const dictWords = db.getDictionaryWords(dictionaryId);
+      if (dictWords.length === 0) {
+        throw new Error('该辞书中暂无单词');
+      }
+
+      // Filter candidates
+      let candidates = dictWords
+        .map(dw => ({ ...dw, word: dw.word || db.findWordById(dw.wordId) }))
+        .filter((dw): dw is typeof dw & { word: Word } => Boolean(dw.word));
+
+      if (excludeMastered) {
+        const nonMastered = candidates.filter(dw => {
+          const progress = db.getWordProgress(userId, dw.wordId);
+          return !WordProgressService.isMastered(progress);
+        });
+        // If all words are mastered, relax filter so user can still study
+        if (nonMastered.length > 0) {
+          candidates = nonMastered;
+        }
+      }
+
+      // Apply Sorting Strategy
+      if (sortMode === 'RANDOM') {
+        // True Fisher-Yates shuffle
+        for (let i = candidates.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
+        }
+      } else if (sortMode === 'REVIEW_FIRST') {
+        const now = new Date().getTime();
+        candidates.sort((a, b) => {
+          const progA = db.getWordProgress(userId, a.wordId);
+          const progB = db.getWordProgress(userId, b.wordId);
+
+          const aDue = progA?.nextReviewAt ? new Date(progA.nextReviewAt).getTime() <= now : false;
+          const bDue = progB?.nextReviewAt ? new Date(progB.nextReviewAt).getTime() <= now : false;
+          if (aDue && !bDue) return -1;
+          if (!aDue && bDue) return 1;
+
+          const scoreA = !progA ? 3 : progA.status === 'REVIEW' ? 0 : progA.status === 'LEARNING' ? 1 : 2;
+          const scoreB = !progB ? 3 : progB.status === 'REVIEW' ? 0 : progB.status === 'LEARNING' ? 1 : 2;
+          return scoreA - scoreB;
+        });
+      } else {
+        // SEQUENCE
+        candidates.sort((a, b) => a.sequence - b.sequence);
+      }
+
+      // Slice up to requested count
+      selected = candidates.slice(0, Math.max(1, count));
     }
 
-    // Slice up to requested count
-    const selected = candidates.slice(0, Math.max(1, count));
     const nowStr = new Date().toISOString();
     const sessionId = `session-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
 
@@ -152,12 +184,14 @@ export class StudySessionService {
       updatedAt: nowStr
     };
 
+    const isWriteOnly = mode === 'WRITE_ONLY';
+
     const sessionWords: StudySessionWord[] = selected.map((item, idx) => ({
       id: `sw-${sessionId}-${idx + 1}`,
       sessionId,
       wordId: item.wordId,
       sequence: idx + 1,
-      learnStatus: 'LEARN_PENDING',
+      learnStatus: isWriteOnly ? 'LEARNED' : 'LEARN_PENDING',
       writeStatus: 'WRITE_PENDING',
       completed: false,
       isCorrect: null,

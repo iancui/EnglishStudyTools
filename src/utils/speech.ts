@@ -84,6 +84,13 @@ export class SpeechPlayer {
       this.synth.cancel();
     }
   }
+
+  /**
+   * Speak a short phonics syllable
+   */
+  static speakSyllable(text: string, lang = 'en-US'): Promise<void> {
+    return this.speak(text, { lang, rate: 0.85 });
+  }
 }
 
 /**

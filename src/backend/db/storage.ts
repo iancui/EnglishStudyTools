@@ -85,6 +85,8 @@ class Storage {
       dictionaryWords: this.defaultDictionaryWords(),
       studySessions: [],
       studySessionWords: [],
+      sentencePracticeSessions: [],
+      sentencePracticeItems: [],
       configs: this.defaultConfigs(),
       wordProgresses: this.defaultProgresses(),
       sentenceProgresses: [],

@@ -1,23 +1,26 @@
 import React, { useEffect, useState } from 'react';
-import { X, Play, BookOpen, Shuffle, ListOrdered, RotateCcw, Check, Sparkles } from 'lucide-react';
+import { X, Play, BookOpen, Shuffle, ListOrdered, RotateCcw, Check, Sparkles, Headphones } from 'lucide-react';
 import { api } from '../api/client.ts';
-import { DictionaryItem } from '../types/index.ts';
+import { DictionaryItem, SessionMode } from '../types/index.ts';
 
 interface StudySetupModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSessionStarted: (sessionId: string) => void;
   initialDictionaryId?: string;
+  initialMode?: SessionMode;
 }
 
 export const StudySetupModal: React.FC<StudySetupModalProps> = ({
   isOpen,
   onClose,
   onSessionStarted,
-  initialDictionaryId
+  initialDictionaryId,
+  initialMode = 'LEARN_AND_WRITE'
 }) => {
   const [dictionaries, setDictionaries] = useState<DictionaryItem[]>([]);
   const [selectedDictId, setSelectedDictId] = useState<string>(initialDictionaryId || '');
+  const [mode, setMode] = useState<SessionMode>(initialMode);
   const [count, setCount] = useState<number>(20);
   const [excludeMastered, setExcludeMastered] = useState<boolean>(true);
   const [sortMode, setSortMode] = useState<'RANDOM' | 'SEQUENCE' | 'REVIEW_FIRST'>('RANDOM');
@@ -33,8 +36,11 @@ export const StudySetupModal: React.FC<StudySetupModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       loadDictionaries();
+      if (initialMode) {
+        setMode(initialMode);
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, initialMode]);
 
   const loadDictionaries = async () => {
     try {
@@ -84,7 +90,7 @@ export const StudySetupModal: React.FC<StudySetupModalProps> = ({
         count,
         excludeMastered,
         sortMode,
-        mode: 'LEARN_AND_WRITE'
+        mode
       });
       onClose();
       onSessionStarted(session.id);
@@ -108,15 +114,17 @@ export const StudySetupModal: React.FC<StudySetupModalProps> = ({
         </button>
 
         <div className="space-y-1.5 mb-6">
-          <div className="text-xs font-semibold text-amber-700 uppercase tracking-wider flex items-center gap-1.5">
+          <div className="text-xs font-semibold text-[#4F7DF3] uppercase tracking-wider flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5" />
             <span>定制学习任务</span>
           </div>
-          <h2 className="text-2xl font-bold text-stone-900 tracking-tight">
-            背单词设置
+          <h2 className="text-2xl font-bold text-[#29466F] tracking-tight">
+            {mode === 'WRITE_ONLY' ? '单词听写设置' : '背单词设置'}
           </h2>
-          <p className="text-xs text-stone-500">
-            自定义本次任务的词库来源、单词数量与筛选策略
+          <p className="text-xs text-[#8BA0BD]">
+            {mode === 'WRITE_ONLY'
+              ? '听发音看释义 · 闭卷英文默写训练'
+              : '音形认知学习与汉译英背写一体化闭环'}
           </p>
         </div>
 
@@ -127,16 +135,64 @@ export const StudySetupModal: React.FC<StudySetupModalProps> = ({
         )}
 
         <div className="space-y-6">
+          {/* 0. Mode Selection */}
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-[#29466F] uppercase">
+              1. 学习模式
+            </label>
+            <div className="grid grid-cols-2 gap-2.5">
+              <button
+                type="button"
+                onClick={() => setMode('LEARN_AND_WRITE')}
+                className={`p-3.5 rounded-2xl border text-left transition-all flex flex-col gap-1.5 cursor-pointer ${
+                  mode === 'LEARN_AND_WRITE'
+                    ? 'bg-[#EBF2FE] border-[#4F7DF3] ring-2 ring-[#4F7DF3]/15'
+                    : 'bg-white border-[#E7EEF8] hover:border-stone-300'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <BookOpen className={`w-4 h-4 ${mode === 'LEARN_AND_WRITE' ? 'text-[#4F7DF3]' : 'text-[#8BA0BD]'}`} />
+                  <span className={`text-xs font-bold ${mode === 'LEARN_AND_WRITE' ? 'text-[#29466F]' : 'text-stone-700'}`}>
+                    普通学习
+                  </span>
+                </div>
+                <p className="text-[11px] text-[#8BA0BD] leading-tight">
+                  音形认知拆分 + 汉译英背写
+                </p>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setMode('WRITE_ONLY')}
+                className={`p-3.5 rounded-2xl border text-left transition-all flex flex-col gap-1.5 cursor-pointer ${
+                  mode === 'WRITE_ONLY'
+                    ? 'bg-[#EBF2FE] border-[#4F7DF3] ring-2 ring-[#4F7DF3]/15'
+                    : 'bg-white border-[#E7EEF8] hover:border-stone-300'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Headphones className={`w-4 h-4 ${mode === 'WRITE_ONLY' ? 'text-[#4F7DF3]' : 'text-[#8BA0BD]'}`} />
+                  <span className={`text-xs font-bold ${mode === 'WRITE_ONLY' ? 'text-[#29466F]' : 'text-stone-700'}`}>
+                    单词听写
+                  </span>
+                </div>
+                <p className="text-[11px] text-[#8BA0BD] leading-tight">
+                  纯听发音看释义 · 直接默写
+                </p>
+              </button>
+            </div>
+          </div>
+
           {/* 1. Dictionary Selection */}
           <div className="space-y-2">
-            <label className="text-xs font-bold text-stone-900 uppercase">
-              1. 选择学习辞书
+            <label className="text-xs font-bold text-[#29466F] uppercase">
+              2. 选择学习辞书
             </label>
             <div className="relative">
               <select
                 value={selectedDictId}
                 onChange={e => setSelectedDictId(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 text-sm font-medium text-stone-900 focus:bg-white focus:border-stone-900 outline-none transition-all cursor-pointer"
+                className="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 text-sm font-medium text-stone-900 focus:bg-white focus:border-[#4F7DF3] outline-none transition-all cursor-pointer"
               >
                 {dictionaries.map(d => (
                   <option key={d.id} value={d.id}>
@@ -150,8 +206,8 @@ export const StudySetupModal: React.FC<StudySetupModalProps> = ({
           {/* 2. Count Selection */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs">
-              <span className="font-bold text-stone-900 uppercase">2. 单词数量</span>
-              <span className="text-stone-500 font-mono">当前选择: {count} 词</span>
+              <span className="font-bold text-[#29466F] uppercase">3. 单词数量</span>
+              <span className="text-[#8BA0BD] font-mono">当前选择: {count} 词</span>
             </div>
             <div className="grid grid-cols-4 gap-2">
               {countOptions.map(num => (
@@ -161,8 +217,8 @@ export const StudySetupModal: React.FC<StudySetupModalProps> = ({
                   onClick={() => setCount(num)}
                   className={`py-2.5 rounded-xl border text-sm font-mono font-medium transition-all ${
                     count === num
-                      ? 'bg-stone-900 border-stone-900 text-white shadow-sm'
-                      : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-50'
+                      ? 'bg-[#4F7DF3] border-[#4F7DF3] text-white shadow-xs'
+                      : 'bg-white border-[#E7EEF8] text-[#29466F] hover:bg-[#F7FAFF]'
                   }`}
                 >
                   {num} 词
@@ -173,8 +229,8 @@ export const StudySetupModal: React.FC<StudySetupModalProps> = ({
 
           {/* 3. Sort Mode */}
           <div className="space-y-2">
-            <label className="text-xs font-bold text-stone-900 uppercase block">
-              3. 排序策略
+            <label className="text-xs font-bold text-[#29466F] uppercase block">
+              4. 排序策略
             </label>
             <div className="grid grid-cols-3 gap-2 text-xs">
               <button
@@ -182,11 +238,11 @@ export const StudySetupModal: React.FC<StudySetupModalProps> = ({
                 onClick={() => setSortMode('RANDOM')}
                 className={`p-3 rounded-xl border text-center transition-all flex flex-col items-center gap-1.5 ${
                   sortMode === 'RANDOM'
-                    ? 'bg-amber-50 border-amber-400 text-amber-900 font-semibold'
-                    : 'bg-white border-stone-200 text-stone-600 hover:bg-stone-50'
+                    ? 'bg-[#EBF2FE] border-[#4F7DF3] text-[#29466F] font-semibold'
+                    : 'bg-white border-[#E7EEF8] text-[#8BA0BD] hover:bg-[#F7FAFF]'
                 }`}
               >
-                <Shuffle className="w-4 h-4 text-amber-700" />
+                <Shuffle className="w-4 h-4 text-[#4F7DF3]" />
                 <span>随机乱序</span>
               </button>
 
@@ -195,11 +251,11 @@ export const StudySetupModal: React.FC<StudySetupModalProps> = ({
                 onClick={() => setSortMode('SEQUENCE')}
                 className={`p-3 rounded-xl border text-center transition-all flex flex-col items-center gap-1.5 ${
                   sortMode === 'SEQUENCE'
-                    ? 'bg-amber-50 border-amber-400 text-amber-900 font-semibold'
-                    : 'bg-white border-stone-200 text-stone-600 hover:bg-stone-50'
+                    ? 'bg-[#EBF2FE] border-[#4F7DF3] text-[#29466F] font-semibold'
+                    : 'bg-white border-[#E7EEF8] text-[#8BA0BD] hover:bg-[#F7FAFF]'
                 }`}
               >
-                <ListOrdered className="w-4 h-4 text-amber-700" />
+                <ListOrdered className="w-4 h-4 text-[#4F7DF3]" />
                 <span>教材顺序</span>
               </button>
 
@@ -208,11 +264,11 @@ export const StudySetupModal: React.FC<StudySetupModalProps> = ({
                 onClick={() => setSortMode('REVIEW_FIRST')}
                 className={`p-3 rounded-xl border text-center transition-all flex flex-col items-center gap-1.5 ${
                   sortMode === 'REVIEW_FIRST'
-                    ? 'bg-amber-50 border-amber-400 text-amber-900 font-semibold'
-                    : 'bg-white border-stone-200 text-stone-600 hover:bg-stone-50'
+                    ? 'bg-[#EBF2FE] border-[#4F7DF3] text-[#29466F] font-semibold'
+                    : 'bg-white border-[#E7EEF8] text-[#8BA0BD] hover:bg-[#F7FAFF]'
                 }`}
               >
-                <RotateCcw className="w-4 h-4 text-amber-700" />
+                <RotateCcw className="w-4 h-4 text-[#4F7DF3]" />
                 <span>优先复习</span>
               </button>
             </div>
@@ -234,20 +290,20 @@ export const StudySetupModal: React.FC<StudySetupModalProps> = ({
                 onChange={e => setExcludeMastered(e.target.checked)}
                 className="sr-only peer"
               />
-              <div className="w-9 h-5 bg-stone-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500" />
+              <div className="w-9 h-5 bg-stone-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#4F7DF3]" />
             </label>
           </div>
 
-          {/* Live Preview Information (Section 18) */}
+          {/* Live Preview Information */}
           {preview && (
-            <div className="p-3.5 rounded-xl bg-amber-50/60 border border-amber-200 text-xs text-amber-900 space-y-1">
+            <div className="p-3.5 rounded-xl bg-[#EBF2FE]/60 border border-[#D5E3FC] text-xs text-[#29466F] space-y-1">
               <div className="flex items-center justify-between font-medium">
                 <span>辞书总词数: {preview.totalInDict} 词</span>
                 <span>符合条件: {preview.matchingCount} 词</span>
               </div>
               {preview.matchingCount < count && (
-                <div className="text-amber-800 text-[11px]">
-                  💡 提示：符合条件的单词不足 {count} 个，本次将生成 {preview.matchingCount} 个单词的学习任务。
+                <div className="text-[#4F7DF3] text-[11px]">
+                  💡 提示：符合条件的单词不足 {count} 个，本次将生成 {preview.matchingCount} 个单词的任务。
                 </div>
               )}
             </div>
@@ -258,10 +314,16 @@ export const StudySetupModal: React.FC<StudySetupModalProps> = ({
             type="button"
             onClick={handleStart}
             disabled={Boolean(submitting || (preview && preview.matchingCount === 0))}
-            className="w-full py-3.5 bg-stone-900 hover:bg-stone-800 disabled:opacity-40 text-white rounded-xl text-sm font-semibold transition-all shadow-sm flex items-center justify-center gap-2"
+            className="w-full py-3.5 bg-[#4F7DF3] hover:bg-[#3D6CE5] disabled:opacity-40 text-white rounded-2xl text-sm font-bold transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer"
           >
             <Play className="w-4 h-4 fill-white" />
-            <span>{submitting ? '正在生成学习任务...' : '开始学习任务'}</span>
+            <span>
+              {submitting
+                ? '正在生成任务...'
+                : mode === 'WRITE_ONLY'
+                ? '开启单词听写'
+                : '开启背单词任务'}
+            </span>
           </button>
         </div>
       </div>

@@ -9,14 +9,15 @@ import {
   Settings,
   Flame,
   CheckCircle2,
-  Clock
+  Clock,
+  Headphones
 } from 'lucide-react';
 import { api } from '../api/client.ts';
-import { StatisticsData, StudySessionItem, SentencePracticeSession } from '../types/index.ts';
+import { StatisticsData, StudySessionItem, SentencePracticeSession, SessionMode } from '../types/index.ts';
 
 interface HomeViewProps {
   navigate: (route: string) => void;
-  onOpenStudySetup: (dictId?: string) => void;
+  onOpenStudySetup: (dictId?: string, mode?: SessionMode) => void;
   onOpenSentencePracticeSetup?: () => void;
 }
 
@@ -53,17 +54,17 @@ export const HomeView: React.FC<HomeViewProps> = ({
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-10">
+    <div className="max-w-5xl mx-auto px-4 sm:px-8 py-8 sm:py-12 space-y-10 animate-fadeIn">
       {/* Platform Header */}
-      <div className="space-y-2">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold">
-          <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+      <div className="space-y-3">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EBF2FE] text-[#4F7DF3] text-xs font-semibold">
+          <Sparkles className="w-3.5 h-3.5" />
           <span>英语单词 + 句子渐进式学习平台</span>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-stone-900 font-serif">
-          学习中心
+        <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#29466F]">
+          你好，开始今天的学习吧
         </h1>
-        <p className="text-sm text-stone-500">
+        <p className="text-sm text-[#8BA0BD] max-w-xl leading-relaxed">
           基于认知闭环设计：单词“学 + 背写”一体化沉淀，进阶渐进长句掌握真实语境表达。
         </p>
       </div>
@@ -73,53 +74,55 @@ export const HomeView: React.FC<HomeViewProps> = ({
         {/* ============================================================ */}
         {/* 入口 1：背单词 (学习 + 背写) */}
         {/* ============================================================ */}
-        <div className="bg-white border-2 border-amber-200/80 rounded-3xl p-6 sm:p-8 shadow-xs hover:shadow-md transition-all flex flex-col justify-between relative overflow-hidden group">
-          <div className="space-y-5 relative z-10">
+        <div className="bg-white border border-[#E7EEF8] hover:border-[#4F7DF3]/40 rounded-3xl p-7 sm:p-8 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group">
+          <div className="space-y-5">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <span className="text-3xl" role="img" aria-label="book">📖</span>
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 rounded-2xl bg-[#F7FAFF] border border-[#E7EEF8] flex items-center justify-center text-2xl group-hover:scale-105 transition-transform">
+                  📖
+                </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-stone-900 tracking-tight flex items-center gap-2">
+                  <h2 className="text-2xl font-bold text-[#29466F] tracking-tight">
                     背单词
                   </h2>
-                  <p className="text-xs font-semibold text-amber-800 uppercase tracking-wide mt-0.5">
-                    学习 + 背写
+                  <p className="text-xs font-semibold text-[#8BA0BD] mt-0.5">
+                    认知学习 + 汉译英背写
                   </p>
                 </div>
               </div>
 
               {activeSession ? (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">
-                  <Flame className="w-3.5 h-3.5 text-amber-600 fill-amber-500" />
-                  <span>进行中</span>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#EBF2FE] text-[#4F7DF3] border border-[#D5E3FC]">
+                  <Flame className="w-3.5 h-3.5 fill-[#4F7DF3]" />
+                  <span>{activeSession.mode === 'WRITE_ONLY' ? '听写中' : '进行中'}</span>
                 </span>
               ) : (
-                <span className="text-xs text-stone-400 font-medium">
-                  认知闭环
+                <span className="text-xs text-[#8BA0BD] font-medium bg-[#F7FAFF] px-2.5 py-1 rounded-lg">
+                  核心词库
                 </span>
               )}
             </div>
 
-            <p className="text-sm text-stone-600 leading-relaxed">
-              每个单词必经“音形义认知拆分”与“汉译英默写检测”两个阶段，全方位完成记忆与拼写攻克。
+            <p className="text-sm text-[#8BA0BD] leading-relaxed">
+              支持“音形认知 + 汉译英背写”全流程学习，或直接开启“纯发音释义 · 单词听写”默写冲刺。
             </p>
 
             {/* If user has an ongoing IN_PROGRESS session */}
             {activeSession ? (
-              <div className="bg-amber-50/70 border border-amber-200/90 rounded-2xl p-4.5 space-y-3">
+              <div className="bg-[#F7FAFF] border border-[#E7EEF8] rounded-2xl p-4.5 space-y-3">
                 <div className="flex items-center justify-between text-xs">
-                  <div className="font-semibold text-stone-800">
-                    {activeSession.dictionary?.name || '当前学习任务'}
+                  <div className="font-semibold text-[#29466F] truncate max-w-[180px]">
+                    {activeSession.mode === 'WRITE_ONLY' ? '单词听写' : (activeSession.dictionary?.name || '当前学习任务')}
                   </div>
-                  <div className="font-mono font-bold text-amber-900">
-                    继续学习 {activeSession.completedCount} / {activeSession.totalCount}
+                  <div className="font-mono font-bold text-[#4F7DF3]">
+                    {activeSession.mode === 'WRITE_ONLY' ? '继续听写' : '继续学习'} {activeSession.completedCount} / {activeSession.totalCount} 词
                   </div>
                 </div>
 
                 {/* Progress bar */}
-                <div className="h-2 w-full bg-amber-100 rounded-full overflow-hidden">
+                <div className="h-2 w-full bg-[#E7EEF8] rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-amber-500 rounded-full transition-all duration-300"
+                    className="h-full bg-[#4F7DF3] rounded-full transition-all duration-300"
                     style={{
                       width: `${Math.min(
                         100,
@@ -131,7 +134,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   />
                 </div>
 
-                <div className="text-[11px] text-amber-700/90 flex items-center justify-between">
+                <div className="text-[11px] text-[#8BA0BD] flex items-center justify-between">
                   <span>当前进度已自动暂存</span>
                   <span>
                     完成度{' '}
@@ -143,93 +146,112 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 </div>
               </div>
             ) : (
-              <div className="bg-stone-50 rounded-2xl p-4 text-xs text-stone-500 space-y-1">
-                <div className="font-medium text-stone-700">自由定制背单词参数</div>
-                <div>支持自选词库、设定单词量、顺序/乱序抽词并自动剔除已掌握熟词。</div>
+              <div className="bg-[#F7FAFF] border border-[#E7EEF8]/60 rounded-2xl p-4 text-xs text-[#8BA0BD] space-y-1">
+                <div className="font-semibold text-[#29466F]">自由定制背单词与听写参数</div>
+                <div>支持普通学习与纯听写模式，自选词库、设定词量、乱序或优先复习。</div>
               </div>
             )}
           </div>
 
           {/* Action buttons */}
-          <div className="pt-6 relative z-10 border-t border-stone-100 mt-6">
+          <div className="pt-6 border-t border-[#E7EEF8] mt-6">
             {activeSession ? (
               <div className="flex flex-wrap items-center gap-3">
                 <button
                   type="button"
                   onClick={() => navigate(`/study/${activeSession.id}`)}
-                  className="flex-1 py-3.5 px-6 bg-stone-900 hover:bg-stone-800 text-white font-bold rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 text-sm"
+                  className="flex-1 py-3.5 px-6 bg-[#4F7DF3] hover:bg-[#3D6CE5] text-white font-bold rounded-2xl transition-all shadow-xs flex items-center justify-center gap-2 text-sm select-none cursor-pointer"
                 >
-                  <span>继续学习</span>
+                  <span>继续{activeSession.mode === 'WRITE_ONLY' ? '单词听写' : '背单词'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
 
                 <button
                   type="button"
-                  onClick={() => onOpenStudySetup(activeSession.dictionaryId)}
-                  className="py-3.5 px-4 bg-white hover:bg-stone-50 text-stone-600 hover:text-stone-900 font-medium rounded-xl border border-stone-200 transition-colors text-xs"
+                  onClick={() => onOpenStudySetup(activeSession.dictionaryId, activeSession.mode)}
+                  className="py-3.5 px-4 bg-white hover:bg-[#F7FAFF] text-[#8BA0BD] hover:text-[#29466F] font-semibold rounded-2xl border border-[#E7EEF8] transition-colors text-xs select-none cursor-pointer"
                   title="重新配置并开启新的背诵任务"
                 >
                   重新设置
                 </button>
               </div>
             ) : (
-              <button
-                type="button"
-                onClick={() => onOpenStudySetup()}
-                className="w-full py-3.5 px-6 bg-stone-900 hover:bg-stone-800 text-white font-bold rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 text-sm"
-              >
-                <span>开始学习</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
+              <div className="flex flex-col sm:flex-row items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => onOpenStudySetup(undefined, 'LEARN_AND_WRITE')}
+                  className="flex-1 w-full py-3.5 px-5 bg-[#4F7DF3] hover:bg-[#3D6CE5] text-white font-bold rounded-2xl transition-all shadow-xs flex items-center justify-center gap-2 text-sm select-none cursor-pointer"
+                >
+                  <span>普通学习</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => onOpenStudySetup(undefined, 'WRITE_ONLY')}
+                  className="w-full sm:w-auto py-3.5 px-5 bg-[#EBF2FE] hover:bg-[#D5E3FC] text-[#4F7DF3] font-bold rounded-2xl transition-all text-sm flex items-center justify-center gap-1.5 select-none cursor-pointer"
+                  title="听发音看释义直接默写"
+                >
+                  <Headphones className="w-4 h-4" />
+                  <span>单词听写</span>
+                </button>
+              </div>
             )}
           </div>
-
-          <div className="absolute -right-8 -bottom-8 w-40 h-40 bg-amber-400/10 rounded-full blur-2xl pointer-events-none" />
         </div>
 
         {/* ============================================================ */}
         {/* 入口 2：渐进句子 (从短语到完整句子) */}
         {/* ============================================================ */}
-        <div className="bg-white border-2 border-emerald-200/80 rounded-3xl p-6 sm:p-8 shadow-xs hover:shadow-md transition-all flex flex-col justify-between relative overflow-hidden group">
-          <div className="space-y-5 relative z-10">
+        <div className="bg-white border border-[#E7EEF8] hover:border-[#4F7DF3]/40 rounded-3xl p-7 sm:p-8 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group">
+          <div className="space-y-5">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <span className="text-3xl" role="img" aria-label="speech">💬</span>
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 rounded-2xl bg-[#F7FAFF] border border-[#E7EEF8] flex items-center justify-center text-2xl group-hover:scale-105 transition-transform">
+                  💬
+                </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-stone-900 tracking-tight flex items-center gap-2">
+                  <h2 className="text-2xl font-bold text-[#29466F] tracking-tight">
                     渐进句子
                   </h2>
-                  <p className="text-xs font-semibold text-emerald-800 uppercase tracking-wide mt-0.5">
-                    从短语到完整句子
+                  <p className="text-xs font-semibold text-[#8BA0BD] mt-0.5">
+                    从短语逐步输入到完整句子
                   </p>
                 </div>
               </div>
 
-              <span className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full font-medium">
-                语块进阶
-              </span>
+              {activeSentenceSession ? (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#EBF2FE] text-[#4F7DF3] border border-[#D5E3FC]">
+                  <Flame className="w-3.5 h-3.5 fill-[#4F7DF3]" />
+                  <span>进行中</span>
+                </span>
+              ) : (
+                <span className="text-xs text-[#8BA0BD] font-medium bg-[#F7FAFF] px-2.5 py-1 rounded-lg">
+                  语块进阶
+                </span>
+              )}
             </div>
 
-            <p className="text-sm text-stone-600 leading-relaxed">
+            <p className="text-sm text-[#8BA0BD] leading-relaxed">
               核心学习理念：单词 $\to$ 短语逐步拼写 $\to$ 完整长句精准重建。彻底告别被动阅读，实现主动输出。
             </p>
 
             {/* If user has an ongoing IN_PROGRESS sentence practice session */}
             {activeSentenceSession ? (
-              <div className="bg-emerald-50/80 border border-emerald-200 rounded-2xl p-4.5 space-y-3">
+              <div className="bg-[#F7FAFF] border border-[#E7EEF8] rounded-2xl p-4.5 space-y-3">
                 <div className="flex items-center justify-between text-xs">
-                  <div className="font-semibold text-stone-800">
+                  <div className="font-semibold text-[#29466F]">
                     难度：{activeSentenceSession.difficulty}
                   </div>
-                  <div className="font-mono font-bold text-emerald-900">
+                  <div className="font-mono font-bold text-[#4F7DF3]">
                     继续练习 {activeSentenceSession.currentSentenceIndex} / {activeSentenceSession.totalCount} 句
                   </div>
                 </div>
 
                 {/* Progress bar */}
-                <div className="h-2 w-full bg-emerald-100 rounded-full overflow-hidden">
+                <div className="h-2 w-full bg-[#E7EEF8] rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-emerald-600 rounded-full transition-all duration-300"
+                    className="h-full bg-[#4F7DF3] rounded-full transition-all duration-300"
                     style={{
                       width: `${Math.min(
                         100,
@@ -241,7 +263,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   />
                 </div>
 
-                <div className="text-[11px] text-emerald-800 flex items-center justify-between">
+                <div className="text-[11px] text-[#8BA0BD] flex items-center justify-between">
                   <span>句子顺序与阶段已固定</span>
                   <span>
                     完成度{' '}
@@ -253,29 +275,29 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 </div>
               </div>
             ) : (
-              <div className="bg-emerald-50/60 border border-emerald-100 rounded-2xl p-4 space-y-2 text-xs">
-                <div className="font-semibold text-emerald-950 flex items-center gap-1.5">
-                  <GitCommit className="w-3.5 h-3.5 text-emerald-600" />
+              <div className="bg-[#F7FAFF] border border-[#E7EEF8]/60 rounded-2xl p-4 space-y-2 text-xs">
+                <div className="font-semibold text-[#29466F] flex items-center gap-1.5">
+                  <GitCommit className="w-3.5 h-3.5 text-[#4F7DF3]" />
                   <span>递进式阶梯路径</span>
                 </div>
-                <div className="grid grid-cols-4 gap-1 text-center font-mono text-[11px] pt-1">
-                  <div className="bg-white/80 py-1 rounded border border-emerald-200 text-stone-700">1. 单词</div>
-                  <div className="bg-white/80 py-1 rounded border border-emerald-200 text-stone-700">2. 短语</div>
-                  <div className="bg-white/80 py-1 rounded border border-emerald-200 text-stone-700">3. 句式</div>
-                  <div className="bg-white/80 py-1 rounded border border-emerald-200 text-stone-700">4. 长句</div>
+                <div className="grid grid-cols-4 gap-1.5 text-center font-mono text-[11px] pt-1">
+                  <div className="bg-white py-1 rounded-lg border border-[#E7EEF8] text-[#29466F]">1. 单词</div>
+                  <div className="bg-white py-1 rounded-lg border border-[#E7EEF8] text-[#29466F]">2. 短语</div>
+                  <div className="bg-white py-1 rounded-lg border border-[#E7EEF8] text-[#29466F]">3. 句式</div>
+                  <div className="bg-white py-1 rounded-lg border border-[#E7EEF8] text-[#29466F]">4. 长句</div>
                 </div>
               </div>
             )}
           </div>
 
           {/* Action button */}
-          <div className="pt-6 relative z-10 border-t border-stone-100 mt-6">
+          <div className="pt-6 border-t border-[#E7EEF8] mt-6">
             {activeSentenceSession ? (
               <div className="flex flex-wrap items-center gap-3">
                 <button
                   type="button"
                   onClick={() => navigate(`/sentence-practice/${activeSentenceSession.id}`)}
-                  className="flex-1 py-3.5 px-6 bg-emerald-900 hover:bg-emerald-800 text-white font-bold rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 text-sm"
+                  className="flex-1 py-3.5 px-6 bg-[#4F7DF3] hover:bg-[#3D6CE5] text-white font-bold rounded-2xl transition-all shadow-xs flex items-center justify-center gap-2 text-sm select-none"
                 >
                   <span>继续练习</span>
                   <ArrowRight className="w-4 h-4" />
@@ -284,7 +306,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 <button
                   type="button"
                   onClick={() => onOpenSentencePracticeSetup?.()}
-                  className="py-3.5 px-4 bg-white hover:bg-stone-50 text-stone-600 hover:text-stone-900 font-medium rounded-xl border border-stone-200 transition-colors text-xs"
+                  className="py-3.5 px-4 bg-white hover:bg-[#F7FAFF] text-[#8BA0BD] hover:text-[#29466F] font-semibold rounded-2xl border border-[#E7EEF8] transition-colors text-xs select-none"
                   title="重新配置并开启新的句子练习任务"
                 >
                   重新设置
@@ -294,83 +316,99 @@ export const HomeView: React.FC<HomeViewProps> = ({
               <button
                 type="button"
                 onClick={() => onOpenSentencePracticeSetup?.()}
-                className="w-full py-3.5 px-6 bg-emerald-900 hover:bg-emerald-800 text-white font-bold rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 text-sm"
+                className="w-full py-3.5 px-6 bg-[#4F7DF3] hover:bg-[#3D6CE5] text-white font-bold rounded-2xl transition-all shadow-xs flex items-center justify-center gap-2 text-sm select-none"
               >
                 <span>开始练习</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             )}
           </div>
-
-          <div className="absolute -right-8 -bottom-8 w-40 h-40 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
         </div>
       </div>
 
-      {/* Auxiliary Learning Shortcuts (错词本、学习记录、设置) */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* Auxiliary Learning Shortcuts (单词听写、错词本、学习记录、设置) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Entry: 单词听写 (辅助训练入口) */}
+        <button
+          type="button"
+          onClick={() => onOpenStudySetup(undefined, 'WRITE_ONLY')}
+          className="p-5 rounded-2xl bg-white border border-[#E7EEF8] hover:border-[#4F7DF3]/40 hover:bg-[#F7FAFF] transition-all text-left flex items-center justify-between group shadow-2xs cursor-pointer"
+        >
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center">
+              <Headphones className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="font-bold text-[#29466F] text-sm">单词听写</div>
+              <div className="text-xs text-[#8BA0BD] mt-0.5">听发音 + 看释义，默写英文</div>
+            </div>
+          </div>
+          <span className="text-xs text-[#8BA0BD] group-hover:text-[#4F7DF3] group-hover:translate-x-1 transition-transform">→</span>
+        </button>
+
         <button
           type="button"
           onClick={() => navigate('/words/wrong')}
-          className="p-5 rounded-2xl bg-white border border-stone-200 hover:border-stone-400 hover:bg-stone-50 transition-all text-left flex items-center justify-between group shadow-xs"
+          className="p-5 rounded-2xl bg-white border border-[#E7EEF8] hover:border-[#4F7DF3]/40 hover:bg-[#F7FAFF] transition-all text-left flex items-center justify-between group shadow-2xs cursor-pointer"
         >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-700 flex items-center justify-center">
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
               <RotateCcw className="w-5 h-5" />
             </div>
             <div>
-              <div className="font-bold text-stone-900 text-sm">错词本复习</div>
-              <div className="text-xs text-stone-500 mt-0.5">自动收录易错难词优先巩固</div>
+              <div className="font-bold text-[#29466F] text-sm">错词本复习</div>
+              <div className="text-xs text-[#8BA0BD] mt-0.5">自动收录易错难词优先巩固</div>
             </div>
           </div>
-          <span className="text-xs text-stone-400 group-hover:translate-x-1 transition-transform">→</span>
+          <span className="text-xs text-[#8BA0BD] group-hover:text-[#4F7DF3] group-hover:translate-x-1 transition-transform">→</span>
         </button>
 
         <button
           type="button"
           onClick={() => navigate('/statistics')}
-          className="p-5 rounded-2xl bg-white border border-stone-200 hover:border-stone-400 hover:bg-stone-50 transition-all text-left flex items-center justify-between group shadow-xs"
+          className="p-5 rounded-2xl bg-white border border-[#E7EEF8] hover:border-[#4F7DF3]/40 hover:bg-[#F7FAFF] transition-all text-left flex items-center justify-between group shadow-2xs cursor-pointer"
         >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center">
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-[#EBF2FE] text-[#4F7DF3] flex items-center justify-center">
               <BarChart3 className="w-5 h-5" />
             </div>
             <div>
-              <div className="font-bold text-stone-900 text-sm">学习记录</div>
-              <div className="text-xs text-stone-500 mt-0.5">每日背诵量与艾宾浩斯曲线</div>
+              <div className="font-bold text-[#29466F] text-sm">学习记录</div>
+              <div className="text-xs text-[#8BA0BD] mt-0.5">每日背诵量与统计数据</div>
             </div>
           </div>
-          <span className="text-xs text-stone-400 group-hover:translate-x-1 transition-transform">→</span>
+          <span className="text-xs text-[#8BA0BD] group-hover:text-[#4F7DF3] group-hover:translate-x-1 transition-transform">→</span>
         </button>
 
         <button
           type="button"
           onClick={() => navigate('/settings')}
-          className="p-5 rounded-2xl bg-white border border-stone-200 hover:border-stone-400 hover:bg-stone-50 transition-all text-left flex items-center justify-between group shadow-xs"
+          className="p-5 rounded-2xl bg-white border border-[#E7EEF8] hover:border-[#4F7DF3]/40 hover:bg-[#F7FAFF] transition-all text-left flex items-center justify-between group shadow-2xs cursor-pointer"
         >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-stone-100 text-stone-700 flex items-center justify-center">
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-[#F7FAFF] text-[#29466F] border border-[#E7EEF8] flex items-center justify-center">
               <Settings className="w-5 h-5" />
             </div>
             <div>
-              <div className="font-bold text-stone-900 text-sm">设置中心</div>
-              <div className="text-xs text-stone-500 mt-0.5">默认辞书、音标与自然拼读配置</div>
+              <div className="font-bold text-[#29466F] text-sm">设置中心</div>
+              <div className="text-xs text-[#8BA0BD] mt-0.5">默认辞书、音标与自然拼读配置</div>
             </div>
           </div>
-          <span className="text-xs text-stone-400 group-hover:translate-x-1 transition-transform">→</span>
+          <span className="text-xs text-[#8BA0BD] group-hover:text-[#4F7DF3] group-hover:translate-x-1 transition-transform">→</span>
         </button>
       </div>
 
       {/* Today Statistics Board */}
-      <div className="bg-white border border-stone-200 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xs">
+      <div className="bg-white border border-[#E7EEF8] rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xs">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-bold text-stone-900">今日学习数据</h3>
-            <p className="text-xs text-stone-500 mt-0.5">记录每一次努力积累</p>
+            <h3 className="text-lg font-bold text-[#29466F]">今日学习数据</h3>
+            <p className="text-xs text-[#8BA0BD] mt-0.5">记录每一次努力积累</p>
           </div>
           <button
             type="button"
             onClick={() => navigate('/statistics')}
-            className="text-xs font-semibold text-stone-700 hover:text-stone-900 flex items-center gap-1"
+            className="text-xs font-semibold text-[#4F7DF3] hover:text-[#3D6CE5] flex items-center gap-1"
           >
             <span>完整报告</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -378,30 +416,30 @@ export const HomeView: React.FC<HomeViewProps> = ({
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div className="bg-stone-50 rounded-2xl p-4 text-center">
-            <div className="text-xs text-stone-500">今日学习单词</div>
-            <div className="text-2xl font-bold font-mono text-stone-900 mt-1">
+          <div className="bg-[#F7FAFF] border border-[#E7EEF8]/60 rounded-2xl p-4 text-center">
+            <div className="text-xs text-[#8BA0BD]">今日学习单词</div>
+            <div className="text-2xl font-bold font-mono text-[#29466F] mt-1">
               {stats?.todayLearnedWords ?? 20}
             </div>
           </div>
 
-          <div className="bg-stone-50 rounded-2xl p-4 text-center">
-            <div className="text-xs text-stone-500">拼写正确</div>
+          <div className="bg-[#F7FAFF] border border-[#E7EEF8]/60 rounded-2xl p-4 text-center">
+            <div className="text-xs text-[#8BA0BD]">拼写正确</div>
             <div className="text-2xl font-bold font-mono text-emerald-600 mt-1">
               {stats?.todayCorrect ?? 18}
             </div>
           </div>
 
-          <div className="bg-stone-50 rounded-2xl p-4 text-center">
-            <div className="text-xs text-stone-500">今日掌握长句</div>
-            <div className="text-2xl font-bold font-mono text-stone-900 mt-1">
+          <div className="bg-[#F7FAFF] border border-[#E7EEF8]/60 rounded-2xl p-4 text-center">
+            <div className="text-xs text-[#8BA0BD]">今日掌握长句</div>
+            <div className="text-2xl font-bold font-mono text-[#29466F] mt-1">
               {stats?.todaySentences ?? 5}
             </div>
           </div>
 
-          <div className="bg-stone-50 rounded-2xl p-4 text-center">
-            <div className="text-xs text-stone-500">累计掌握词汇</div>
-            <div className="text-2xl font-bold font-mono text-amber-600 mt-1">
+          <div className="bg-[#F7FAFF] border border-[#E7EEF8]/60 rounded-2xl p-4 text-center">
+            <div className="text-xs text-[#8BA0BD]">累计掌握词汇</div>
+            <div className="text-2xl font-bold font-mono text-[#4F7DF3] mt-1">
               {stats?.masteredWords ?? 120}
             </div>
           </div>
