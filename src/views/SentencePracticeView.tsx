@@ -727,7 +727,7 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
               <button
                 type="button"
                 onClick={handleCheck}
-                disabled={submitting || wordStates.every(w => w.submitted)}
+                disabled={submitting || allCorrect}
                 className="px-8 py-3 bg-[#4F7DF3] hover:bg-[#3D6CE5] disabled:opacity-40 text-white rounded-2xl text-sm font-bold transition-all shadow-xs flex items-center gap-2 cursor-pointer"
               >
                 {submitting ? (
