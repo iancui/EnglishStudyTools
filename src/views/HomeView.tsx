@@ -310,7 +310,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
               <div className="bg-[#F7FAFF] border border-[#E7EEF8] rounded-2xl p-4.5 space-y-3">
                 <div className="flex items-center justify-between text-xs">
                   <div className="font-semibold text-[#29466F]">
-                    难度：{activeSentenceSession.difficulty}
+                    {activeSentenceSession.dictionaryId ? `词库：${activeSentenceSession.dictionaryId}` : '当前词库'}
                   </div>
                   <div className="font-mono font-bold text-[#4F7DF3]">
                     继续练习 {activeSentenceSession.currentSentenceIndex} / {activeSentenceSession.totalCount} 句
@@ -384,7 +384,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
             ) : (
               <button
                 type="button"
-                onClick={() => onOpenSentencePracticeSetup?.()}
+                onClick={() => onStartSentencePractice?.()}
                 className="w-full py-3.5 px-6 bg-[#4F7DF3] hover:bg-[#3D6CE5] text-white font-bold rounded-2xl transition-all shadow-xs flex items-center justify-center gap-2 text-sm select-none"
               >
                 <span>开始练习</span>
