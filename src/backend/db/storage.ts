@@ -298,6 +298,7 @@ class Storage {
         phoneticType: 'UK',
         audioType: 'UK',
         enablePhonics: true,
+        sentencePracticeCount: 5,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       }
@@ -562,6 +563,7 @@ class Storage {
         phoneticType: partial.phoneticType || 'UK',
         audioType: partial.audioType || 'UK',
         enablePhonics: partial.enablePhonics !== undefined ? partial.enablePhonics : true,
+        sentencePracticeCount: partial.sentencePracticeCount || 5,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
