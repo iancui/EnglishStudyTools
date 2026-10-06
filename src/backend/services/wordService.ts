@@ -61,6 +61,52 @@ export class WordService {
   }
 
   /**
+   * Look up word by text (case-insensitive).
+   * 1) Try local word library first
+   * 2) Fallback to free online translation API (mymemory) for words not in library
+   */
+  static async lookupByText(text: string) {
+    if (!text) return null;
+
+    // 1) 本地词库
+    const word = db.findWordByText(text);
+    if (word) {
+      return {
+        text: word.text,
+        phoneticUk: word.phoneticUk,
+        phoneticUs: word.phoneticUs,
+        meanings: word.meanings
+      };
+    }
+
+    // 2) 有道词典 suggest API fallback（单词不在本地词库时）
+    try {
+      const clean = text.trim().toLowerCase();
+      const url = `https://dict.youdao.com/suggest?num=1&doctype=json&q=${encodeURIComponent(clean)}`;
+      const resp = await fetch(url);
+      const data = await resp.json() as { data?: { entries?: Array<{ explain?: string; entry?: string }> } };
+      const entry = data?.data?.entries?.[0];
+      if (entry?.explain) {
+        // explain 格式: "adj. 英格兰人的...; n. 英语...; v. 把..."
+        const parts = entry.explain.split('; ').filter(Boolean);
+        const meanings = parts.map((p, idx) => {
+          const m = p.match(/^(\w+\.)\s*(.*)/);
+          return { id: `online-${idx}`, wordId: '', pos: m?.[1] || '', definitionCn: m?.[2] || p };
+        });
+        return {
+          text: entry.entry || clean,
+          phoneticUk: '',
+          phoneticUs: '',
+          meanings
+        };
+      }
+    } catch {
+      // 翻译 API 失败时静默
+    }
+    return null;
+  }
+
+  /**
    * Check user answer for word memorization (Section Seven & Eight)
    * Trims whitespace and compares lowercased input with word text
    */

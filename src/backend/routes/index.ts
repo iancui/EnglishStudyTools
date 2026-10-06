@@ -61,6 +61,7 @@ apiRouter.post('/study-sessions/:id/cancel', StudySessionController.cancelSessio
 // Words (Legacy / auxiliary catalogue compatibility)
 apiRouter.get('/words/today', WordController.getTodayWords);
 apiRouter.get('/words/wrong', WordController.getWrongWords);
+apiRouter.get('/words/lookup', WordController.lookupWord);
 apiRouter.get('/words/:id', WordController.getWordById);
 apiRouter.get('/words/:id/phonics', WordController.getWordPhonics);
 apiRouter.get('/words/:id/meanings', WordController.getWordMeanings);

@@ -55,10 +55,14 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
   const [hoveredWordIdx, setHoveredWordIdx] = useState<number | null>(null);
   const [focusedWordIdx, setFocusedWordIdx] = useState<number | null>(null);
   const [allCorrect, setAllCorrect] = useState(false);
+  const [wordPopup, setWordPopup] = useState<{ word: string; meanings: Array<{ pos: string; cn: string }> } | null>(null);
+  const popupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const currentSentenceRef = useRef<string>('');
   const isPendingRef = useRef(false);
+  const handleCheckRef = useRef<() => void>(() => {});
+  const autoCheckedRef = useRef(false);
 
   const currentSentenceIndex = session?.currentSentenceIndex ?? 0;
   const currentItem: SentencePracticeItem | undefined = session?.items?.[currentSentenceIndex];
@@ -79,6 +83,7 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
       setLoading(true);
       setError(null);
       setAllCorrect(false);
+      autoCheckedRef.current = false;
       const data = await api.getSentencePracticeSessionById(sessionId);
       if (!data) {
         setError('未找到该练习任务');
@@ -115,6 +120,27 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
       setIsSpeaking(false);
     }
   }, [sentence?.content, config]);
+
+  // 点击单词：发音 + 显示词性/释义悬浮
+  const handleWordClick = useCallback((word: string) => {
+    playAudio(word);
+    setWordPopup(null);
+    if (popupTimerRef.current) clearTimeout(popupTimerRef.current);
+    api.lookupWord(word).then((data: any) => {
+      if (!data || !data.meanings || data.meanings.length === 0) {
+        setWordPopup({ word, meanings: [] });
+      } else {
+        setWordPopup({
+          word: data.text || word,
+          meanings: data.meanings.map((m: any) => ({ pos: m.pos || '', cn: m.definitionCn || '' }))
+        });
+      }
+      popupTimerRef.current = setTimeout(() => setWordPopup(null), 4000);
+    }).catch(() => {
+      setWordPopup({ word, meanings: [] });
+      popupTimerRef.current = setTimeout(() => setWordPopup(null), 2000);
+    });
+  }, [playAudio]);
 
   useEffect(() => {
     if (!loading && !allCorrect && wordStates.length > 0) {
@@ -270,9 +296,28 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
     }
   };
 
+  // Keep ref in sync so useEffect can call latest version
+  handleCheckRef.current = handleCheck;
+
+  // Auto-check when all words are submitted && correct
+  useEffect(() => {
+    if (
+      !autoCheckedRef.current &&
+      wordStates.length > 0 &&
+      !allCorrect &&
+      !submitting &&
+      wordStates.every(w => w.submitted && w.correct)
+    ) {
+      autoCheckedRef.current = true;
+      const t = setTimeout(() => handleCheckRef.current(), 200);
+      return () => clearTimeout(t);
+    }
+  }, [wordStates, allCorrect, submitting]);
+
   const handleNext = async () => {
     if (!session) return;
     setAllCorrect(false);
+    autoCheckedRef.current = false;
     setWordStates([]);
 
     const nextIdx = currentSentenceIndex + 1;
@@ -430,7 +475,24 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
 
       <main className="flex-1 flex flex-col justify-center items-center px-4 sm:px-6 py-10 sm:py-16 max-w-4xl w-full mx-auto animate-fadeIn text-center space-y-10">
         {/* Chinese Prompt */}
-        <div className="space-y-3">
+        <div className="space-y-3 relative">
+          {wordPopup && (
+            <div className="absolute left-1/2 -translate-x-1/2 -top-12 z-40 bg-[#29466F] text-white px-6 py-2 flex items-center gap-3 animate-fadeIn w-max max-w-[90vw] flex-nowrap">
+              <span className="text-base font-extrabold whitespace-nowrap">{wordPopup.word}</span>
+              {wordPopup.meanings.length > 0 ? (
+                wordPopup.meanings.map((m, i) => (
+                  <span key={i} className="flex items-center gap-1.5 whitespace-nowrap">
+                    {m.pos && (
+                      <span className="text-xs font-semibold text-[#4F7DF3] bg-white/10 px-1.5 py-0.5 rounded">{m.pos}</span>
+                    )}
+                    <span className="text-sm text-white/90">{m.cn}</span>
+                  </span>
+                ))
+              ) : (
+                <span className="text-sm text-white/60">暂无释义</span>
+              )}
+            </div>
+          )}
           <h2 className="text-2xl sm:text-4xl font-extrabold text-[#29466F] tracking-tight leading-snug max-w-3xl mx-auto">
             {sentence?.translation || '暂无译文'}
           </h2>
@@ -566,7 +628,7 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
                             }
                           >{ch}</span>
                         ))}
-                        {ws.userInput.length === 0 && isFocused && (
+                        {ws.userInput.length === 0 && (
                           <span className="text-transparent select-none">&nbsp;</span>
                         )}
                       </div>
@@ -579,20 +641,20 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
                         onKeyDown={e => handleWordKeyDown(i, e)}
                         onBlur={() => { handleWordBlur(i); setFocusedWordIdx(null); }}
                         onFocus={() => setFocusedWordIdx(i)}
-                        onClick={() => playAudio(ws.correctWord)}
+                        onMouseDown={(e) => { e.preventDefault(); handleWordClick(ws.correctWord); }}
                         autoComplete="off"
                         autoCorrect="off"
                         autoCapitalize="off"
                         spellCheck="false"
-                        disabled={allCorrect || isCorrect}
+                        readOnly={isCorrect}
                         placeholder=""
-                        className={`absolute top-0 left-0 text-left font-bold text-2xl sm:text-3xl bg-transparent border-0 outline-none focus:ring-0 pb-5 p-0 m-0 box-border transition-colors z-10 ${
+                        className={`absolute top-0 left-0 text-left font-bold text-2xl sm:text-3xl bg-transparent border-0 outline-none focus:ring-0 pb-5 p-0 m-0 box-border transition-colors z-10 cursor-pointer ${
                           isBad ? 'animate-shake' : ''
-                        } ${isCorrect ? 'cursor-default' : 'cursor-pointer'}`}
+                        }`}
                         style={{
                           width: `${width}px`,
                           color: 'transparent',
-                          caretColor: '#6366f1',
+                          caretColor: isCorrect ? 'transparent' : '#6366f1',
                           lineHeight: 1.2,
                         }}
                       />

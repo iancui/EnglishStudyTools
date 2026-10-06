@@ -203,6 +203,7 @@ export const api = {
   getWordById: (id: string) => request<any>(`/api/words/${id}`),
   getWordPhonics: (id: string) => request<any[]>(`/api/words/${id}/phonics`),
   getWordMeanings: (id: string) => request<any[]>(`/api/words/${id}/meanings`),
+  lookupWord: (text: string) => request<any>(`/api/words/lookup?text=${encodeURIComponent(text)}`),
   markWordLearned: (id: string) => request<any>(`/api/words/${id}/learn`, { method: 'POST' }),
   checkWordAnswer: (id: string, answer: string, timeSpentSec = 5) =>
     request<{

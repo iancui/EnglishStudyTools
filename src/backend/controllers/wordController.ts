@@ -68,6 +68,20 @@ export class WordController {
     }
   }
 
+  static async lookupWord(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const text = (req.query.text as string) || '';
+      const data = await WordService.lookupByText(text);
+      res.json({
+        code: 200,
+        message: 'success',
+        data
+      });
+    } catch (e) {
+      next(e);
+    }
+  }
+
   static checkAnswer(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id || 'u-default';
