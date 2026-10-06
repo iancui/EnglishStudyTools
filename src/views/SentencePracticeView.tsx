@@ -55,6 +55,7 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
   const [hoveredWordIdx, setHoveredWordIdx] = useState<number | null>(null);
   const [focusedWordIdx, setFocusedWordIdx] = useState<number | null>(null);
   const [allCorrect, setAllCorrect] = useState(false);
+  const [practiceCompleted, setPracticeCompleted] = useState(false);
   const [wordPopup, setWordPopup] = useState<{ word: string; meanings: Array<{ pos: string; cn: string }> } | null>(null);
   const popupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -83,6 +84,7 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
       setLoading(true);
       setError(null);
       setAllCorrect(false);
+      setPracticeCompleted(data.status === 'COMPLETED');
       autoCheckedRef.current = false;
       const data = await api.getSentencePracticeSessionById(sessionId);
       if (!data) {
@@ -271,11 +273,24 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
       const res = await api.submitSentencePracticeAnswer(session!.id, fullAnswer);
 
       if (res.isCorrect) {
-        setAllCorrect(true);
-        playAudio(sentence?.content);
+        // The server is the source of truth for whether the whole practice
+        // session is finished. Do not wait for "继续下一句" on the last item.
+        const completed = Boolean(
+          res.sessionCompleted || res.session?.status === 'COMPLETED'
+        );
+
         if (res.session) {
           setSession(res.session);
         }
+
+        if (completed) {
+          setAllCorrect(false);
+          setPracticeCompleted(true);
+          return;
+        }
+
+        setAllCorrect(true);
+        playAudio(sentence?.content);
       } else {
         setWordStates(prev => prev.map(w => ({
           ...w,
@@ -323,6 +338,8 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
 
     // 已是完成状态：JSX 会渲染完成页，这里直接返回
     if (session.status === 'COMPLETED' || nextIdx >= session.totalCount) {
+      setAllCorrect(false);
+      setPracticeCompleted(true);
       return;
     }
 
@@ -423,7 +440,7 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
     );
   }
 
-  if (session.status === 'COMPLETED') {
+  if (practiceCompleted || session.status === 'COMPLETED') {
     return (
       <div className="min-h-screen bg-[#F7FAFF] flex flex-col">
         <ImmersionHeader
