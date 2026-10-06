@@ -274,7 +274,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             {/* 3. 句子练习设置 */}
             <div className="space-y-3 pt-6 border-t border-stone-100">
               <div>
-                <label className="text-base font-bold text-stone-900 block">2. 每次句子练习数量</label>
+                <label className="text-base font-bold text-stone-900 block">3. 每次句子练习数量</label>
                 <p className="text-xs text-stone-500 mt-0.5">首页点击“渐进句子”后直接开始练习，不再弹出设置窗口。</p>
               </div>
               <div className="grid grid-cols-4 gap-2">
