@@ -215,6 +215,7 @@ export interface SentencePracticeItem {
 export interface SentencePracticeSession {
   id: string;
   userId: string;
+  dictionaryId?: string;
   difficulty: string;
   totalCount: number;
   currentSentenceIndex: number;
