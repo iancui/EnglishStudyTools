@@ -175,6 +175,7 @@ export interface DictionaryConfig {
   id: string;
   userId: string;
   defaultDictionaryId?: string;
+  sentenceDictionaryId?: string;
   englishDict?: string;
   ecDict?: string;
   phoneticType: 'UK' | 'US';
