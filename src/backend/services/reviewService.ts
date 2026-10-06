@@ -110,18 +110,6 @@ export class ReviewService {
       })
       .map(p => p.wordId);
 
-    // If there are fewer than 5 due words, also pull in LEARNING words that haven't been reviewed much
-    const reviewWords = dueWordIds.map(id => db.findWordById(id)).filter(Boolean);
-
-    if (reviewWords.length < 5) {
-      const additional = allProgress
-        .filter(p => p.status === 'LEARNING' && !dueWordIds.includes(p.wordId))
-        .slice(0, 5 - reviewWords.length)
-        .map(p => db.findWordById(p.wordId))
-        .filter(Boolean);
-      return [...reviewWords, ...additional];
-    }
-
-    return reviewWords;
+    return dueWordIds.map(id => db.findWordById(id)).filter(Boolean);
   }
 }

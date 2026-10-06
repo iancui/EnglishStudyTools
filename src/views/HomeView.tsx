@@ -10,7 +10,8 @@ import {
   Flame,
   CheckCircle2,
   Clock,
-  Headphones
+  Headphones,
+  GraduationCap
 } from 'lucide-react';
 import { api } from '../api/client.ts';
 import { StatisticsData, StudySessionItem, SentencePracticeSession, SessionMode } from '../types/index.ts';
@@ -31,6 +32,10 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const [activeSentenceSession, setActiveSentenceSession] = useState<SentencePracticeSession | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // 今日复习：独立 state，加载成功才有值（避免闪烁先显示 0）
+  const [reviewWords, setReviewWords] = useState<any[] | null>(null);
+  const [reviewError, setReviewError] = useState<string | null>(null);
+
   useEffect(() => {
     loadHomeData();
   }, []);
@@ -50,6 +55,43 @@ export const HomeView: React.FC<HomeViewProps> = ({
       console.error('Failed to load home data:', e);
     } finally {
       setLoading(false);
+      // 今日复习独立加载，失败不影响主数据
+      loadReviewWords();
+    }
+  };
+
+  const loadReviewWords = async () => {
+    try {
+      setReviewError(null);
+      const words = await api.getTodayReview();
+      setReviewWords(words || []);
+    } catch (e) {
+      console.error('Failed to load today review:', e);
+      setReviewError('复习数据加载失败');
+    }
+  };
+
+  // 开始今日复习：用到期词直接创建 StudySession，不走 SetupModal
+  const handleStartTodayReview = async () => {
+    if (!reviewWords || reviewWords.length === 0) return;
+
+    // 保护已有 IN_PROGRESS Session
+    if (activeSession) {
+      const ok = window.confirm(
+        '已有一个正在进行的学习任务，开始今日复习会结束当前任务，是否继续？'
+      );
+      if (!ok) return;
+    }
+
+    try {
+      const wordIds = reviewWords.map((w) => w.id).filter(Boolean);
+      const session = await api.createStudySession({
+        wordIds,
+        mode: 'LEARN_AND_WRITE'
+      });
+      navigate(`/study/${session.id}`);
+    } catch (e: any) {
+      alert('创建今日复习任务失败：' + (e?.message || '未知错误'));
     }
   };
 
@@ -91,16 +133,31 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 </div>
               </div>
 
-              {activeSession ? (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#EBF2FE] text-[#4F7DF3] border border-[#D5E3FC]">
-                  <Flame className="w-3.5 h-3.5 fill-[#4F7DF3]" />
-                  <span>{activeSession.mode === 'WRITE_ONLY' ? '听写中' : '进行中'}</span>
-                </span>
-              ) : (
-                <span className="text-xs text-[#8BA0BD] font-medium bg-[#F7FAFF] px-2.5 py-1 rounded-lg">
-                  核心词库
-                </span>
-              )}
+              <div className="flex items-center gap-2">
+                {/* 今日到期徽章 */}
+                {reviewWords && reviewWords.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleStartTodayReview}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-600 border border-amber-200 hover:bg-amber-100 transition-colors cursor-pointer"
+                    title="点击开始今日复习"
+                  >
+                    <Clock className="w-3 h-3" />
+                    <span>今日到期 {reviewWords.length}</span>
+                  </button>
+                )}
+
+                {activeSession ? (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#EBF2FE] text-[#4F7DF3] border border-[#D5E3FC]">
+                    <Flame className="w-3.5 h-3.5 fill-[#4F7DF3]" />
+                    <span>{activeSession.mode === 'WRITE_ONLY' ? '听写中' : '进行中'}</span>
+                  </span>
+                ) : (
+                  <span className="text-xs text-[#8BA0BD] font-medium bg-[#F7FAFF] px-2.5 py-1 rounded-lg">
+                    核心词库
+                  </span>
+                )}
+              </div>
             </div>
 
             <p className="text-sm text-[#8BA0BD] leading-relaxed">
@@ -154,7 +211,19 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </div>
 
           {/* Action buttons */}
-          <div className="pt-6 border-t border-[#E7EEF8] mt-6">
+          <div className="pt-6 border-t border-[#E7EEF8] mt-6 space-y-3">
+            {reviewWords !== null && reviewWords.length > 0 && (
+              <button
+                type="button"
+                onClick={handleStartTodayReview}
+                className="w-full py-3.5 px-6 bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white font-bold rounded-2xl transition-all shadow-xs flex items-center justify-center gap-2 text-sm select-none cursor-pointer"
+              >
+                <Clock className="w-4 h-4" />
+                <span>📚 开始今日复习 · {reviewWords.length} 个到期词</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            )}
+
             {activeSession ? (
               <div className="flex flex-wrap items-center gap-3">
                 <button
@@ -326,8 +395,41 @@ export const HomeView: React.FC<HomeViewProps> = ({
         </div>
       </div>
 
-      {/* Auxiliary Learning Shortcuts (单词听写、错词本、学习记录、设置) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Auxiliary Learning Shortcuts (今日复习、单词听写、错词本、学习记录、设置) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        {/* Entry: 今日复习 (辅助入口) */}
+        {reviewWords !== null && (
+          <button
+            type="button"
+            onClick={handleStartTodayReview}
+            disabled={reviewWords.length === 0}
+            className={`p-5 rounded-2xl bg-white border transition-all text-left flex items-center justify-between group shadow-2xs cursor-pointer ${
+              reviewWords.length > 0
+                ? 'border-amber-200 hover:border-amber-400 hover:bg-amber-50'
+                : 'border-[#E7EEF8] opacity-60 cursor-default'
+            }`}
+          >
+            <div className="flex items-center gap-3.5">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                reviewWords.length > 0 ? 'bg-amber-50 text-amber-600' : 'bg-[#F7FAFF] text-[#8BA0BD]'
+              }`}>
+                <GraduationCap className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="font-bold text-[#29466F] text-sm">今日复习</div>
+                <div className="text-xs text-[#8BA0BD] mt-0.5">
+                  {reviewWords.length > 0
+                    ? `有 ${reviewWords.length} 个单词需要复习`
+                    : '✓ 今日暂无待复习'}
+                </div>
+              </div>
+            </div>
+            {reviewWords.length > 0 && (
+              <span className="text-xs text-[#8BA0BD] group-hover:text-amber-600 group-hover:translate-x-1 transition-transform">→</span>
+            )}
+          </button>
+        )}
+
         {/* Entry: 单词听写 (辅助训练入口) */}
         <button
           type="button"
