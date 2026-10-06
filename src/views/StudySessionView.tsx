@@ -29,6 +29,7 @@ interface StudySessionViewProps {
   config: any;
 }
 
+let renderCount = 0;
 export const StudySessionView: React.FC<StudySessionViewProps> = ({
   sessionId,
   navigate,
@@ -37,15 +38,12 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
   const [session, setSession] = useState<StudySessionItem | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Current word state: 'LEARN' vs 'WRITE'
   const [wordStep, setWordStep] = useState<'LEARN' | 'WRITE'>('LEARN');
 
-  // Learn stage states
   const [showPhonics, setShowPhonics] = useState(false);
   const [audioSpeed, setAudioSpeed] = useState<'normal' | 'slow'>('normal');
   const [isSpeaking, setIsSpeaking] = useState(false);
 
-  // Write stage states
   const [userInput, setUserInput] = useState('');
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [showCompletionScreen, setShowCompletionScreen] = useState(false);
@@ -56,22 +54,39 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
   } | null>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
+  const isFirstLoadRef = useRef(true);
+  const loadingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  renderCount++;
+  console.log(`[StudySessionView] #${renderCount} render`, {
+    sessionId, loading, hasSession: !!session, wordStep,
+    mode: session?.mode, currentIdx: session?.currentWordIndex,
+    isFirstLoad: isFirstLoadRef.current,
+  });
 
   useEffect(() => {
+    console.log('[StudySessionView] useEffect [sessionId] triggered, sessionId=', sessionId);
+    isFirstLoadRef.current = true;
     loadSession();
   }, [sessionId]);
 
   const loadSession = async () => {
+    console.log('[StudySessionView] loadSession START');
     try {
-      setLoading(true);
+      loadingTimerRef.current = setTimeout(() => setLoading(true), 150);
       const data = await api.getStudySessionById(sessionId);
+      if (loadingTimerRef.current) {
+        clearTimeout(loadingTimerRef.current);
+        loadingTimerRef.current = null;
+      }
+      console.log('[StudySessionView] loadSession API OK, about to setState');
+      setLoading(false);
       setSession(data);
 
       if (data.status === 'COMPLETED' && data.completedCount >= data.totalCount) {
         setShowCompletionScreen(true);
       }
 
-      // Determine initial wordStep based on session mode and current word's progress
       if (data.mode === 'WRITE_ONLY') {
         setWordStep('WRITE');
       } else {
@@ -83,34 +98,42 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
         }
       }
     } catch (e) {
-      console.error(e);
-    } finally {
+      if (loadingTimerRef.current) {
+        clearTimeout(loadingTimerRef.current);
+        loadingTimerRef.current = null;
+      }
       setLoading(false);
+      console.error(e);
     }
   };
 
   const currentSessionWord = session?.words[session.currentWordIndex];
   const wordData = currentSessionWord?.word;
 
-  // Reset write form when word or step changes
   useEffect(() => {
     if (wordStep === 'WRITE') {
       setUserInput('');
       setHasSubmitted(false);
       setWriteResult(null);
       setTimeout(() => inputRef.current?.focus(), 150);
-
-      // Auto play audio on new word if in WRITE_ONLY dictation mode
-      if (session?.mode === 'WRITE_ONLY' && wordData) {
-        playWordAudio('normal');
-      }
     } else {
       setShowPhonics(false);
-      if (wordData) {
-        playWordAudio('normal');
-      }
     }
-  }, [session?.currentWordIndex, wordStep, session?.mode]);
+  }, [wordStep]);
+
+  useEffect(() => {
+    if (isFirstLoadRef.current) {
+      isFirstLoadRef.current = false;
+      return;
+    }
+    if (!wordData) return;
+
+    if (session?.mode === 'WRITE_ONLY') {
+      playWordAudio('normal');
+    } else if (wordStep === 'LEARN') {
+      playWordAudio('normal');
+    }
+  }, [session?.currentWordIndex]);
 
   const playWordAudio = useCallback(async (speed: 'normal' | 'slow' = audioSpeed) => {
     if (!wordData) return;

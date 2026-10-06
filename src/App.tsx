@@ -18,6 +18,7 @@ import { AuthModal } from './views/AuthModal.tsx';
 import { api, authStorage } from './api/client.ts';
 import { DictionaryConfig, SessionMode } from './types/index.ts';
 
+let appRenderCount = 0;
 export default function App() {
   const [currentRoute, setCurrentRoute] = useState<string>(() => {
     return window.location.pathname || '/';
@@ -40,6 +41,9 @@ export default function App() {
     enablePhonics: true
   });
 
+  appRenderCount++;
+  console.log(`[App] #${appRenderCount} render`, { route: currentRoute, hasUser: !!user, configDefaultDict: config.defaultDictionaryId });
+
   const navigate = useCallback((route: string) => {
     const target = route.startsWith('/') ? route : `/${route}`;
     window.history.pushState({}, '', target);
@@ -61,11 +65,17 @@ export default function App() {
     try {
       const cfg = await api.getDictionaryConfig();
       if (cfg) {
-        setConfig(cfg);
+        setConfig(prev => {
+          if (JSON.stringify(prev) === JSON.stringify(cfg)) return prev;
+          return cfg;
+        });
       }
       const currentUser = await api.getCurrentUser();
       if (currentUser) {
-        setUser(currentUser);
+        setUser((prev: any) => {
+          if (JSON.stringify(prev) === JSON.stringify(currentUser)) return prev;
+          return currentUser;
+        });
         authStorage.setUser(currentUser);
       }
     } catch (e) {

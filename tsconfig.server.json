@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": ".server-build",
+    "rootDir": ".",
+    "rewriteRelativeImportExtensions": true,
+    "types": ["node"]
+  },
+  "include": ["server.ts", "src/backend/**/*"]
+}

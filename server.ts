@@ -1,14 +1,10 @@
 import express from 'express';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import { apiRouter } from './src/backend/routes/index.ts';
 import { errorHandler } from './src/backend/middleware/errorHandler.ts';
 
 dotenv.config();
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 async function startServer() {
   const app = express();
@@ -33,7 +29,7 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     // In production, serve built dist files
-    const distPath = path.resolve(__dirname, 'dist');
+    const distPath = path.resolve(process.cwd(), 'dist');
     app.use(express.static(distPath));
     app.get('*', (req, res) => {
       res.sendFile(path.resolve(distPath, 'index.html'));
