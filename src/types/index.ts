@@ -180,6 +180,7 @@ export interface DictionaryConfig {
   phoneticType: 'UK' | 'US';
   audioType: 'UK' | 'US';
   enablePhonics: boolean;
+  sentencePracticeCount?: number;
 }
 
 export interface StatisticsData {
