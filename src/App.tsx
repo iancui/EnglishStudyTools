@@ -281,6 +281,7 @@ export default function App() {
           onSessionStarted={handleSessionStarted}
           initialDictionaryId={setupInitialDictId}
           initialMode={setupInitialMode}
+          config={config}
         />
 
         <SentencePracticeSetupModal

@@ -31,7 +31,7 @@ export const SentenceListView: React.FC<SentenceListViewProps> = ({ navigate }) 
     return (
       <div className="max-w-4xl mx-auto px-4 py-24 text-center">
         <div className="w-10 h-10 border-4 border-amber-400 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-        <p className="text-stone-500 text-sm">正在加载渐进式句子库...</p>
+        <p className="text-stone-500 text-sm">正在加载学语句库...</p>
       </div>
     );
   }
@@ -44,7 +44,7 @@ export const SentenceListView: React.FC<SentenceListViewProps> = ({ navigate }) 
           特色功能 · 渐进式认知构建
         </div>
         <h1 className="text-3xl sm:text-4xl font-bold text-stone-900 tracking-tight">
-          渐进式句子学习
+          学语句学习
         </h1>
         <p className="text-stone-600 text-sm sm:text-base leading-relaxed max-w-2xl">
           打破“死记长句”的枯燥模式：从核心词汇、功能短语、句型骨架到完整语境，逐步递增，配有句法语法成分精解。

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { X, Play, BookOpen, Shuffle, ListOrdered, RotateCcw, Check, Sparkles, Headphones } from 'lucide-react';
 import { api } from '../api/client.ts';
-import { DictionaryItem, SessionMode } from '../types/index.ts';
+import { DictionaryItem, SessionMode, DictionaryConfig } from '../types/index.ts';
 
 interface StudySetupModalProps {
   isOpen: boolean;
@@ -9,6 +9,7 @@ interface StudySetupModalProps {
   onSessionStarted: (sessionId: string) => void;
   initialDictionaryId?: string;
   initialMode?: SessionMode;
+  config?: DictionaryConfig;
 }
 
 export const StudySetupModal: React.FC<StudySetupModalProps> = ({
@@ -16,10 +17,10 @@ export const StudySetupModal: React.FC<StudySetupModalProps> = ({
   onClose,
   onSessionStarted,
   initialDictionaryId,
-  initialMode = 'LEARN_AND_WRITE'
+  initialMode = 'LEARN_AND_WRITE',
+  config
 }) => {
   const [dictionaries, setDictionaries] = useState<DictionaryItem[]>([]);
-  const [selectedDictId, setSelectedDictId] = useState<string>(initialDictionaryId || '');
   const [mode, setMode] = useState<SessionMode>(initialMode);
   const [count, setCount] = useState<number>(20);
   const [excludeMastered, setExcludeMastered] = useState<boolean>(true);
@@ -32,6 +33,8 @@ export const StudySetupModal: React.FC<StudySetupModalProps> = ({
   const [loadingPreview, setLoadingPreview] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  const selectedDictId = config?.defaultDictionaryId || initialDictionaryId || '';
 
   useEffect(() => {
     if (isOpen) {
@@ -46,15 +49,11 @@ export const StudySetupModal: React.FC<StudySetupModalProps> = ({
     try {
       const list = await api.getDictionaries();
       setDictionaries(list);
-      if (list.length > 0 && !selectedDictId) {
-        setSelectedDictId(initialDictionaryId || list[0].id);
-      }
     } catch (e) {
       console.error(e);
     }
   };
 
-  // Update preview whenever parameters change
   useEffect(() => {
     if (!selectedDictId) return;
     const fetchPreview = async () => {
@@ -103,6 +102,8 @@ export const StudySetupModal: React.FC<StudySetupModalProps> = ({
 
   const countOptions = [10, 20, 30, 50];
 
+  const currentDictName = dictionaries.find(d => d.id === selectedDictId)?.name;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fadeIn">
       <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl relative border border-stone-100 max-h-[90vh] overflow-y-auto">
@@ -135,7 +136,23 @@ export const StudySetupModal: React.FC<StudySetupModalProps> = ({
         )}
 
         <div className="space-y-6">
-          {/* 0. Mode Selection */}
+          {/* Current Dictionary Info */}
+          <div className="flex items-center justify-between p-3 rounded-xl bg-[#F7FAFF] border border-[#E7EEF8]">
+            <div className="flex items-center gap-2.5">
+              <BookOpen className="w-4 h-4 text-[#4F7DF3]" />
+              <div>
+                <div className="text-[11px] text-[#8BA0BD]">当前使用辞书</div>
+                <div className="text-sm font-bold text-[#29466F]">
+                  {currentDictName || '默认辞书'}
+                </div>
+              </div>
+            </div>
+            <span className="text-[10px] text-[#4F7DF3] bg-[#EBF2FE] px-2 py-0.5 rounded-full font-medium">
+              设置中心可修改
+            </span>
+          </div>
+
+          {/* 1. Mode Selection */}
           <div className="space-y-2">
             <label className="text-xs font-bold text-[#29466F] uppercase">
               1. 学习模式
@@ -183,30 +200,10 @@ export const StudySetupModal: React.FC<StudySetupModalProps> = ({
             </div>
           </div>
 
-          {/* 1. Dictionary Selection */}
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-[#29466F] uppercase">
-              2. 选择学习辞书
-            </label>
-            <div className="relative">
-              <select
-                value={selectedDictId}
-                onChange={e => setSelectedDictId(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 text-sm font-medium text-stone-900 focus:bg-white focus:border-[#4F7DF3] outline-none transition-all cursor-pointer"
-              >
-                {dictionaries.map(d => (
-                  <option key={d.id} value={d.id}>
-                    {d.name} ({d.wordCount || 0} 词) {d.isSystem ? '· [系统辞书]' : '· [我的辞书]'}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
           {/* 2. Count Selection */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs">
-              <span className="font-bold text-[#29466F] uppercase">3. 单词数量</span>
+              <span className="font-bold text-[#29466F] uppercase">2. 单词数量</span>
               <span className="text-[#8BA0BD] font-mono">当前选择: {count} 词</span>
             </div>
             <div className="grid grid-cols-4 gap-2">
@@ -230,7 +227,7 @@ export const StudySetupModal: React.FC<StudySetupModalProps> = ({
           {/* 3. Sort Mode */}
           <div className="space-y-2">
             <label className="text-xs font-bold text-[#29466F] uppercase block">
-              4. 排序策略
+              3. 排序策略
             </label>
             <div className="grid grid-cols-3 gap-2 text-xs">
               <button

@@ -259,7 +259,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   2. 音标显示偏好
                 </label>
                 <p className="text-xs text-stone-500 mt-0.5">
-                  设定学单词、背写与渐进句子中的首选国际音标体系。
+                  设定学单词、背写与学语句中的首选国际音标体系。
                 </p>
               </div>
 

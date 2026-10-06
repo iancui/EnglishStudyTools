@@ -270,7 +270,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
         </div>
 
         {/* ============================================================ */}
-        {/* 入口 2：渐进句子 (从短语到完整句子) */}
+        {/* 入口 2：学语句 (从短语到完整句子) */}
         {/* ============================================================ */}
         <div className="bg-white border border-[#E7EEF8] hover:border-[#4F7DF3]/40 rounded-3xl p-7 sm:p-8 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group">
           <div className="space-y-5">
@@ -281,7 +281,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold text-[#29466F] tracking-tight">
-                    渐进句子
+                    学语句
                   </h2>
                   <p className="text-xs font-semibold text-[#8BA0BD] mt-0.5">
                     从短语逐步输入到完整句子

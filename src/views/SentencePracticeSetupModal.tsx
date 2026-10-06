@@ -107,7 +107,7 @@ export const SentencePracticeSetupModal: React.FC<SentencePracticeSetupModalProp
             </div>
             <div>
               <h2 className="text-xl font-bold text-stone-900 font-serif">
-                渐进句子练习设置
+                学语句练习设置
               </h2>
               <p className="text-xs text-stone-500">
                 从短语逐步输入到完整句子重建

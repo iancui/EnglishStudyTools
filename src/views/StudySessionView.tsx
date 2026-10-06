@@ -461,10 +461,6 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
           <div className="w-full text-center space-y-8 sm:space-y-10">
             {/* Word Typography & Phonetic with Audio */}
             <div className="space-y-4">
-              <span className="text-xs uppercase font-bold tracking-widest text-[#4F7DF3] bg-[#EBF2FE] px-3.5 py-1 rounded-full">
-                {primaryMeaning?.pos || wordData.pos || 'VOCABULARY'}
-              </span>
-
               {/* Dominant Word Typography */}
               <h1 className="text-5xl sm:text-7xl font-extrabold tracking-tight text-[#29466F]">
                 {wordData.text}
@@ -551,7 +547,7 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
             </div>
 
             {/* CTA: Proceed to Write Step for this word */}
-            <div className="pt-2">
+            <div className="pt-2 flex flex-col items-center gap-2">
               <button
                 onClick={handleProceedToWrite}
                 className="w-48 py-4 bg-[#4F7DF3] hover:bg-[#3D6CE5] active:scale-95 text-white font-bold rounded-2xl transition-all shadow-xs flex items-center justify-center gap-2 text-base mx-auto cursor-pointer"
@@ -559,6 +555,10 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
                 <span>进入背写</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
+              <span className="text-[10px] text-[#8BA0BD] flex items-center gap-1">
+                <kbd className="px-1.5 py-0.5 rounded bg-[#EBF2FE] text-[#4F7DF3] font-mono font-semibold">Space</kbd>
+                快捷进入背写
+              </span>
             </div>
 
             {/* Examples — moved below CTA */}
@@ -692,7 +692,7 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
                         className="py-3.5 px-6 bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-bold rounded-2xl transition-all text-xs sm:text-sm flex items-center gap-2 shadow-xs cursor-pointer"
                       >
                         <RotateCcw className="w-4 h-4" />
-                        <span>重新输入本词 (Enter)</span>
+                        <span>重新输入本词 (Enter / Space)</span>
                       </button>
                     ) : (
                       <button
@@ -704,6 +704,7 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
                           {session.currentWordIndex === session.totalCount - 1
                             ? (session.mode === 'WRITE_ONLY' ? '完成听写任务' : '完成学习任务')
                             : '下一个单词'}
+                          <span className="ml-1 opacity-70">(Space)</span>
                         </span>
                         <ArrowRight className="w-4 h-4" />
                       </button>

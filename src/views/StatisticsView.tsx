@@ -154,7 +154,7 @@ export const StatisticsView: React.FC<StatisticsViewProps> = ({ navigate }) => {
         </div>
 
         <div className="bg-white border border-stone-200 rounded-2xl p-5 space-y-1">
-          <div className="text-xs text-stone-500">今日渐进句子</div>
+          <div className="text-xs text-stone-500">今日学语句</div>
           <div className="text-3xl font-bold font-mono text-sky-700">
             {stats?.todaySentences ?? 0}
           </div>
@@ -191,7 +191,7 @@ export const StatisticsView: React.FC<StatisticsViewProps> = ({ navigate }) => {
           onClick={() => navigate('/sentences')}
           className="px-6 py-3 bg-stone-100 text-stone-800 rounded-xl text-sm font-semibold hover:bg-stone-200 transition-colors"
         >
-          探索渐进句子
+          探索学语句
         </button>
       </div>
     </div>

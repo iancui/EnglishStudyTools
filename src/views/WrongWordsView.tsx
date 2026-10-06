@@ -38,8 +38,17 @@ export const WrongWordsView: React.FC<WrongWordsViewProps> = ({ navigate, config
       setLoading(true);
       const data = await api.getWrongWords();
       setWords(data);
-      // Default: select all words
-      setSelectedWordIds(data.map(w => w.id));
+      if (data.length > 0) {
+        const count = Math.min(5, data.length);
+        const shuffled = [...data];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        setSelectedWordIds(shuffled.slice(0, count).map(w => w.id));
+      } else {
+        setSelectedWordIds([]);
+      }
     } catch (e) {
       console.error(e);
     } finally {
@@ -160,7 +169,7 @@ export const WrongWordsView: React.FC<WrongWordsViewProps> = ({ navigate, config
           </div>
           <h3 className="text-xl font-bold text-[#29466F]">太棒了，目前暂无错词！</h3>
           <p className="text-[#8BA0BD] text-sm max-w-sm mx-auto">
-            你在背诵中展现了出色的准确度。继续保持，去学习新的单词或渐进句子吧。
+            你在背诵中展现了出色的准确度。继续保持，去学习新的单词或学语句吧。
           </p>
           <div className="pt-2 flex justify-center gap-3">
             <button
@@ -266,27 +275,25 @@ export const WrongWordsView: React.FC<WrongWordsViewProps> = ({ navigate, config
                     随机 5 词
                   </button>
 
-                  {words.length >= 10 && (
-                    <button
-                      type="button"
-                      onClick={() => handleRandomSelect(10)}
-                      className="px-2.5 py-1.5 rounded-xl border border-[#D5E3FC] bg-[#EBF2FE] hover:bg-[#DCEBFE] text-[#4F7DF3] font-bold transition-all cursor-pointer shadow-2xs"
-                      title="随机选择 10 个错词"
-                    >
-                      随机 10 词
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleRandomSelect(10)}
+                    disabled={words.length < 10}
+                    className="px-2.5 py-1.5 rounded-xl border border-[#D5E3FC] bg-[#EBF2FE] hover:bg-[#DCEBFE] text-[#4F7DF3] font-bold transition-all cursor-pointer shadow-2xs disabled:opacity-40 disabled:cursor-not-allowed disabled:border-[#E7EEF8] disabled:text-[#8BA0BD] disabled:hover:bg-[#EBF2FE]"
+                    title={words.length < 10 ? `仅 ${words.length} 个错词` : '随机选择 10 个错词'}
+                  >
+                    随机 10 词
+                  </button>
 
-                  {words.length >= 20 && (
-                    <button
-                      type="button"
-                      onClick={() => handleRandomSelect(20)}
-                      className="px-2.5 py-1.5 rounded-xl border border-[#D5E3FC] bg-[#EBF2FE] hover:bg-[#DCEBFE] text-[#4F7DF3] font-bold transition-all cursor-pointer shadow-2xs"
-                      title="随机选择 20 个错词"
-                    >
-                      随机 20 词
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleRandomSelect(20)}
+                    disabled={words.length < 20}
+                    className="px-2.5 py-1.5 rounded-xl border border-[#D5E3FC] bg-[#EBF2FE] hover:bg-[#DCEBFE] text-[#4F7DF3] font-bold transition-all cursor-pointer shadow-2xs disabled:opacity-40 disabled:cursor-not-allowed disabled:border-[#E7EEF8] disabled:text-[#8BA0BD] disabled:hover:bg-[#EBF2FE]"
+                    title={words.length < 20 ? `仅 ${words.length} 个错词` : '随机选择 20 个错词'}
+                  >
+                    随机 20 词
+                  </button>
 
                   <button
                     type="button"

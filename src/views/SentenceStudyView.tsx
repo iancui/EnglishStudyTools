@@ -93,7 +93,7 @@ export const SentenceStudyView: React.FC<SentenceStudyViewProps> = ({
     return (
       <div className="max-w-3xl mx-auto px-4 py-24 text-center">
         <div className="w-10 h-10 border-4 border-amber-400 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-        <p className="text-stone-500 text-sm">正在加载渐进式句子...</p>
+        <p className="text-stone-500 text-sm">正在加载学语句...</p>
       </div>
     );
   }
