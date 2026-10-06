@@ -520,6 +520,74 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
 
   const allWordsCorrect = wordStates.length > 0 && wordStates.every(w => w.correct);
 
+  // 答题成功后直接显示独立结果页，避免结果内容和输入界面同时存在。
+  if (allCorrect && sentence?.content) {
+    return (
+      <div className="min-h-screen bg-[#F7FAFF] flex flex-col text-[#29466F]">
+        <ImmersionHeader
+          title="学语句"
+          subtitle="完成本句"
+          currentIndex={currentSentenceIndex + 1}
+          totalCount={session.totalCount}
+          onExit={() => navigate('/')}
+          rightExtra={
+            <span className="text-xs font-bold font-mono text-[#4F7DF3] bg-[#EBF2FE] px-2.5 py-1 rounded-lg">
+              {session.difficulty}
+            </span>
+          }
+        />
+        <main className="flex-1 w-full flex flex-col items-center justify-center px-4 sm:px-6 py-10 animate-fadeIn">
+          <div className="w-full max-w-5xl text-center">
+            <h2 className="text-2xl sm:text-4xl font-extrabold text-[#29466F] tracking-tight leading-snug mb-10">
+              {sentence.translation || '暂无译文'}
+            </h2>
+
+            <div className="flex flex-wrap justify-center items-stretch gap-4 sm:gap-6">
+              {wordTokens.map((tok, i) => {
+                const correctWord = tok.original;
+                const info = resultWordInfo[tok.word];
+                return (
+                  <div
+                    key={i}
+                    className="min-w-[120px] sm:min-w-[140px] px-5 sm:px-7 py-4 sm:py-5 rounded-2xl bg-[#EBF2FE] border border-white shadow-sm"
+                  >
+                    <div className="text-xs sm:text-sm font-semibold text-[#8BA0BD] min-h-[1.25rem]">
+                      {info?.phonetic || ' '}
+                    </div>
+                    <div className="text-3xl sm:text-4xl font-extrabold text-[#29466F] tracking-tight mt-1">
+                      {correctWord}{tok.punctAfter}
+                    </div>
+                    <div className="text-sm sm:text-base font-semibold text-[#8BA0BD] mt-2 min-h-[1.5rem]">
+                      {info?.meaning || ' '}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => playAudio(correctWord)}
+                      className="mt-3 mx-auto w-8 h-8 rounded-full bg-white text-[#4F7DF3] hover:bg-[#4F7DF3] hover:text-white flex items-center justify-center transition-colors shadow-xs"
+                      title="再来一遍"
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="mt-12 flex justify-center">
+              <button
+                type="button"
+                onClick={handleNext}
+                className="min-w-[220px] px-10 py-4 bg-[#4F7DF3] hover:bg-[#3D6CE5] active:scale-95 text-white font-bold rounded-2xl transition-all shadow-xs text-base"
+              >
+                {currentSentenceIndex + 1 >= session.totalCount ? '完成' : '继续'}
+              </button>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#F7FAFF] flex flex-col text-[#29466F]">
       <ImmersionHeader
@@ -570,82 +638,6 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
             </button>
           </div>
         </div>
-
-        {/* SUCCESS STATE: All words correct */}
-        {allCorrect && sentence?.content && (
-          <div className="w-full max-w-3xl space-y-6 animate-fadeIn">
-            <div className="flex flex-wrap justify-center gap-x-3 gap-y-8 py-6">
-              {wordTokens.map((tok, i) => {
-                const correctWord = tok.original;
-                const wordId = 'sentence-word-' + i;
-                return (
-                  <div
-                    key={i}
-                    className="relative group"
-                    onMouseEnter={() => setHoveredWordIdx(i)}
-                    onMouseLeave={() => setHoveredWordIdx(null)}
-                  >
-                    <div className="px-5 sm:px-7 py-3 sm:py-4 rounded-2xl bg-[#EBF2FE] border border-white shadow-sm min-w-[110px]">
-                        <div className="text-xs sm:text-sm font-semibold text-[#8BA0BD] mb-1">{resultWordInfo[tok.word]?.phonetic || ' '}</div>
-                        <div className="text-3xl sm:text-4xl font-extrabold text-[#29466F] tracking-tight select-none">{correctWord}{tok.punctAfter}</div>
-                        <div className="text-sm sm:text-base font-semibold text-[#8BA0BD] mt-1 min-h-[1.25rem]">{resultWordInfo[tok.word]?.meaning || ' '}</div>
-                      {correctWord}{tok.punctAfter}
-                    </div>
-
-                    {hoveredWordIdx === i && (
-                      <div className="absolute left-1/2 -translate-x-1/2 -top-20 z-30 bg-[#29466F] text-white rounded-2xl px-4 py-2.5 shadow-2xl min-w-[140px] whitespace-nowrap animate-fadeIn">
-                        <div className="text-xs text-[#4F7DF3] font-semibold mb-1">
-                          词性 · 释义
-                        </div>
-                        <div className="text-sm font-semibold">
-                          {correctWord}
-                        </div>
-                        <div className="text-[11px] text-[#8BA0BD] mt-1">
-                          点击下方图标播放 / 加入生词本
-                        </div>
-                        <div className="absolute left-1/2 -translate-x-1/2 -bottom-1.5 w-3 h-3 bg-[#29466F] rotate-45"></div>
-                      </div>
-                    )}
-
-                    <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const lang = config?.audioType === 'US' ? 'en-US' : 'en-GB';
-                          SpeechPlayer.speak(correctWord, { lang });
-                        }}
-                        className="w-6 h-6 rounded-full bg-[#EBF2FE] text-[#4F7DF3] hover:bg-[#4F7DF3] hover:text-white flex items-center justify-center transition-colors"
-                        title="播放单词发音"
-                      >
-                        <Volume2 className="w-3 h-3" />
-                      </button>
-                      <AddToDictionaryButton
-                        word={{ text: correctWord, id: wordId } as any}
-                        variant="compact"
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="pt-4 flex flex-col items-center gap-3">
-              <button
-                type="button"
-                onClick={() => playAudio(sentence?.content)}
-                className="w-48 py-4 bg-[#4F7DF3] hover:bg-[#3D6CE5] active:scale-95 text-white font-bold rounded-2xl transition-all shadow-xs flex items-center justify-center gap-2 text-base cursor-pointer"
-              >
-                <span>再来一遍</span>
-                <RotateCcw className="w-4 h-4" />
-              </button>
-              <span className="text-[10px] text-[#8BA0BD] flex items-center gap-1">
-                <kbd className="px-1.5 py-0.5 rounded bg-[#EBF2FE] text-[#4F7DF3] font-mono font-semibold">Space</kbd>
-                快捷继续
-              </span>
-            </div>
-          </div>
-        )}
 
         {/* INPUT STATE */}
         {!allCorrect && (
