@@ -12,12 +12,13 @@ import { authMiddleware, requireAdmin } from '../middleware/authMiddleware.ts';
 
 export const apiRouter = Router();
 
-// Apply auth middleware for context
-apiRouter.use(authMiddleware);
-
-// Auth
-apiRouter.get('/auth/captcha', AuthController.captcha);\napiRouter.post('/auth/register', AuthController.register);
+// Public authentication endpoints
+apiRouter.get('/auth/captcha', AuthController.captcha);
+apiRouter.post('/auth/register', AuthController.register);
 apiRouter.post('/auth/login', AuthController.login);
+
+// All business APIs require authentication
+apiRouter.use(authMiddleware);
 apiRouter.get('/auth/me', AuthController.getCurrentUser);
 
 // Dictionaries (User & Public)
