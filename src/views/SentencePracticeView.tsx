@@ -222,7 +222,7 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
   const handleWordKeyDown = (idx: number, e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      handleCheck();
+      return;
     } else if (e.key === 'Backspace' && wordStates[idx].userInput === '' && idx > 0) {
       e.preventDefault();
       const prevIdx = idx - 1;
@@ -297,7 +297,6 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
           pendingNextSessionRef.current = res.session;
         }
         setAllCorrect(true);
-        playAudio(sentence?.content);
       } else {
         setWordStates(prev => prev.map(w => ({
           ...w,
