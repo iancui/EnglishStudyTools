@@ -283,11 +283,11 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate('/')}
-            className="text-xs text-stone-500 hover:text-stone-900 transition-colors flex items-center gap-1 font-medium"
-            title="退出当前学习，进度将自动暂存"
+            className="text-xs text-stone-700 hover:text-stone-950 transition-colors flex items-center gap-1.5 font-semibold px-3 py-1.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 shadow-2xs"
+            title="退出当前学习，进度已实时自动暂存"
           >
-            <ChevronLeft className="w-4 h-4" />
-            <span>暂存返回</span>
+            <ChevronLeft className="w-4 h-4 text-stone-500" />
+            <span>暂存并返回</span>
           </button>
           <span className="text-stone-300">|</span>
           <span className="text-xs text-stone-600 font-medium">

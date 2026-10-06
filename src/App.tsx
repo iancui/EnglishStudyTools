@@ -11,6 +11,7 @@ import { WrongWordsView } from './views/WrongWordsView.tsx';
 import { StatisticsView } from './views/StatisticsView.tsx';
 import { DictionarySettingsView } from './views/DictionarySettingsView.tsx';
 import { UserSettingsView } from './views/UserSettingsView.tsx';
+import { SettingsView } from './views/SettingsView.tsx';
 import { AuthModal } from './views/AuthModal.tsx';
 import { api, authStorage } from './api/client.ts';
 import { DictionaryConfig } from './types/index.ts';
@@ -162,11 +163,39 @@ export default function App() {
     }
 
     if (currentRoute === '/settings/dictionary') {
-      return <DictionarySettingsView navigate={navigate} onConfigUpdated={setConfig} />;
+      return (
+        <SettingsView
+          initialTab="learning"
+          user={user}
+          onLogout={handleLogout}
+          navigate={navigate}
+          onConfigUpdated={setConfig}
+        />
+      );
     }
 
-    if (currentRoute === '/settings') {
-      return <UserSettingsView user={user} onLogout={handleLogout} navigate={navigate} />;
+    if (currentRoute === '/settings/my-dictionaries') {
+      return (
+        <SettingsView
+          initialTab="my-dictionaries"
+          user={user}
+          onLogout={handleLogout}
+          navigate={navigate}
+          onConfigUpdated={setConfig}
+        />
+      );
+    }
+
+    if (currentRoute.startsWith('/settings')) {
+      return (
+        <SettingsView
+          initialTab="learning"
+          user={user}
+          onLogout={handleLogout}
+          navigate={navigate}
+          onConfigUpdated={setConfig}
+        />
+      );
     }
 
     return (
@@ -177,6 +206,35 @@ export default function App() {
     );
   };
 
+  // Independent Study Session Page: Absolutely NO normal Navbar and NO normal Footer!
+  if (currentRoute.startsWith('/study/')) {
+    const sessionId = currentRoute.split('/')[2];
+    return (
+      <div className="min-h-screen bg-[#FDFBF7] text-stone-900 flex flex-col font-sans selection:bg-amber-200">
+        <main className="flex-1">
+          <StudySessionView
+            sessionId={sessionId}
+            navigate={navigate}
+            config={config}
+          />
+        </main>
+
+        <StudySetupModal
+          isOpen={isStudySetupOpen}
+          onClose={() => setIsStudySetupOpen(false)}
+          onSessionStarted={handleSessionStarted}
+          initialDictionaryId={setupInitialDictId}
+        />
+
+        <AuthModal
+          isOpen={isAuthOpen}
+          onClose={() => setIsAuthOpen(false)}
+          onSuccess={u => setUser(u)}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#FDFBF7] text-stone-900 flex flex-col font-sans selection:bg-amber-200">
       <Navbar
@@ -184,7 +242,6 @@ export default function App() {
         navigate={navigate}
         user={user}
         onOpenAuth={() => setIsAuthOpen(true)}
-        onOpenStudySetup={() => handleOpenStudySetup()}
         config={config}
       />
 

@@ -122,7 +122,6 @@ export const AddToDictionaryButton: React.FC<AddToDictionaryButtonProps> = ({
               : 'text-stone-400 hover:text-amber-500'
           }`}
         />
-        <span>{isCollected ? `已加入我的辞书 (${addedCount})` : '☆ 加入我的辞书'}</span>
       </button>
     );
   }

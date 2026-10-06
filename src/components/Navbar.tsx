@@ -6,17 +6,15 @@ interface NavbarProps {
   navigate: (route: string) => void;
   user: any;
   onOpenAuth: () => void;
-  onOpenStudySetup: () => void;
-  config: any;
+  onOpenStudySetup?: () => void;
+  config?: any;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   currentRoute,
   navigate,
   user,
-  onOpenAuth,
-  onOpenStudySetup,
-  config
+  onOpenAuth
 }) => {
   const isAdmin = user?.role === 'ADMIN';
 
@@ -34,8 +32,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           <span>LinguaStep</span>
         </button>
 
-        {/* Zone 2: 4-6 clean text navigation links */}
-        <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
+        {/* Zone 2: Desktop navigation - Exactly 首页 | 错词本 | 学习记录 | 设置 */}
+        <nav className="hidden md:flex items-center gap-7 text-sm font-medium">
           <button
             onClick={() => navigate('/')}
             className={`transition-colors pb-1 border-b-2 ${
@@ -45,36 +43,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             }`}
           >
             首页
-          </button>
-          <button
-            onClick={onOpenStudySetup}
-            className={`transition-colors pb-1 border-b-2 ${
-              currentRoute.startsWith('/study')
-                ? 'border-stone-900 text-stone-900'
-                : 'border-transparent text-stone-600 hover:text-stone-900'
-            }`}
-          >
-            背单词
-          </button>
-          <button
-            onClick={() => navigate('/dictionaries')}
-            className={`transition-colors pb-1 border-b-2 ${
-              currentRoute === '/dictionaries'
-                ? 'border-stone-900 text-stone-900'
-                : 'border-transparent text-stone-600 hover:text-stone-900'
-            }`}
-          >
-            辞书库
-          </button>
-          <button
-            onClick={() => navigate('/sentences')}
-            className={`transition-colors pb-1 border-b-2 ${
-              currentRoute.startsWith('/sentences')
-                ? 'border-stone-900 text-stone-900'
-                : 'border-transparent text-stone-600 hover:text-stone-900'
-            }`}
-          >
-            渐进句子
           </button>
           <button
             onClick={() => navigate('/words/wrong')}
@@ -96,6 +64,16 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             学习记录
           </button>
+          <button
+            onClick={() => navigate('/settings')}
+            className={`transition-colors pb-1 border-b-2 ${
+              currentRoute.startsWith('/settings')
+                ? 'border-stone-900 text-stone-900'
+                : 'border-transparent text-stone-600 hover:text-stone-900'
+            }`}
+          >
+            设置
+          </button>
           {isAdmin && (
             <button
               onClick={() => navigate('/admin/dictionaries')}
@@ -111,19 +89,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           )}
         </nav>
 
-        {/* Zone 3: 1-2 primary actions */}
+        {/* Zone 3: User action */}
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate('/settings/dictionary')}
-            className={`p-2 rounded-lg text-stone-600 hover:text-stone-900 hover:bg-stone-100 transition-colors ${
-              currentRoute === '/settings/dictionary' ? 'bg-stone-100 text-stone-900' : ''
-            }`}
-            title="发音与音标配置"
-            aria-label="发音与音标配置"
-          >
-            <Settings className="w-5 h-5" />
-          </button>
-
           {user ? (
             <button
               onClick={() => navigate('/settings')}
@@ -147,37 +114,39 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       </div>
 
-      {/* Mobile nav drawer / bottom strip */}
-      <div className="md:hidden flex items-center justify-around border-t border-stone-100 py-2 bg-stone-50/90 text-xs">
+      {/* Mobile navigation - Exactly 首页 | 错词本 | 学习记录 | 设置 */}
+      <div className="md:hidden flex items-center justify-around border-t border-stone-100 py-2.5 bg-stone-50/95 text-xs">
         <button
           onClick={() => navigate('/')}
-          className={`flex flex-col items-center py-1 px-2 ${currentRoute === '/' ? 'text-stone-900 font-semibold' : 'text-stone-500'}`}
+          className={`flex flex-col items-center py-1 px-3 ${
+            currentRoute === '/' ? 'text-stone-900 font-bold' : 'text-stone-500'
+          }`}
         >
           首页
         </button>
         <button
-          onClick={onOpenStudySetup}
-          className={`flex flex-col items-center py-1 px-2 ${currentRoute.startsWith('/study') ? 'text-stone-900 font-semibold' : 'text-stone-500'}`}
+          onClick={() => navigate('/words/wrong')}
+          className={`flex flex-col items-center py-1 px-3 ${
+            currentRoute === '/words/wrong' ? 'text-stone-900 font-bold' : 'text-stone-500'
+          }`}
         >
-          背单词
-        </button>
-        <button
-          onClick={() => navigate('/dictionaries')}
-          className={`flex flex-col items-center py-1 px-2 ${currentRoute === '/dictionaries' ? 'text-stone-900 font-semibold' : 'text-stone-500'}`}
-        >
-          辞书
-        </button>
-        <button
-          onClick={() => navigate('/sentences')}
-          className={`flex flex-col items-center py-1 px-2 ${currentRoute.startsWith('/sentences') ? 'text-stone-900 font-semibold' : 'text-stone-500'}`}
-        >
-          句子
+          错词本
         </button>
         <button
           onClick={() => navigate('/statistics')}
-          className={`flex flex-col items-center py-1 px-2 ${currentRoute === '/statistics' ? 'text-stone-900 font-semibold' : 'text-stone-500'}`}
+          className={`flex flex-col items-center py-1 px-3 ${
+            currentRoute === '/statistics' ? 'text-stone-900 font-bold' : 'text-stone-500'
+          }`}
         >
-          统计
+          学习记录
+        </button>
+        <button
+          onClick={() => navigate('/settings')}
+          className={`flex flex-col items-center py-1 px-3 ${
+            currentRoute.startsWith('/settings') ? 'text-stone-900 font-bold' : 'text-stone-500'
+          }`}
+        >
+          设置
         </button>
       </div>
     </header>
