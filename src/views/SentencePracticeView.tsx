@@ -416,16 +416,42 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
     }
   };
 
-  const handleResetSentence = () => {
-    setWordStates(prev => prev.map(w => ({
-      ...w,
-      userInput: '',
-      submitted: false,
-      correct: false,
-      errorPos: -1,
-    })));
-    setAllCorrect(false);
-    setTimeout(() => inputRefs.current[0]?.focus(), 30);
+  const handleRetrySentence = async () => {
+    if (!session || submitting || isPendingRef.current) return;
+
+    try {
+      setSubmitting(true);
+      const retrySession = await api.retrySentencePractice(session.id);
+      if (!retrySession) {
+        throw new Error('重新练习失败，请稍后再试');
+      }
+
+      pendingNextSessionRef.current = null;
+      setSession(retrySession);
+      setAllCorrect(false);
+      setPracticeCompleted(false);
+      setResultWordInfo({});
+
+      const retryItem = retrySession.items[retrySession.currentSentenceIndex];
+      const s = retryItem?.sentence?.content || currentSentenceRef.current;
+      currentSentenceRef.current = s;
+      const tokens = splitIntoWords(s);
+      setWordStates(tokens.map(t => ({
+        correctWord: t.word,
+        userInput: '',
+        submitted: false,
+        correct: false,
+        errorPos: -1,
+      })));
+
+      setTimeout(() => inputRefs.current[0]?.focus(), 50);
+    } catch (e: any) {
+      console.error(e);
+      alert(e?.message || '重新练习失败，请稍后再试');
+    } finally {
+      setSubmitting(false);
+      isPendingRef.current = false;
+    }
   };
 
   const inputWidthForWord = (word: string) => {
@@ -569,8 +595,9 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
             <div className="mt-8 flex items-center justify-center gap-3">
               <button
                 type="button"
-                onClick={() => playAudio(sentence?.content)}
-                className="px-7 py-3.5 bg-white border border-[#DCE6F5] hover:bg-[#EBF2FE] text-[#4F7DF3] font-bold rounded-2xl transition-all shadow-xs text-base flex items-center gap-2"
+                onClick={handleRetrySentence}
+                disabled={submitting}
+                className="px-7 py-3.5 bg-white border border-[#DCE6F5] hover:bg-[#EBF2FE] disabled:opacity-50 text-[#4F7DF3] font-bold rounded-2xl transition-all shadow-xs text-base flex items-center gap-2"
               >
                 <RotateCcw className="w-4 h-4" />
                 <span>再来一遍</span>
