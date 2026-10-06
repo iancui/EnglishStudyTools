@@ -180,6 +180,8 @@ export const api = {
       meanings?: any[];
       sessionWord: any;
       sessionCompleted: boolean;
+      completedCount: number;
+      totalCount: number;
       progress?: any;
     }>(`/api/study-sessions/${sessionId}/write/${wordId}`, {
       method: 'POST',

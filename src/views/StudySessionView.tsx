@@ -250,6 +250,31 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
     }
   };
 
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.code !== 'Space') return;
+      if (!session || showCompletionScreen) return;
+      const t = e.target as HTMLElement;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
+
+      e.preventDefault();
+
+      if (wordStep === 'LEARN') {
+        handleProceedToWrite();
+      } else if (wordStep === 'WRITE' && hasSubmitted && writeResult) {
+        if (writeResult.isCorrect) {
+          handleNextWord();
+        } else {
+          setHasSubmitted(false);
+          setUserInput('');
+          setTimeout(() => inputRef.current?.focus(), 50);
+        }
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [session, showCompletionScreen, wordStep, hasSubmitted, writeResult]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F7FAFF] flex flex-col items-center justify-center space-y-4">
@@ -509,10 +534,10 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
               </div>
             )}
 
-            {/* Definition & Examples (Spacious & Clean) */}
-            <div className="max-w-lg mx-auto bg-white border border-[#E7EEF8] rounded-3xl p-6 sm:p-8 text-left space-y-4 shadow-2xs">
+            {/* Definition (no examples here) */}
+            <div className="max-w-lg mx-auto bg-white border border-[#E7EEF8] rounded-3xl p-6 sm:p-8 text-left space-y-3 shadow-2xs">
               {wordData.meanings.map((m, idx) => (
-                <div key={m.id || idx} className="space-y-1.5">
+                <div key={m.id || idx} className="space-y-1">
                   <div className="flex items-baseline gap-2.5">
                     <span className="font-serif italic font-bold text-[#4F7DF3] text-base">
                       {m.pos}
@@ -521,12 +546,6 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
                       {m.definitionCn}
                     </span>
                   </div>
-                  {m.exampleEn && (
-                    <div className="bg-[#F7FAFF] rounded-2xl p-3.5 text-xs space-y-1 mt-2 border border-[#E7EEF8]">
-                      <div className="text-[#29466F] font-semibold">{m.exampleEn}</div>
-                      <div className="text-[#8BA0BD]">{m.exampleCn}</div>
-                    </div>
-                  )}
                 </div>
               ))}
             </div>
@@ -541,6 +560,27 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
+
+            {/* Examples — moved below CTA */}
+            {wordData.meanings.some(m => m.exampleEn) && (
+              <div className="max-w-lg mx-auto space-y-2.5">
+                {wordData.meanings
+                  .filter(m => m.exampleEn)
+                  .map((m, idx) => (
+                    <div
+                      key={`ex-${m.id || idx}`}
+                      className="bg-white border border-[#E7EEF8] rounded-2xl p-4 text-xs space-y-1 shadow-2xs text-left"
+                    >
+                      <div className="text-[#29466F] font-semibold leading-relaxed">
+                        {m.exampleEn}
+                      </div>
+                      <div className="text-[#8BA0BD]">
+                        {m.exampleCn}
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            )}
           </div>
         )}
 
