@@ -252,6 +252,26 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               </select>
             </div>
 
+            {/* 2. 句子练习设置 */}
+            <div className="space-y-3 pt-6 border-t border-stone-100">
+              <div>
+                <label className="text-base font-bold text-stone-900 block">2. 每次句子练习数量</label>
+                <p className="text-xs text-stone-500 mt-0.5">首页点击“渐进句子”后直接开始练习，不再弹出设置窗口。</p>
+              </div>
+              <div className="grid grid-cols-4 gap-2">
+                {[5, 10, 20, 30].map(count => (
+                  <button
+                    key={count}
+                    type="button"
+                    onClick={() => setConfig(prev => ({ ...prev, sentencePracticeCount: count }))}
+                    className={`py-3 rounded-xl text-sm font-bold border transition-all ${(config.sentencePracticeCount || 5) === count
+                      ? 'border-amber-400 bg-amber-50 text-stone-900 ring-2 ring-amber-200'
+                      : 'border-stone-200 bg-white hover:bg-stone-50 text-stone-700'}`}
+                  >{count} 句</button>
+                ))}
+              </div>
+            </div>
+
             {/* 3. 音标显示设置 */}
             <div className="space-y-3 pt-6 border-t border-stone-100">
               <div>
