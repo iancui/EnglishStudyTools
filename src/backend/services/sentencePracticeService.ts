@@ -100,6 +100,19 @@ export class SentencePracticeService {
     if (session.userId !== userId) {
       throw new Error('无权访问该句子练习任务');
     }
+
+    // 兼容此前已经创建的 PHRASE 会话：当前页面已经统一为“整句输入”，
+    // 因此打开旧会话时自动切换当前句到 REBUILD，避免前端提交整句却被后端按短语校验。
+    if (session.status === 'IN_PROGRESS') {
+      const currentItem = session.items?.[session.currentSentenceIndex];
+      if (currentItem && currentItem.currentPhase === 'PHRASE') {
+        currentItem.currentPhase = 'REBUILD';
+        currentItem.currentPhraseIndex = 0;
+        db.updateSentencePracticeItem(currentItem);
+        return db.findSentencePracticeSessionById(sessionId);
+      }
+    }
+
     return session;
   }
 
