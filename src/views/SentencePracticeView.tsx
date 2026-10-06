@@ -84,7 +84,6 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
       setLoading(true);
       setError(null);
       setAllCorrect(false);
-      setPracticeCompleted(data.status === 'COMPLETED');
       autoCheckedRef.current = false;
       const data = await api.getSentencePracticeSessionById(sessionId);
       if (!data) {
@@ -92,6 +91,7 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
         return;
       }
       setSession(data);
+      setPracticeCompleted(data.status === 'COMPLETED');
       const s = data.items[data.currentSentenceIndex]?.sentence?.content || '';
       currentSentenceRef.current = s;
       const tokens = splitIntoWords(s);
