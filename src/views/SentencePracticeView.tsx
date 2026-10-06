@@ -286,8 +286,10 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
             setSession(res.session);
           }
           pendingNextSessionRef.current = null;
-          setAllCorrect(false);
-          setPracticeCompleted(true);
+          // 最后一题也先显示本句结果页，点击“完成”后再进入结算页。
+          setPracticeCompleted(false);
+          setAllCorrect(true);
+          playAudio(sentence?.content);
           return;
         }
 
