@@ -439,22 +439,38 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
     return word.length * 20 + 24;
   };
 
+  // 练习页：Space 播放当前单词；Shift + Space 播放整句。
+  // 结果页：Space 下一句；Shift + Space 播放整句。
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.code !== 'Space' || allCorrect) return;
+      if (e.code !== 'Space') return;
+
+      if (allCorrect && sentence?.content) {
+        e.preventDefault();
+
+        if (e.shiftKey) {
+          playAudio(sentence.content);
+          return;
+        }
+
+        if (submitting || isPendingRef.current) return;
+        void handleNext();
+        return;
+      }
+
+      if (allCorrect) return;
 
       e.preventDefault();
 
-      // Shift + Space：播放整句
       if (e.shiftKey) {
         playAudio(sentence?.content);
         return;
       }
 
-      // Space：播放当前正在输入的单词
       const active = document.activeElement as HTMLInputElement | null;
       const idx = active ? inputRefs.current.indexOf(active) : -1;
       const targetIdx = idx >= 0 ? idx : wordStates.findIndex(w => !w.correct);
+
       if (targetIdx >= 0 && wordTokens[targetIdx]) {
         playAudio(wordTokens[targetIdx].original);
       }
@@ -462,7 +478,7 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
 
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [allCorrect, sentence?.content, wordStates, wordTokens, playAudio]);
+  }, [allCorrect, sentence?.content, wordStates, wordTokens, playAudio, submitting]);
 
   if (loading) {
     return (
@@ -516,9 +532,12 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
                 const correctWord = tok.original;
                 const info = resultWordInfo[tok.word];
                 return (
-                  <div
+                  <button
                     key={i}
-                    className="min-w-[120px] sm:min-w-[140px] px-5 sm:px-7 py-4 sm:py-5 rounded-2xl bg-[#EBF2FE] border border-white shadow-sm"
+                    type="button"
+                    onClick={() => playAudio(correctWord)}
+                    title={`播放 ${correctWord} 发音`}
+                    className="min-w-[120px] sm:min-w-[140px] px-5 sm:px-7 py-4 sm:py-5 rounded-2xl bg-[#EBF2FE] border border-white shadow-sm cursor-pointer hover:bg-white hover:border-[#C9D8F2] hover:shadow-md active:scale-[0.98] transition-all text-center"
                   >
                     <div className="text-xs sm:text-sm font-semibold text-[#8BA0BD] min-h-[1.25rem]">
                       {info?.phonetic || ' '}
@@ -530,12 +549,24 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
                       {info?.meaning || ' '}
                     </div>
 
-                  </div>
+                  </button>
                 );
               })}
             </div>
 
-            <div className="mt-12 flex items-center justify-center gap-3">
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[11px] text-[#8BA0BD] select-none">
+              <span>点击单词可发音</span>
+              <span className="flex items-center gap-1.5">
+                <kbd className="px-1.5 py-0.5 bg-white border border-[#E7EEF8] rounded font-mono text-[10px] text-[#29466F]">Space</kbd>
+                <span>下一句</span>
+              </span>
+              <span className="flex items-center gap-1.5">
+                <kbd className="px-1.5 py-0.5 bg-white border border-[#E7EEF8] rounded font-mono text-[10px] text-[#29466F]">Shift + Space</kbd>
+                <span>播放整句</span>
+              </span>
+            </div>
+
+            <div className="mt-8 flex items-center justify-center gap-3">
               <button
                 type="button"
                 onClick={() => playAudio(sentence?.content)}
