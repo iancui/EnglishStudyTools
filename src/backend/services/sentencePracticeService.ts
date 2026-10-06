@@ -81,9 +81,13 @@ export class SentencePracticeService {
       });
     }
 
-    // If not enough or no matching, fallback to all sentences
+    // 选择了词库时严格按词库筛选；没有匹配句子就不能偷偷回退到全库，
+    // 否则用户会感觉“选择词库”没有生效。
     if (candidates.length === 0) {
-      candidates = [...all];
+      if (dictionaryId) {
+        throw new Error('当前词库下没有符合所选难度的句子，请更换词库或降低难度');
+      }
+      throw new Error('当前条件下没有可练习的句子');
     }
 
     // True Fisher-Yates shuffle to randomize once
