@@ -1,0 +1,286 @@
+// This is your Prisma schema file for MySQL 8
+// Learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(uuid()) @db.VarChar(36)
+  username     String    @unique @db.VarChar(50)
+  email        String    @unique @db.VarChar(100)
+  passwordHash String    @map("password_hash") @db.VarChar(255)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  dictionaryConfig   UserDictionaryConfig?
+  wordProgresses     UserWordProgress[]
+  sentenceProgresses UserSentenceProgress[]
+  learningRecords    LearningRecord[]
+  reviewRecords      ReviewRecord[]
+
+  @@map("users")
+}
+
+model Dictionary {
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  name        String   @db.VarChar(100)
+  code        String   @unique @db.VarChar(50)
+  description String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  dictionaryWords DictionaryWord[]
+
+  @@map("dictionary")
+}
+
+model DictionaryWord {
+  id               String   @id @default(uuid()) @db.VarChar(36)
+  dictionaryId     String   @map("dictionary_id") @db.VarChar(36)
+  wordId           String   @map("word_id") @db.VarChar(36)
+  definitionSource String?  @map("definition_source") @db.VarChar(255)
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  dictionary Dictionary @relation(fields: [dictionaryId], references: [id], onDelete: Cascade)
+  word       Word       @relation(fields: [wordId], references: [id], onDelete: Cascade)
+
+  @@unique([dictionaryId, wordId])
+  @@index([wordId])
+  @@map("dictionary_word")
+}
+
+model Word {
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  text        String   @unique @db.VarChar(100)
+  phoneticUk  String?  @map("phonetic_uk") @db.VarChar(100)
+  phoneticUs  String?  @map("phonetic_us") @db.VarChar(100)
+  audioUkUrl  String?  @map("audio_uk_url") @db.VarChar(255)
+  audioUsUrl  String?  @map("audio_us_url") @db.VarChar(255)
+  pos         String?  @db.VarChar(50)
+  difficulty  Int      @default(1)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  meanings        WordMeaning[]
+  phonics         WordPhonics[]
+  sentenceWords   SentenceWord[]
+  dictionaryWords DictionaryWord[]
+  userProgresses  UserWordProgress[]
+  reviewRecords   ReviewRecord[]
+
+  @@index([text])
+  @@map("word")
+}
+
+model WordMeaning {
+  id           String   @id @default(uuid()) @db.VarChar(36)
+  wordId       String   @map("word_id") @db.VarChar(36)
+  pos          String   @db.VarChar(30)
+  definitionCn String   @map("definition_cn") @db.Text
+  definitionEn String?  @map("definition_en") @db.Text
+  exampleEn    String?  @map("example_en") @db.Text
+  exampleCn    String?  @map("example_cn") @db.Text
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  word Word @relation(fields: [wordId], references: [id], onDelete: Cascade)
+
+  @@index([wordId])
+  @@map("word_meaning")
+}
+
+model WordPhonics {
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  wordId    String   @map("word_id") @db.VarChar(36)
+  sequence  Int
+  text      String   @db.VarChar(50)
+  phonetic  String   @db.VarChar(50)
+  syllable  String   @db.VarChar(50)
+  audioUrl  String?  @map("audio_url") @db.VarChar(255)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  word Word @relation(fields: [wordId], references: [id], onDelete: Cascade)
+
+  @@unique([wordId, sequence])
+  @@index([wordId])
+  @@map("word_phonics")
+}
+
+model Sentence {
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  content     String   @db.Text
+  translation String   @db.Text
+  level       String   @default("A1") @db.VarChar(20)
+  audioUrl    String?  @map("audio_url") @db.VarChar(255)
+  difficulty  Int      @default(1)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  steps          SentenceStep[]
+  words          SentenceWord[]
+  analyses       SentenceAnalysis[]
+  userProgresses UserSentenceProgress[]
+
+  @@map("sentence")
+}
+
+model SentenceWord {
+  id         String   @id @default(uuid()) @db.VarChar(36)
+  sentenceId String   @map("sentence_id") @db.VarChar(36)
+  wordId     String   @map("word_id") @db.VarChar(36)
+  position   Int
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  sentence Sentence @relation(fields: [sentenceId], references: [id], onDelete: Cascade)
+  word     Word     @relation(fields: [wordId], references: [id], onDelete: Cascade)
+
+  @@unique([sentenceId, position])
+  @@index([sentenceId])
+  @@index([wordId])
+  @@map("sentence_word")
+}
+
+enum StepType {
+  WORD
+  PHRASE
+  STRUCTURE
+  SENTENCE
+}
+
+model SentenceStep {
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  sentenceId  String   @map("sentence_id") @db.VarChar(36)
+  stepNumber  Int      @map("step_number")
+  content     String   @db.Text
+  translation String   @db.Text
+  phonetic    String?  @db.VarChar(255)
+  type        StepType @default(WORD)
+  audioUrl    String?  @map("audio_url") @db.VarChar(255)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  sentence Sentence @relation(fields: [sentenceId], references: [id], onDelete: Cascade)
+
+  @@unique([sentenceId, stepNumber])
+  @@index([sentenceId])
+  @@map("sentence_step")
+}
+
+model SentenceAnalysis {
+  id            String   @id @default(uuid()) @db.VarChar(36)
+  sentenceId    String   @map("sentence_id") @db.VarChar(36)
+  text          String   @db.VarChar(100)
+  startPosition Int      @map("start_position")
+  endPosition   Int      @map("end_position")
+  type          String   @db.VarChar(50) // e.g. 称呼, 疑问词, 助动词, 主语, 动词, 时间状语
+  explanation   String   @db.Text
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  sentence Sentence @relation(fields: [sentenceId], references: [id], onDelete: Cascade)
+
+  @@index([sentenceId])
+  @@map("sentence_analysis")
+}
+
+model UserDictionaryConfig {
+  id            String   @id @default(uuid()) @db.VarChar(36)
+  userId        String   @unique @map("user_id") @db.VarChar(36)
+  englishDict   String   @default("Oxford") @map("english_dict") @db.VarChar(50) // Oxford, Cambridge, Collins, Longman
+  ecDict        String   @default("Oxford") @map("ec_dict") @db.VarChar(50)
+  phoneticType  String   @default("UK") @map("phonetic_type") @db.VarChar(10) // UK or US
+  audioType     String   @default("UK") @map("audio_type") @db.VarChar(10) // UK or US
+  enablePhonics Boolean  @default(true) @map("enable_phonics")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_dictionary_config")
+}
+
+enum ProgressStatus {
+  NEW
+  LEARNING
+  REVIEW
+  MASTERED
+}
+
+model UserWordProgress {
+  id           String         @id @default(uuid()) @db.VarChar(36)
+  userId       String         @map("user_id") @db.VarChar(36)
+  wordId       String         @map("word_id") @db.VarChar(36)
+  status       ProgressStatus @default(NEW)
+  learnCount   Int            @default(0) @map("learn_count")
+  reviewCount  Int            @default(0) @map("review_count")
+  correctCount Int            @default(0) @map("correct_count")
+  wrongCount   Int            @default(0) @map("wrong_count")
+  streak       Int            @default(0)
+  mastery      Int            @default(0) // 0 - 100 percentage
+  lastLearnAt  DateTime?      @map("last_learn_at")
+  lastReviewAt DateTime?      @map("last_review_at")
+  nextReviewAt DateTime?      @map("next_review_at")
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  word Word @relation(fields: [wordId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, wordId])
+  @@index([userId, status])
+  @@index([userId, nextReviewAt])
+  @@map("user_word_progress")
+}
+
+model UserSentenceProgress {
+  id          String    @id @default(uuid()) @db.VarChar(36)
+  userId      String    @map("user_id") @db.VarChar(36)
+  sentenceId  String    @map("sentence_id") @db.VarChar(36)
+  status      String    @default("IN_PROGRESS") @db.VarChar(20)
+  currentStep Int       @default(1) @map("current_step")
+  completedAt DateTime? @map("completed_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sentence Sentence @relation(fields: [sentenceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, sentenceId])
+  @@index([userId])
+  @@map("user_sentence_progress")
+}
+
+model LearningRecord {
+  id           String   @id @default(uuid()) @db.VarChar(36)
+  userId       String   @map("user_id") @db.VarChar(36)
+  itemType     String   @map("item_type") @db.VarChar(20) // WORD, SENTENCE
+  itemId       String   @map("item_id") @db.VarChar(36)
+  action       String   @db.VarChar(50) // LEARN, MEMORIZE, REVIEW, STEP_COMPLETE
+  isCorrect    Boolean  @default(true) @map("is_correct")
+  inputText    String?  @map("input_text") @db.VarChar(255)
+  timeSpentSec Int      @default(0) @map("time_spent_sec")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("learning_record")
+}
+
+model ReviewRecord {
+  id           String   @id @default(uuid()) @db.VarChar(36)
+  userId       String   @map("user_id") @db.VarChar(36)
+  wordId       String   @map("word_id") @db.VarChar(36)
+  intervalDays Float    @map("interval_days")
+  nextReviewAt DateTime @map("next_review_at")
+  result       String   @db.VarChar(20) // SUCCESS, FAIL
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  word Word @relation(fields: [wordId], references: [id], onDelete: Cascade)
+
+  @@index([userId, wordId])
+  @@map("review_record")
+}

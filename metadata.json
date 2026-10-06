@@ -1,0 +1,6 @@
+{
+  "name": "LinguaStep - 英语单词与句子渐进式学习平台",
+  "description": "专为循序渐进掌握英语打造的互动学习平台：支持自然拼读音节拆分、中文默写英文背诵、渐进式句子递增学习、辞书配置及科学间隔复习。",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
