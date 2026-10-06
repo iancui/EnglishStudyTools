@@ -252,7 +252,26 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               </select>
             </div>
 
-            {/* 2. 句子练习设置 */}
+            {/* 2. 句子专用辞书 */}
+            <div className="space-y-3 pt-6 border-t border-stone-100">
+              <div>
+                <label className="text-base font-bold text-stone-900 block">2. 句子练习辞书</label>
+                <p className="text-xs text-stone-500 mt-0.5">句子练习使用独立辞书，不受“默认首选辞书”影响。</p>
+              </div>
+              <select
+                value={config.sentenceDictionaryId || config.defaultDictionaryId || 'dict-primary-6'}
+                onChange={e => setConfig(prev => ({ ...prev, sentenceDictionaryId: e.target.value }))}
+                className="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 text-sm font-medium text-stone-900 focus:bg-white focus:border-stone-900 outline-none transition-all cursor-pointer"
+              >
+                {allDictionaries.map(d => (
+                  <option key={d.id} value={d.id}>
+                    {d.name} ({d.wordCount || 0} 词) {d.isSystem ? '· [系统辞书]' : '· [我的生词本]'}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* 3. 句子练习设置 */}
             <div className="space-y-3 pt-6 border-t border-stone-100">
               <div>
                 <label className="text-base font-bold text-stone-900 block">2. 每次句子练习数量</label>
@@ -272,7 +291,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               </div>
             </div>
 
-            {/* 3. 音标显示设置 */}
+            {/* 4. 音标显示设置 */}
             <div className="space-y-3 pt-6 border-t border-stone-100">
               <div>
                 <label className="text-base font-bold text-stone-900 block">
@@ -322,7 +341,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               </div>
             </div>
 
-            {/* 4. 发音朗读设置 */}
+            {/* 5. 发音朗读设置 */}
             <div className="space-y-3 pt-6 border-t border-stone-100">
               <div className="flex items-center justify-between">
                 <div>
@@ -383,12 +402,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               </div>
             </div>
 
-            {/* 5. 自然拼读开关 */}
+            {/* 6. 自然拼读开关 */}
             <div className="pt-6 border-t border-stone-100 flex items-center justify-between gap-4">
               <div className="space-y-0.5">
                 <label className="text-base font-bold text-stone-900 block flex items-center gap-2">
                   <Split className="w-4 h-4 text-stone-700" />
-                  <span>5. 启用自然拼读音节拆分</span>
+                  <span>6. 启用自然拼读音节拆分</span>
                 </label>
                 <p className="text-xs text-stone-500">
                   开启后，在单词学习页面将提供可点击的音节卡片（如 hol-i-day），支持音素分步跟读。
