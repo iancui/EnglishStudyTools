@@ -80,7 +80,9 @@ export class SentencePracticeService {
       sessionId,
       sentenceId: s.id,
       sequence: idx + 1,
-      currentPhase: 'PHRASE',
+      // 当前产品的“学语句”页面直接进行完整句子输入，
+      // 因此前后端统一从 REBUILD 阶段开始，不再先进入短语练习。
+      currentPhase: 'REBUILD',
       currentPhraseIndex: 0,
       completed: false,
       createdAt: nowStr,
