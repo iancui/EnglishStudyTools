@@ -14,6 +14,7 @@ import { DictionarySettingsView } from './views/DictionarySettingsView.tsx';
 import { UserSettingsView } from './views/UserSettingsView.tsx';
 import { SettingsView } from './views/SettingsView.tsx';
 import { AuthModal } from './views/AuthModal.tsx';
+import { AdminSentenceAIToolView } from './views/AdminSentenceAIToolView.tsx';
 import { api, authStorage } from './api/client.ts';
 import { DictionaryConfig, SessionMode } from './types/index.ts';
 
@@ -187,6 +188,10 @@ export default function App() {
           onDefaultDictChanged={id => setConfig(prev => ({ ...prev, defaultDictionaryId: id }))}
         />
       );
+    }
+
+    if (currentRoute === '/admin/sentence-ai') {
+      return <AdminSentenceAIToolView navigate={navigate} user={user} />;
     }
 
     if (currentRoute === '/admin/dictionaries' || currentRoute === '/admin') {
