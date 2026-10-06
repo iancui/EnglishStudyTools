@@ -41,8 +41,21 @@ export default function App() {
     enablePhonics: true
   });
 
+  React.useEffect(() => {
+    console.log('[App MOUNT]');
+    return () => console.log('[App UNMOUNT]');
+  }, []);
+
+  React.useEffect(() => {
+    console.log('[App] config reference changed');
+  }, [config]);
+
+  React.useEffect(() => {
+    console.log('[App] user reference changed, hasUser=', !!user);
+  }, [user]);
+
   appRenderCount++;
-  console.log(`[App] #${appRenderCount} render`, { route: currentRoute, hasUser: !!user, configDefaultDict: config.defaultDictionaryId });
+  console.log(`[App RENDER] #${appRenderCount}`, { route: currentRoute, hasUser: !!user, configId: config.id });
 
   const navigate = useCallback((route: string) => {
     const target = route.startsWith('/') ? route : `/${route}`;

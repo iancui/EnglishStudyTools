@@ -54,84 +54,93 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
   } | null>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
-  const isFirstLoadRef = useRef(true);
-  const loadingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isMountedRef = useRef(true);
+  const isPendingRef = useRef(false);
+  const lastHandledIdxRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    console.log('[MOUNT] StudySessionView sessionId=', sessionId);
+    return () => {
+      isMountedRef.current = false;
+      console.log('[UNMOUNT] StudySessionView sessionId=', sessionId);
+    };
+  }, [sessionId]);
 
   renderCount++;
-  console.log(`[StudySessionView] #${renderCount} render`, {
+  console.log(`[RENDER] #${renderCount}`, {
     sessionId, loading, hasSession: !!session, wordStep,
     mode: session?.mode, currentIdx: session?.currentWordIndex,
-    isFirstLoad: isFirstLoadRef.current,
   });
 
   useEffect(() => {
-    console.log('[StudySessionView] useEffect [sessionId] triggered, sessionId=', sessionId);
-    isFirstLoadRef.current = true;
-    loadSession();
-  }, [sessionId]);
+    console.log('[LOAD] start sessionId=', sessionId);
+    lastHandledIdxRef.current = null;
+    let cancelled = false;
+    const run = async () => {
+      try {
+        const data = await api.getStudySessionById(sessionId);
+        if (cancelled || !isMountedRef.current) return;
+        console.log('[LOAD] success', { mode: data.mode, idx: data.currentWordIndex });
 
-  const loadSession = async () => {
-    console.log('[StudySessionView] loadSession START');
-    try {
-      loadingTimerRef.current = setTimeout(() => setLoading(true), 150);
-      const data = await api.getStudySessionById(sessionId);
-      if (loadingTimerRef.current) {
-        clearTimeout(loadingTimerRef.current);
-        loadingTimerRef.current = null;
-      }
-      console.log('[StudySessionView] loadSession API OK, about to setState');
-      setLoading(false);
-      setSession(data);
-
-      if (data.status === 'COMPLETED' && data.completedCount >= data.totalCount) {
-        setShowCompletionScreen(true);
-      }
-
-      if (data.mode === 'WRITE_ONLY') {
-        setWordStep('WRITE');
-      } else {
         const currentWordItem = data.words[data.currentWordIndex];
-        if (currentWordItem && currentWordItem.learnStatus === 'LEARNED' && !currentWordItem.completed) {
-          setWordStep('WRITE');
-        } else {
-          setWordStep('LEARN');
+        const initialStep: 'LEARN' | 'WRITE' =
+          data.mode === 'WRITE_ONLY' ||
+          (currentWordItem?.learnStatus === 'LEARNED' && !currentWordItem.completed)
+            ? 'WRITE' : 'LEARN';
+
+        setSession(data);
+        setWordStep(initialStep);
+        setLoading(false);
+
+        if (data.status === 'COMPLETED' && data.completedCount >= data.totalCount) {
+          setShowCompletionScreen(true);
+        }
+
+        lastHandledIdxRef.current = data.currentWordIndex;
+      } catch (e) {
+        if (!cancelled && isMountedRef.current) {
+          setLoading(false);
+          console.error(e);
         }
       }
-    } catch (e) {
-      if (loadingTimerRef.current) {
-        clearTimeout(loadingTimerRef.current);
-        loadingTimerRef.current = null;
-      }
-      setLoading(false);
-      console.error(e);
-    }
-  };
+    };
+    run();
+    return () => { cancelled = true; };
+  }, [sessionId]);
 
   const currentSessionWord = session?.words[session.currentWordIndex];
   const wordData = currentSessionWord?.word;
 
   useEffect(() => {
-    if (wordStep === 'WRITE') {
-      setUserInput('');
-      setHasSubmitted(false);
-      setWriteResult(null);
-      setTimeout(() => inputRef.current?.focus(), 150);
-    } else {
-      setShowPhonics(false);
-    }
-  }, [wordStep]);
-
-  useEffect(() => {
-    if (isFirstLoadRef.current) {
-      isFirstLoadRef.current = false;
-      return;
-    }
-    if (!wordData) return;
-
-    if (session?.mode === 'WRITE_ONLY') {
+    if (!session || !wordData) return;
+    if (session.mode === 'WRITE_ONLY') {
       playWordAudio('normal');
     } else if (wordStep === 'LEARN') {
       playWordAudio('normal');
+    }
+  }, [session?.currentWordIndex]);
+
+  useEffect(() => {
+    if (!session) return;
+    const idx = session.currentWordIndex;
+    if (idx === lastHandledIdxRef.current) return;
+    lastHandledIdxRef.current = idx;
+
+    setUserInput('');
+    setHasSubmitted(false);
+    setWriteResult(null);
+    setShowPhonics(false);
+
+    const cw = session.words[idx];
+    const nextStep: 'LEARN' | 'WRITE' =
+      session.mode === 'WRITE_ONLY' ||
+      (cw?.learnStatus === 'LEARNED' && !cw.completed)
+        ? 'WRITE' : 'LEARN';
+    setWordStep(nextStep);
+
+    if (nextStep === 'WRITE') {
+      setTimeout(() => inputRef.current?.focus(), 80);
     }
   }, [session?.currentWordIndex]);
 
@@ -144,40 +153,45 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
     setIsSpeaking(false);
   }, [wordData, config, audioSpeed]);
 
-  // Transition from Learn to Write for current word
   const handleProceedToWrite = async () => {
-    if (!session || !currentSessionWord) return;
+    if (!session || !currentSessionWord || isPendingRef.current) return;
+    isPendingRef.current = true;
     try {
       await api.learnSessionWord(session.id, currentSessionWord.wordId);
+      if (!isMountedRef.current) return;
       setWordStep('WRITE');
+      setTimeout(() => inputRef.current?.focus(), 80);
     } catch (e) {
       console.error(e);
       setWordStep('WRITE');
+    } finally {
+      isPendingRef.current = false;
     }
   };
 
-  // Submit spelling in Write stage
   const handleSubmitSpelling = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+
     if (hasSubmitted) {
       if (writeResult?.isCorrect) {
-        handleNextWord();
+        await handleNextWord();
       } else {
-        // Retry
         setHasSubmitted(false);
         setUserInput('');
         setTimeout(() => inputRef.current?.focus(), 50);
       }
       return;
     }
+
     if (!session || !currentSessionWord || !userInput.trim()) return;
+    if (isPendingRef.current) return;
+    isPendingRef.current = true;
+
+    const wordId = currentSessionWord.wordId;
 
     try {
-      const res = await api.writeSessionWord(
-        session.id,
-        currentSessionWord.wordId,
-        userInput.trim()
-      );
+      const res = await api.writeSessionWord(session.id, wordId, userInput.trim());
+      if (!isMountedRef.current) return;
 
       setWriteResult({
         isCorrect: res.isCorrect,
@@ -186,36 +200,53 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
       });
       setHasSubmitted(true);
 
-      // Play pronunciation on evaluation
       const lang = config?.audioType === 'US' ? 'en-US' : 'en-GB';
       SpeechPlayer.speak(res.correctAnswer, { lang });
 
-      // Refresh session object for updated completed count
-      const updatedSession = await api.getStudySessionById(session.id);
-      setSession(updatedSession);
+      setSession(prev => {
+        if (!prev) return prev;
+        const updatedWords = prev.words.map(w =>
+          w.wordId === wordId
+            ? { ...w, ...res.sessionWord }
+            : w
+        );
+        let updatedSession = {
+          ...prev,
+          words: updatedWords,
+          completedCount: res.completedCount,
+        };
+        if (res.sessionCompleted) {
+          updatedSession = {
+            ...updatedSession,
+            status: 'COMPLETED' as const,
+          };
+          setShowCompletionScreen(true);
+        }
+        return updatedSession;
+      });
     } catch (err) {
       console.error(err);
+    } finally {
+      isPendingRef.current = false;
     }
   };
 
-  // Move to next word in the session
   const handleNextWord = async () => {
     if (!session || !writeResult?.isCorrect) return;
-
-    if (session.currentWordIndex < session.totalCount - 1) {
-      try {
-        await api.nextSessionWord(session.id);
-        const updated = await api.getStudySessionById(session.id);
-        setSession(updated);
-        setWordStep(updated.mode === 'WRITE_ONLY' ? 'WRITE' : 'LEARN');
-      } catch (err) {
-        console.error(err);
-      }
-    } else {
-      // Completed all words in this study session!
+    if (isPendingRef.current) return;
+    if (session.currentWordIndex >= session.totalCount - 1) {
       setShowCompletionScreen(true);
-      const updated = await api.getStudySessionById(session.id);
-      setSession(updated);
+      return;
+    }
+    isPendingRef.current = true;
+    try {
+      const nextSession = await api.nextSessionWord(session.id);
+      if (!isMountedRef.current) return;
+      setSession(nextSession);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      isPendingRef.current = false;
     }
   };
 
