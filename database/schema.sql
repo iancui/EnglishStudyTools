@@ -19,6 +19,7 @@ DROP TABLE IF EXISTS sentence_practice_item;
 DROP TABLE IF EXISTS sentence_practice_session;
 DROP TABLE IF EXISTS sentence_analysis;
 DROP TABLE IF EXISTS sentence_step;
+DROP TABLE IF EXISTS dictionary_sentence;
 DROP TABLE IF EXISTS sentence_word;
 DROP TABLE IF EXISTS sentence;
 DROP TABLE IF EXISTS word_phonics;
@@ -117,6 +118,19 @@ CREATE TABLE sentence (
   difficulty INT NOT NULL DEFAULT 1,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE dictionary_sentence (
+  id VARCHAR(36) PRIMARY KEY,
+  dictionary_id VARCHAR(36) NOT NULL,
+  sentence_id VARCHAR(36) NOT NULL,
+  sequence_no INT NOT NULL DEFAULT 1,
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_dictionary_sentence(dictionary_id, sentence_id),
+  INDEX idx_dictionary_sentence_order(dictionary_id, sequence_no),
+  FOREIGN KEY (dictionary_id) REFERENCES dictionary(id) ON DELETE CASCADE,
+  FOREIGN KEY (sentence_id) REFERENCES sentence(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE sentence_word (
