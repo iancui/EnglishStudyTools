@@ -263,6 +263,11 @@ export class SentencePracticeService {
       db.updateSentencePracticeSession(session);
     }
 
+    // Return the persisted session as the single source of truth.
+    // The frontend must receive the updated currentSentenceIndex/status,
+    // especially for the final sentence where status becomes COMPLETED.
+    const updatedSession = db.findSentencePracticeSessionById(sessionId);
+
     return {
       isCorrect: true,
       userInput: cleanInput,
@@ -270,7 +275,8 @@ export class SentencePracticeService {
       sentenceCompleted: true,
       sessionCompleted,
       nextSentenceIndex,
-      message: '✓ 完成句子重建'
+      message: '✓ 完成句子重建',
+      session: updatedSession
     };
   }
 
