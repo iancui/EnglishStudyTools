@@ -10,32 +10,60 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  USER
+  ADMIN
+}
+
 model User {
   id           String    @id @default(uuid()) @db.VarChar(36)
   username     String    @unique @db.VarChar(50)
   email        String    @unique @db.VarChar(100)
   passwordHash String    @map("password_hash") @db.VarChar(255)
+  role         Role      @default(USER)
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")
 
   dictionaryConfig   UserDictionaryConfig?
+  ownedDictionaries  Dictionary[]           @relation("UserOwnedDictionaries")
   wordProgresses     UserWordProgress[]
   sentenceProgresses UserSentenceProgress[]
+  studySessions      StudySession[]
   learningRecords    LearningRecord[]
   reviewRecords      ReviewRecord[]
 
   @@map("users")
 }
 
+enum DictionaryOwnerType {
+  SYSTEM
+  USER
+}
+
+enum DictionaryStatus {
+  ACTIVE
+  INACTIVE
+}
+
 model Dictionary {
-  id          String   @id @default(uuid()) @db.VarChar(36)
-  name        String   @db.VarChar(100)
-  code        String   @unique @db.VarChar(50)
-  description String?  @db.Text
-  createdAt   DateTime @default(now()) @map("created_at")
+  id          String              @id @default(uuid()) @db.VarChar(36)
+  name        String              @db.VarChar(100)
+  code        String              @unique @db.VarChar(50)
+  description String?             @db.Text
+  ownerType   DictionaryOwnerType @default(SYSTEM) @map("owner_type")
+  ownerUserId String?             @map("owner_user_id") @db.VarChar(36)
+  isSystem    Boolean             @default(false) @map("is_system")
+  isPublic    Boolean             @default(true) @map("is_public")
+  status      DictionaryStatus    @default(ACTIVE)
+  createdAt   DateTime            @default(now()) @map("created_at")
+  updatedAt   DateTime            @updatedAt @map("updated_at")
 
+  ownerUser       User?            @relation("UserOwnedDictionaries", fields: [ownerUserId], references: [id], onDelete: SetNull)
   dictionaryWords DictionaryWord[]
+  studySessions   StudySession[]
 
+  @@index([ownerUserId])
+  @@index([ownerType])
   @@map("dictionary")
 }
 
@@ -43,6 +71,8 @@ model DictionaryWord {
   id               String   @id @default(uuid()) @db.VarChar(36)
   dictionaryId     String   @map("dictionary_id") @db.VarChar(36)
   wordId           String   @map("word_id") @db.VarChar(36)
+  sequence         Int      @default(1)
+  isActive         Boolean  @default(true) @map("is_active")
   definitionSource String?  @map("definition_source") @db.VarChar(255)
   createdAt        DateTime @default(now()) @map("created_at")
 
@@ -50,6 +80,7 @@ model DictionaryWord {
   word       Word       @relation(fields: [wordId], references: [id], onDelete: Cascade)
 
   @@unique([dictionaryId, wordId])
+  @@index([dictionaryId, sequence])
   @@index([wordId])
   @@map("dictionary_word")
 }
@@ -66,12 +97,13 @@ model Word {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
-  meanings        WordMeaning[]
-  phonics         WordPhonics[]
-  sentenceWords   SentenceWord[]
-  dictionaryWords DictionaryWord[]
-  userProgresses  UserWordProgress[]
-  reviewRecords   ReviewRecord[]
+  meanings          WordMeaning[]
+  phonics           WordPhonics[]
+  sentenceWords     SentenceWord[]
+  dictionaryWords   DictionaryWord[]
+  studySessionWords StudySessionWord[]
+  userProgresses    UserWordProgress[]
+  reviewRecords     ReviewRecord[]
 
   @@index([text])
   @@map("word")
@@ -175,7 +207,7 @@ model SentenceAnalysis {
   text          String   @db.VarChar(100)
   startPosition Int      @map("start_position")
   endPosition   Int      @map("end_position")
-  type          String   @db.VarChar(50) // e.g. 称呼, 疑问词, 助动词, 主语, 动词, 时间状语
+  type          String   @db.VarChar(50)
   explanation   String   @db.Text
   createdAt     DateTime @default(now()) @map("created_at")
 
@@ -186,15 +218,14 @@ model SentenceAnalysis {
 }
 
 model UserDictionaryConfig {
-  id            String   @id @default(uuid()) @db.VarChar(36)
-  userId        String   @unique @map("user_id") @db.VarChar(36)
-  englishDict   String   @default("Oxford") @map("english_dict") @db.VarChar(50) // Oxford, Cambridge, Collins, Longman
-  ecDict        String   @default("Oxford") @map("ec_dict") @db.VarChar(50)
-  phoneticType  String   @default("UK") @map("phonetic_type") @db.VarChar(10) // UK or US
-  audioType     String   @default("UK") @map("audio_type") @db.VarChar(10) // UK or US
-  enablePhonics Boolean  @default(true) @map("enable_phonics")
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
+  id                  String   @id @default(uuid()) @db.VarChar(36)
+  userId              String   @unique @map("user_id") @db.VarChar(36)
+  defaultDictionaryId String?  @map("default_dictionary_id") @db.VarChar(36)
+  phoneticType        String   @default("UK") @map("phonetic_type") @db.VarChar(10)
+  audioType           String   @default("UK") @map("audio_type") @db.VarChar(10)
+  enablePhonics       Boolean  @default(true) @map("enable_phonics")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -218,7 +249,7 @@ model UserWordProgress {
   correctCount Int            @default(0) @map("correct_count")
   wrongCount   Int            @default(0) @map("wrong_count")
   streak       Int            @default(0)
-  mastery      Int            @default(0) // 0 - 100 percentage
+  mastery      Int            @default(0)
   lastLearnAt  DateTime?      @map("last_learn_at")
   lastReviewAt DateTime?      @map("last_review_at")
   nextReviewAt DateTime?      @map("next_review_at")
@@ -232,6 +263,78 @@ model UserWordProgress {
   @@index([userId, status])
   @@index([userId, nextReviewAt])
   @@map("user_word_progress")
+}
+
+enum SessionMode {
+  LEARN_AND_WRITE
+  WRITE_ONLY
+}
+
+enum SessionStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum SessionSortMode {
+  RANDOM
+  SEQUENCE
+  REVIEW_FIRST
+}
+
+model StudySession {
+  id              String          @id @default(uuid()) @db.VarChar(36)
+  userId          String          @map("user_id") @db.VarChar(36)
+  mode            SessionMode     @default(LEARN_AND_WRITE)
+  dictionaryId    String          @map("dictionary_id") @db.VarChar(36)
+  totalCount      Int             @map("total_count")
+  completedCount  Int             @default(0) @map("completed_count")
+  excludeMastered Boolean         @default(true) @map("exclude_mastered")
+  sortMode        SessionSortMode @default(RANDOM) @map("sort_mode")
+  status          SessionStatus   @default(IN_PROGRESS)
+  currentWordIndex Int            @default(0) @map("current_word_index")
+  startedAt       DateTime        @default(now()) @map("started_at")
+  completedAt     DateTime?       @map("completed_at")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+
+  user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dictionary Dictionary         @relation(fields: [dictionaryId], references: [id], onDelete: Cascade)
+  words      StudySessionWord[]
+
+  @@index([userId, status])
+  @@map("study_session")
+}
+
+enum SessionWordStatus {
+  LEARN_PENDING
+  LEARNED
+  WRITE_PENDING
+  WRITTEN
+  COMPLETED
+}
+
+model StudySessionWord {
+  id          String            @id @default(uuid()) @db.VarChar(36)
+  sessionId   String            @map("session_id") @db.VarChar(36)
+  wordId      String            @map("word_id") @db.VarChar(36)
+  sequence    Int
+  learnStatus SessionWordStatus @default(LEARN_PENDING) @map("learn_status")
+  writeStatus SessionWordStatus @default(WRITE_PENDING) @map("write_status")
+  completed   Boolean           @default(false)
+  isCorrect   Boolean?          @map("is_correct")
+  userInput   String?           @map("user_input") @db.VarChar(255)
+  learnedAt   DateTime?         @map("learned_at")
+  writtenAt   DateTime?         @map("written_at")
+  createdAt   DateTime          @default(now()) @map("created_at")
+
+  session StudySession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  word    Word         @relation(fields: [wordId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, sequence])
+  @@index([sessionId, completed])
+  @@map("study_session_word")
 }
 
 model UserSentenceProgress {
@@ -255,9 +358,9 @@ model UserSentenceProgress {
 model LearningRecord {
   id           String   @id @default(uuid()) @db.VarChar(36)
   userId       String   @map("user_id") @db.VarChar(36)
-  itemType     String   @map("item_type") @db.VarChar(20) // WORD, SENTENCE
+  itemType     String   @map("item_type") @db.VarChar(20)
   itemId       String   @map("item_id") @db.VarChar(36)
-  action       String   @db.VarChar(50) // LEARN, MEMORIZE, REVIEW, STEP_COMPLETE
+  action       String   @db.VarChar(50)
   isCorrect    Boolean  @default(true) @map("is_correct")
   inputText    String?  @map("input_text") @db.VarChar(255)
   timeSpentSec Int      @default(0) @map("time_spent_sec")
@@ -275,7 +378,7 @@ model ReviewRecord {
   wordId       String   @map("word_id") @db.VarChar(36)
   intervalDays Float    @map("interval_days")
   nextReviewAt DateTime @map("next_review_at")
-  result       String   @db.VarChar(20) // SUCCESS, FAIL
+  result       String   @db.VarChar(20)
   createdAt    DateTime @default(now()) @map("created_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)

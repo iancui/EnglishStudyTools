@@ -1,0 +1,354 @@
+import { db } from '../db/storage.ts';
+import {
+  StudySession,
+  StudySessionWord,
+  SessionMode,
+  SessionSortMode,
+  Word
+} from '../types/index.ts';
+import { WordProgressService } from './wordProgressService.ts';
+import { ReviewService } from './reviewService.ts';
+import { DictionaryService } from './dictionaryService.ts';
+
+export class StudySessionService {
+  /**
+   * Preview matching words count for candidate session settings
+   */
+  static previewSession(
+    userId: string,
+    params: {
+      dictionaryId: string;
+      count?: number;
+      excludeMastered?: boolean;
+      sortMode?: SessionSortMode;
+    }
+  ) {
+    const { dictionaryId, count = 20, excludeMastered = true } = params;
+    const dict = db.findDictionaryById(dictionaryId);
+    if (!dict) throw new Error('辞书不存在');
+
+    const dictWords = db.getDictionaryWords(dictionaryId);
+    const totalInDict = dictWords.length;
+
+    let matchingWords = dictWords.filter(dw => dw.word);
+    let masteredCount = 0;
+
+    if (excludeMastered) {
+      matchingWords = matchingWords.filter(dw => {
+        const progress = db.getWordProgress(userId, dw.wordId);
+        const isMastered = WordProgressService.isMastered(progress);
+        if (isMastered) masteredCount++;
+        return !isMastered;
+      });
+    }
+
+    return {
+      dictionaryId,
+      dictionaryName: dict.name,
+      totalInDict,
+      matchingCount: matchingWords.length,
+      requestedCount: count,
+      excludedMasteredCount: masteredCount,
+      effectiveCount: Math.min(count, matchingWords.length)
+    };
+  }
+
+  /**
+   * Create and initialize a study session with a fixed word set
+   */
+  static createSession(
+    userId: string,
+    params: {
+      dictionaryId?: string;
+      count?: number;
+      excludeMastered?: boolean;
+      sortMode?: SessionSortMode;
+      mode?: SessionMode;
+    }
+  ) {
+    let { dictionaryId } = params;
+    const {
+      count = 20,
+      excludeMastered = true,
+      sortMode = 'RANDOM',
+      mode = 'LEARN_AND_WRITE'
+    } = params;
+
+    // Fallback to default dictionary if not specified
+    if (!dictionaryId) {
+      const config = DictionaryService.getConfig(userId);
+      dictionaryId = config.defaultDictionaryId || 'dict-primary-6';
+    }
+
+    const dict = db.findDictionaryById(dictionaryId);
+    if (!dict) throw new Error('所选辞书不存在');
+
+    const dictWords = db.getDictionaryWords(dictionaryId);
+    if (dictWords.length === 0) {
+      throw new Error('该辞书中暂无单词');
+    }
+
+    // Filter candidates
+    let candidates = dictWords
+      .map(dw => ({ ...dw, word: dw.word || db.findWordById(dw.wordId) }))
+      .filter((dw): dw is typeof dw & { word: Word } => Boolean(dw.word));
+
+    if (excludeMastered) {
+      const nonMastered = candidates.filter(dw => {
+        const progress = db.getWordProgress(userId, dw.wordId);
+        return !WordProgressService.isMastered(progress);
+      });
+      // If all words are mastered, relax filter so user can still study
+      if (nonMastered.length > 0) {
+        candidates = nonMastered;
+      }
+    }
+
+    // Apply Sorting Strategy
+    if (sortMode === 'RANDOM') {
+      // True Fisher-Yates shuffle
+      for (let i = candidates.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
+      }
+    } else if (sortMode === 'REVIEW_FIRST') {
+      const now = new Date().getTime();
+      candidates.sort((a, b) => {
+        const progA = db.getWordProgress(userId, a.wordId);
+        const progB = db.getWordProgress(userId, b.wordId);
+
+        const aDue = progA?.nextReviewAt ? new Date(progA.nextReviewAt).getTime() <= now : false;
+        const bDue = progB?.nextReviewAt ? new Date(progB.nextReviewAt).getTime() <= now : false;
+        if (aDue && !bDue) return -1;
+        if (!aDue && bDue) return 1;
+
+        const scoreA = !progA ? 3 : progA.status === 'REVIEW' ? 0 : progA.status === 'LEARNING' ? 1 : 2;
+        const scoreB = !progB ? 3 : progB.status === 'REVIEW' ? 0 : progB.status === 'LEARNING' ? 1 : 2;
+        return scoreA - scoreB;
+      });
+    } else {
+      // SEQUENCE
+      candidates.sort((a, b) => a.sequence - b.sequence);
+    }
+
+    // Slice up to requested count
+    const selected = candidates.slice(0, Math.max(1, count));
+    const nowStr = new Date().toISOString();
+    const sessionId = `session-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+
+    const session: StudySession = {
+      id: sessionId,
+      userId,
+      mode,
+      dictionaryId,
+      totalCount: selected.length,
+      completedCount: 0,
+      excludeMastered,
+      sortMode,
+      status: 'IN_PROGRESS',
+      currentWordIndex: 0,
+      startedAt: nowStr,
+      createdAt: nowStr,
+      updatedAt: nowStr
+    };
+
+    const sessionWords: StudySessionWord[] = selected.map((item, idx) => ({
+      id: `sw-${sessionId}-${idx + 1}`,
+      sessionId,
+      wordId: item.wordId,
+      sequence: idx + 1,
+      learnStatus: 'LEARN_PENDING',
+      writeStatus: 'WRITE_PENDING',
+      completed: false,
+      isCorrect: null,
+      userInput: null,
+      createdAt: nowStr,
+      word: item.word
+    }));
+
+    db.createStudySession(session, sessionWords);
+
+    return this.getSessionById(sessionId, userId);
+  }
+
+  /**
+   * Get session details with decorated words and dictionary info
+   */
+  static getSessionById(sessionId: string, userId: string) {
+    const session = db.findStudySessionById(sessionId);
+    if (!session) return null;
+    if (session.userId !== userId) {
+      throw new Error('无权访问该学习任务');
+    }
+
+    const config = DictionaryService.getConfig(userId);
+
+    // Decorate words with dictionary preferences
+    const decoratedWords = session.words.map(sw => {
+      const fullWord = sw.word || db.findWordById(sw.wordId);
+      const decorated = fullWord ? DictionaryService.applyWordDictionaryConfig(fullWord, config) : null;
+      return {
+        ...sw,
+        word: decorated
+      };
+    });
+
+    return {
+      ...session,
+      words: decoratedWords
+    };
+  }
+
+  /**
+   * Get active ongoing session for resumption
+   */
+  static getActiveSession(userId: string) {
+    const session = db.getActiveSessionByUserId(userId);
+    if (!session) return null;
+    return this.getSessionById(session.id, userId);
+  }
+
+  /**
+   * Complete Learn step of a word in session (Step 1 -> Step 2)
+   */
+  static markWordLearned(sessionId: string, wordId: string, userId: string) {
+    const session = db.findStudySessionById(sessionId);
+    if (!session || session.userId !== userId) throw new Error('学习任务不存在');
+
+    const sw = session.words.find(w => w.wordId === wordId);
+    if (!sw) throw new Error('单词不属于此任务');
+
+    const now = new Date().toISOString();
+    sw.learnStatus = 'LEARNED';
+    sw.learnedAt = now;
+    sw.writeStatus = 'WRITE_PENDING';
+
+    db.updateStudySessionWord(sw);
+
+    // Update word progress in db
+    let progress = db.getWordProgress(userId, wordId);
+    if (!progress) {
+      progress = {
+        id: `p-${Date.now()}`,
+        userId,
+        wordId,
+        status: 'LEARNING',
+        learnCount: 1,
+        reviewCount: 0,
+        correctCount: 0,
+        wrongCount: 0,
+        streak: 0,
+        mastery: 20,
+        lastLearnAt: now,
+        nextReviewAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+        createdAt: now,
+        updatedAt: now
+      };
+    } else {
+      progress.learnCount += 1;
+      progress.lastLearnAt = now;
+    }
+    db.saveWordProgress(progress);
+
+    return sw;
+  }
+
+  /**
+   * Complete Write step of a word in session (Step 2 -> Word Completed)
+   */
+  static writeWord(
+    sessionId: string,
+    wordId: string,
+    userId: string,
+    rawInput: string,
+    timeSpentSec = 5
+  ) {
+    const session = db.findStudySessionById(sessionId);
+    if (!session || session.userId !== userId) throw new Error('学习任务不存在');
+
+    const sw = session.words.find(w => w.wordId === wordId);
+    if (!sw) throw new Error('单词不属于此任务');
+
+    const word = db.findWordById(wordId);
+    if (!word) throw new Error('单词数据不存在');
+
+    const cleanInput = (rawInput || '').trim().toLowerCase();
+    const expected = word.text.trim().toLowerCase();
+    const isCorrect = cleanInput === expected;
+
+    const now = new Date().toISOString();
+    sw.writeStatus = 'WRITTEN';
+    sw.completed = true;
+    sw.isCorrect = isCorrect;
+    sw.userInput = rawInput;
+    sw.writtenAt = now;
+
+    db.updateStudySessionWord(sw);
+
+    // Update ReviewService & spaced repetition record
+    const updatedProgress = ReviewService.processReview(userId, wordId, isCorrect);
+
+    // Save learning record
+    db.addLearningRecord({
+      id: `lr-${Date.now()}`,
+      userId,
+      itemType: 'WORD',
+      itemId: wordId,
+      action: 'MEMORIZE',
+      isCorrect,
+      inputText: rawInput,
+      timeSpentSec,
+      createdAt: now
+    });
+
+    // Check session progress
+    const allWords = session.words;
+    const completedWordsCount = allWords.filter(w => w.completed).length;
+    session.completedCount = completedWordsCount;
+
+    if (completedWordsCount >= session.totalCount) {
+      session.status = 'COMPLETED';
+      session.completedAt = now;
+    }
+
+    db.updateStudySession(session);
+
+    return {
+      isCorrect,
+      userInput: rawInput,
+      correctAnswer: word.text,
+      phonetic: word.phoneticUk,
+      meanings: word.meanings,
+      sessionWord: sw,
+      sessionCompleted: session.status === 'COMPLETED',
+      progress: updatedProgress
+    };
+  }
+
+  /**
+   * Advance current word index in the session
+   */
+  static nextWord(sessionId: string, userId: string) {
+    const session = db.findStudySessionById(sessionId);
+    if (!session || session.userId !== userId) throw new Error('学习任务不存在');
+
+    if (session.currentWordIndex < session.totalCount - 1) {
+      session.currentWordIndex += 1;
+      db.updateStudySession(session);
+    }
+
+    return session;
+  }
+
+  /**
+   * Cancel an in-progress session
+   */
+  static cancelSession(sessionId: string, userId: string) {
+    const session = db.findStudySessionById(sessionId);
+    if (!session || session.userId !== userId) throw new Error('学习任务不存在');
+
+    session.status = 'CANCELLED';
+    db.updateStudySession(session);
+    return session;
+  }
+}

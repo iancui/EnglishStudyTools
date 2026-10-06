@@ -5,7 +5,8 @@ import { ReviewController } from '../controllers/reviewController.ts';
 import { SentenceController } from '../controllers/sentenceController.ts';
 import { DictionaryController } from '../controllers/dictionaryController.ts';
 import { StatisticsController } from '../controllers/statisticsController.ts';
-import { authMiddleware } from '../middleware/authMiddleware.ts';
+import { StudySessionController } from '../controllers/studySessionController.ts';
+import { authMiddleware, requireAdmin } from '../middleware/authMiddleware.ts';
 
 export const apiRouter = Router();
 
@@ -17,7 +18,39 @@ apiRouter.post('/auth/register', AuthController.register);
 apiRouter.post('/auth/login', AuthController.login);
 apiRouter.get('/auth/me', AuthController.getCurrentUser);
 
-// Words
+// Dictionaries (User & Public)
+apiRouter.get('/dictionaries', DictionaryController.getAllDictionaries);
+apiRouter.post('/dictionaries', DictionaryController.createDictionary);
+apiRouter.get('/dictionaries/:id', DictionaryController.getDictionaryById);
+apiRouter.put('/dictionaries/:id', DictionaryController.updateDictionary);
+apiRouter.delete('/dictionaries/:id', DictionaryController.deleteDictionary);
+apiRouter.post('/dictionaries/:id/words', DictionaryController.addWord);
+apiRouter.delete('/dictionaries/:id/words/:wordId', DictionaryController.removeWord);
+apiRouter.post('/dictionaries/:id/words/batch', DictionaryController.batchAddWords);
+
+// Admin Dictionaries
+apiRouter.get('/admin/dictionaries', requireAdmin, DictionaryController.getAdminDictionaries);
+apiRouter.post('/admin/dictionaries', requireAdmin, DictionaryController.createAdminDictionary);
+apiRouter.put('/admin/dictionaries/:id', requireAdmin, DictionaryController.updateAdminDictionary);
+apiRouter.delete('/admin/dictionaries/:id', requireAdmin, DictionaryController.deleteAdminDictionary);
+apiRouter.post('/admin/dictionaries/:id/import', requireAdmin, DictionaryController.importAdminWords);
+
+// Dictionary Config (Preferences)
+apiRouter.get('/dictionary/config', DictionaryController.getConfig);
+apiRouter.post('/dictionary/config', DictionaryController.updateConfig);
+apiRouter.put('/dictionary/config', DictionaryController.updateConfig);
+
+// Study Sessions (Unified Learn & Write Step)
+apiRouter.post('/study-sessions/preview', StudySessionController.previewSession);
+apiRouter.post('/study-sessions', StudySessionController.createSession);
+apiRouter.get('/study-sessions/current', StudySessionController.getActiveSession);
+apiRouter.get('/study-sessions/:id', StudySessionController.getSessionById);
+apiRouter.post('/study-sessions/:id/learn/:wordId', StudySessionController.markWordLearned);
+apiRouter.post('/study-sessions/:id/write/:wordId', StudySessionController.writeWord);
+apiRouter.post('/study-sessions/:id/next', StudySessionController.nextWord);
+apiRouter.post('/study-sessions/:id/cancel', StudySessionController.cancelSession);
+
+// Words (Legacy / auxiliary catalogue compatibility)
 apiRouter.get('/words/today', WordController.getTodayWords);
 apiRouter.get('/words/wrong', WordController.getWrongWords);
 apiRouter.get('/words/:id', WordController.getWordById);
@@ -30,17 +63,12 @@ apiRouter.post('/words/:id/learn', WordController.markLearned);
 apiRouter.get('/review/today', ReviewController.getTodayReview);
 apiRouter.post('/review/:id', ReviewController.submitReview);
 
-// Sentences
+// Sentences (Preserved 100%)
 apiRouter.get('/sentences', SentenceController.getAllSentences);
 apiRouter.get('/sentences/today', SentenceController.getTodaySentences);
 apiRouter.get('/sentences/:id', SentenceController.getSentenceById);
 apiRouter.get('/sentences/:id/steps', SentenceController.getSentenceSteps);
 apiRouter.post('/sentences/:id/complete', SentenceController.completeSentence);
-
-// Dictionary Config
-apiRouter.get('/dictionary/config', DictionaryController.getConfig);
-apiRouter.post('/dictionary/config', DictionaryController.updateConfig);
-apiRouter.put('/dictionary/config', DictionaryController.updateConfig);
 
 // Statistics
 apiRouter.get('/statistics/today', StatisticsController.getTodayStatistics);

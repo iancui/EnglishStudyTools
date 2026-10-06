@@ -1,5 +1,31 @@
 export type ProgressStatus = 'NEW' | 'LEARNING' | 'REVIEW' | 'MASTERED';
 export type StepType = 'WORD' | 'PHRASE' | 'STRUCTURE' | 'SENTENCE';
+export type UserRole = 'USER' | 'ADMIN';
+
+export interface UserInfo {
+  id: string;
+  username: string;
+  email: string;
+  role: UserRole;
+}
+
+export type DictionaryOwnerType = 'SYSTEM' | 'USER';
+export type DictionaryStatus = 'ACTIVE' | 'INACTIVE';
+
+export interface DictionaryItem {
+  id: string;
+  name: string;
+  code: string;
+  description?: string;
+  ownerType: DictionaryOwnerType;
+  ownerUserId?: string | null;
+  isSystem: boolean;
+  isPublic: boolean;
+  status: DictionaryStatus;
+  wordCount?: number;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export interface WordMeaning {
   id: string;
@@ -55,6 +81,43 @@ export interface WordItem {
   progress?: UserWordProgress | null;
 }
 
+export type SessionMode = 'LEARN_AND_WRITE' | 'WRITE_ONLY';
+export type SessionStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+export type SessionSortMode = 'RANDOM' | 'SEQUENCE' | 'REVIEW_FIRST';
+export type SessionWordStatus = 'LEARN_PENDING' | 'LEARNED' | 'WRITE_PENDING' | 'WRITTEN' | 'COMPLETED';
+
+export interface StudySessionWordItem {
+  id: string;
+  sessionId: string;
+  wordId: string;
+  sequence: number;
+  learnStatus: SessionWordStatus;
+  writeStatus: SessionWordStatus;
+  completed: boolean;
+  isCorrect?: boolean | null;
+  userInput?: string | null;
+  learnedAt?: string | null;
+  writtenAt?: string | null;
+  word?: WordItem;
+}
+
+export interface StudySessionItem {
+  id: string;
+  userId: string;
+  mode: SessionMode;
+  dictionaryId: string;
+  dictionary?: DictionaryItem;
+  totalCount: number;
+  completedCount: number;
+  excludeMastered: boolean;
+  sortMode: SessionSortMode;
+  status: SessionStatus;
+  currentWordIndex: number;
+  startedAt: string;
+  completedAt?: string;
+  words: StudySessionWordItem[];
+}
+
 export interface SentenceStep {
   id: string;
   sentenceId: string;
@@ -94,8 +157,9 @@ export interface SentenceItem {
 export interface DictionaryConfig {
   id: string;
   userId: string;
-  englishDict: string;
-  ecDict: string;
+  defaultDictionaryId?: string;
+  englishDict?: string;
+  ecDict?: string;
   phoneticType: 'UK' | 'US';
   audioType: 'UK' | 'US';
   enablePhonics: boolean;

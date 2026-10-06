@@ -1,25 +1,41 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowRight, BookOpen, Brain, GitCommit, RotateCcw, Award, Clock, Sparkles } from 'lucide-react';
+import {
+  ArrowRight,
+  BookOpen,
+  Brain,
+  GitCommit,
+  RotateCcw,
+  Sparkles,
+  Play,
+  RotateCw,
+  FolderKanban
+} from 'lucide-react';
 import { api } from '../api/client.ts';
-import { StatisticsData } from '../types/index.ts';
+import { StatisticsData, StudySessionItem } from '../types/index.ts';
 
 interface HomeViewProps {
   navigate: (route: string) => void;
+  onOpenStudySetup: () => void;
 }
 
-export const HomeView: React.FC<HomeViewProps> = ({ navigate }) => {
+export const HomeView: React.FC<HomeViewProps> = ({ navigate, onOpenStudySetup }) => {
   const [stats, setStats] = useState<StatisticsData | null>(null);
+  const [activeSession, setActiveSession] = useState<StudySessionItem | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadStats();
+    loadHomeData();
   }, []);
 
-  const loadStats = async () => {
+  const loadHomeData = async () => {
     try {
       setLoading(true);
-      const res = await api.getTodayStatistics();
-      setStats(res);
+      const [statsRes, sessionRes] = await Promise.all([
+        api.getTodayStatistics(),
+        api.getActiveStudySession()
+      ]);
+      setStats(statsRes);
+      setActiveSession(sessionRes);
     } catch (e) {
       console.error(e);
     } finally {
@@ -31,63 +47,118 @@ export const HomeView: React.FC<HomeViewProps> = ({ navigate }) => {
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 space-y-10">
-      {/* Hero Learning Section */}
-      <div className="bg-stone-900 text-stone-100 rounded-3xl p-8 sm:p-12 relative overflow-hidden shadow-sm">
-        <div className="relative z-10 max-w-2xl space-y-6">
-          <div className="flex items-center gap-2 text-amber-300 text-sm font-medium tracking-wide">
-            <Sparkles className="w-4 h-4" />
-            <span>循序渐进 · 单词到句子</span>
-          </div>
-
-          <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-white leading-tight">
-            今天继续学习 <span className="text-amber-400 font-mono">20</span> 个核心单词
-          </h1>
-
-          <p className="text-stone-300 text-base sm:text-lg leading-relaxed">
-            遵循“单词 → 短语 → 句子 → 理解 → 记忆 → 科学复习”的认知闭环。
-          </p>
-
-          <div className="pt-2 flex flex-wrap items-center gap-4">
-            <button
-              onClick={() => navigate('/words/learn')}
-              className="px-6 py-3.5 bg-amber-400 hover:bg-amber-300 text-stone-950 font-semibold rounded-xl transition-all shadow-sm flex items-center gap-2 text-base"
-            >
-              <span>开始学习单词</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-
-            <button
-              onClick={() => navigate('/sentences')}
-              className="px-6 py-3.5 bg-stone-800 hover:bg-stone-700 text-white font-medium rounded-xl transition-all border border-stone-700 text-base"
-            >
-              渐进式句子学习
-            </button>
-          </div>
-
-          {/* Today's Progress Bar */}
-          <div className="pt-4 space-y-2">
-            <div className="flex justify-between text-xs text-stone-400">
-              <span>今日目标进度</span>
-              <span className="font-mono text-stone-200">{progressPercent}%</span>
+      {/* Dynamic Hero: Ongoing Study Session vs New Learning Setup */}
+      {activeSession ? (
+        <div className="bg-stone-900 text-stone-100 rounded-3xl p-8 sm:p-12 relative overflow-hidden shadow-sm animate-fadeIn">
+          <div className="relative z-10 max-w-2xl space-y-6">
+            <div className="flex items-center gap-2 text-amber-300 text-xs font-semibold tracking-wide uppercase">
+              <Sparkles className="w-4 h-4" />
+              <span>未完结学习任务 · 进度已实时自动暂存</span>
             </div>
-            <div className="h-2.5 w-full bg-stone-800 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-amber-400 rounded-full transition-all duration-500 ease-out"
-                style={{ width: `${progressPercent}%` }}
-              />
+
+            <div className="space-y-2">
+              <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-white leading-tight">
+                继续学习：{activeSession.dictionary?.name || '当前辞书'}
+              </h1>
+              <p className="text-stone-300 text-sm sm:text-base">
+                上次已推进至第 <span className="font-mono text-amber-400 font-bold">{activeSession.currentWordIndex + 1}</span> 个单词（共 {activeSession.totalCount} 词），点击即可立刻回到中断处继续学写！
+              </p>
+            </div>
+
+            {/* Session Progress Bar */}
+            <div className="space-y-2 pt-1 max-w-lg">
+              <div className="flex justify-between text-xs text-stone-400 font-medium">
+                <span>任务完成进度</span>
+                <span className="font-mono text-amber-400">
+                  {activeSession.completedCount} / {activeSession.totalCount} 词 ({Math.round((activeSession.completedCount / activeSession.totalCount) * 100)}%)
+                </span>
+              </div>
+              <div className="h-2.5 w-full bg-stone-800 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-amber-400 rounded-full transition-all duration-500 ease-out"
+                  style={{ width: `${(activeSession.completedCount / activeSession.totalCount) * 100}%` }}
+                />
+              </div>
+            </div>
+
+            <div className="pt-2 flex flex-wrap items-center gap-4">
+              <button
+                onClick={() => navigate(`/study/${activeSession.id}`)}
+                className="px-7 py-3.5 bg-amber-400 hover:bg-amber-300 text-stone-950 font-bold rounded-xl transition-all shadow-sm flex items-center gap-2 text-base"
+              >
+                <span>继续学习</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+
+              <button
+                onClick={onOpenStudySetup}
+                className="px-5 py-3.5 bg-stone-800 hover:bg-stone-700 text-stone-300 font-medium rounded-xl transition-all border border-stone-700 text-sm"
+              >
+                开启新的背诵任务
+              </button>
             </div>
           </div>
+
+          <div className="absolute -right-10 -bottom-10 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
         </div>
+      ) : (
+        <div className="bg-stone-900 text-stone-100 rounded-3xl p-8 sm:p-12 relative overflow-hidden shadow-sm">
+          <div className="relative z-10 max-w-2xl space-y-6">
+            <div className="flex items-center gap-2 text-amber-300 text-sm font-medium tracking-wide">
+              <Sparkles className="w-4 h-4" />
+              <span>单词学与背写一体化 · 认知闭环</span>
+            </div>
 
-        {/* Ambient background decoration */}
-        <div className="absolute -right-10 -bottom-10 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-      </div>
+            <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-white leading-tight">
+              定制今天的新单词背诵任务
+            </h1>
 
-      {/* Main 4 Action Modules */}
+            <p className="text-stone-300 text-base sm:text-lg leading-relaxed">
+              支持自由选定系统辞书或生词本，设定目标数量与排除已掌握，每个单词经由“看音形义 $\to$ 主动拼写背写”完整攻克。
+            </p>
+
+            <div className="pt-2 flex flex-wrap items-center gap-4">
+              <button
+                onClick={onOpenStudySetup}
+                className="px-7 py-3.5 bg-amber-400 hover:bg-amber-300 text-stone-950 font-bold rounded-xl transition-all shadow-sm flex items-center gap-2 text-base"
+              >
+                <span>开始背单词</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+
+              <button
+                onClick={() => navigate('/dictionaries')}
+                className="px-6 py-3.5 bg-stone-800 hover:bg-stone-700 text-white font-medium rounded-xl transition-all border border-stone-700 text-base flex items-center gap-2"
+              >
+                <FolderKanban className="w-4 h-4 text-amber-300" />
+                <span>浏览词库辞书</span>
+              </button>
+            </div>
+
+            {/* General progress bar */}
+            <div className="pt-4 space-y-2 max-w-lg">
+              <div className="flex justify-between text-xs text-stone-400">
+                <span>今日综合词汇掌握进度</span>
+                <span className="font-mono text-stone-200">{progressPercent}%</span>
+              </div>
+              <div className="h-2.5 w-full bg-stone-800 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-amber-400 rounded-full transition-all duration-500 ease-out"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="absolute -right-10 -bottom-10 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+        </div>
+      )}
+
+      {/* 4 Feature Action Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-        {/* Module 1: Word Study */}
+        {/* Module 1: Start/Custom Study Task */}
         <div
-          onClick={() => navigate('/words/learn')}
+          onClick={onOpenStudySetup}
           className="group cursor-pointer bg-white border border-stone-200 hover:border-stone-400 rounded-2xl p-6 transition-all shadow-sm hover:shadow-md flex flex-col justify-between"
         >
           <div className="space-y-3">
@@ -95,36 +166,36 @@ export const HomeView: React.FC<HomeViewProps> = ({ navigate }) => {
               <BookOpen className="w-5 h-5" />
             </div>
             <h3 className="text-lg font-bold text-stone-900 group-hover:text-amber-700 transition-colors">
-              第一阶段：学单词
+              背单词设置
             </h3>
             <p className="text-sm text-stone-500 leading-normal">
-              音标、双语释义、自然拼读音节拆分，强化音形联结。
+              自由设置辞书、目标单词数量、乱序或教材顺序，并剔除熟词。
             </p>
           </div>
           <div className="pt-4 flex items-center justify-between text-xs text-stone-400 font-medium border-t border-stone-100 mt-4">
-            <span>20 词 / 组</span>
-            <span className="text-stone-700 group-hover:translate-x-1 transition-transform">进入 →</span>
+            <span>定制任务</span>
+            <span className="text-stone-700 group-hover:translate-x-1 transition-transform">配置 →</span>
           </div>
         </div>
 
-        {/* Module 2: Word Review */}
+        {/* Module 2: Dictionary Management */}
         <div
-          onClick={() => navigate('/words/review')}
+          onClick={() => navigate('/dictionaries')}
           className="group cursor-pointer bg-white border border-stone-200 hover:border-stone-400 rounded-2xl p-6 transition-all shadow-sm hover:shadow-md flex flex-col justify-between"
         >
           <div className="space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-800 flex items-center justify-center">
-              <Brain className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-xl bg-sky-100 text-sky-800 flex items-center justify-center">
+              <FolderKanban className="w-5 h-5" />
             </div>
-            <h3 className="text-lg font-bold text-stone-900 group-hover:text-rose-700 transition-colors">
-              第二阶段：背单词
+            <h3 className="text-lg font-bold text-stone-900 group-hover:text-sky-700 transition-colors">
+              辞书库管理
             </h3>
             <p className="text-sm text-stone-500 leading-normal">
-              中文提示，拼写英文，禁止选择题，倒逼主动检索记忆。
+              支持小学/初中/四级系统辞书与用户自主创建的生词本。
             </p>
           </div>
           <div className="pt-4 flex items-center justify-between text-xs text-stone-400 font-medium border-t border-stone-100 mt-4">
-            <span>科学间隔复习</span>
+            <span>查看辞书</span>
             <span className="text-stone-700 group-hover:translate-x-1 transition-transform">进入 →</span>
           </div>
         </div>
@@ -135,18 +206,18 @@ export const HomeView: React.FC<HomeViewProps> = ({ navigate }) => {
           className="group cursor-pointer bg-white border border-stone-200 hover:border-stone-400 rounded-2xl p-6 transition-all shadow-sm hover:shadow-md flex flex-col justify-between"
         >
           <div className="space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-sky-100 text-sky-800 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center">
               <GitCommit className="w-5 h-5" />
             </div>
-            <h3 className="text-lg font-bold text-stone-900 group-hover:text-sky-700 transition-colors">
-              句子渐进式学习
+            <h3 className="text-lg font-bold text-stone-900 group-hover:text-emerald-700 transition-colors">
+              渐进式句子学习
             </h3>
             <p className="text-sm text-stone-500 leading-normal">
-              词 → 短语 → 骨架 → 完整句，层层递增，句法结构精细分析。
+              核心特色功能：单词到完整长句步进展开，配句法语法成分分析。
             </p>
           </div>
           <div className="pt-4 flex items-center justify-between text-xs text-stone-400 font-medium border-t border-stone-100 mt-4">
-            <span>核心特色模式</span>
+            <span>10+ 渐进长句</span>
             <span className="text-stone-700 group-hover:translate-x-1 transition-transform">进入 →</span>
           </div>
         </div>
@@ -157,14 +228,14 @@ export const HomeView: React.FC<HomeViewProps> = ({ navigate }) => {
           className="group cursor-pointer bg-white border border-stone-200 hover:border-stone-400 rounded-2xl p-6 transition-all shadow-sm hover:shadow-md flex flex-col justify-between"
         >
           <div className="space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-800 flex items-center justify-center">
               <RotateCcw className="w-5 h-5" />
             </div>
-            <h3 className="text-lg font-bold text-stone-900 group-hover:text-emerald-700 transition-colors">
+            <h3 className="text-lg font-bold text-stone-900 group-hover:text-rose-700 transition-colors">
               错词本与复习
             </h3>
             <p className="text-sm text-stone-500 leading-normal">
-              收集易错单词，按 10分/1天/3天/7天 科学间隔重点攻坚。
+              背写中拼错的单词自动入册，按艾宾浩斯曲线优先巩固。
             </p>
           </div>
           <div className="pt-4 flex items-center justify-between text-xs text-stone-400 font-medium border-t border-stone-100 mt-4">
@@ -174,7 +245,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ navigate }) => {
         </div>
       </div>
 
-      {/* Real Statistics Overview Section (Section Eighteen) */}
+      {/* Real Statistics Overview Section */}
       <div className="bg-white border border-stone-200 rounded-2xl p-6 sm:p-8 space-y-6">
         <div className="flex items-center justify-between">
           <div>

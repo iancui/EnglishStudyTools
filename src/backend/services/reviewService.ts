@@ -1,5 +1,6 @@
 import { db } from '../db/storage.ts';
 import { UserWordProgress, ReviewRecord, ProgressStatus } from '../types/index.ts';
+import { WordProgressService } from './wordProgressService.ts';
 
 // Interval sequence requested in Section Ten:
 // 1st: 10 mins (0.007 days)
@@ -64,16 +65,16 @@ export class ReviewService {
 
     if (isCorrect) {
       progress.correctCount += 1;
-      // Mastery increases with streak, cap at 100%
-      progress.mastery = Math.min(100, progress.mastery + 20);
-      if (progress.mastery >= 100 || progress.streak >= 5) {
+      // Mastery accumulates progressively (+15 per correct step)
+      progress.mastery = Math.min(100, progress.mastery + 15);
+      if (progress.streak >= 5 && progress.mastery >= 90) {
         progress.status = 'MASTERED';
       } else {
         progress.status = 'REVIEW';
       }
     } else {
       progress.wrongCount += 1;
-      progress.mastery = Math.max(10, progress.mastery - 25);
+      progress.mastery = Math.max(0, progress.mastery - 20);
       progress.status = 'LEARNING';
     }
 

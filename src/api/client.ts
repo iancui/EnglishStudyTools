@@ -63,7 +63,123 @@ export const api = {
 
   getCurrentUser: () => request<any>('/api/auth/me'),
 
-  // Words
+  // Dictionaries
+  getDictionaries: () => request<any[]>('/api/dictionaries'),
+  getDictionaryById: (id: string) => request<any>(`/api/dictionaries/${id}`),
+  createDictionary: (data: { name: string; description?: string }) =>
+    request<any>('/api/dictionaries', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+  updateDictionary: (id: string, data: { name?: string; description?: string }) =>
+    request<any>(`/api/dictionaries/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    }),
+  deleteDictionary: (id: string) =>
+    request<any>(`/api/dictionaries/${id}`, {
+      method: 'DELETE'
+    }),
+  addWordToDictionary: (dictId: string, wordId: string) =>
+    request<any>(`/api/dictionaries/${dictId}/words`, {
+      method: 'POST',
+      body: JSON.stringify({ wordId })
+    }),
+  removeWordFromDictionary: (dictId: string, wordId: string) =>
+    request<any>(`/api/dictionaries/${dictId}/words/${wordId}`, {
+      method: 'DELETE'
+    }),
+  batchAddWordsToDictionary: (dictId: string, wordIds: string[]) =>
+    request<any>(`/api/dictionaries/${dictId}/words/batch`, {
+      method: 'POST',
+      body: JSON.stringify({ wordIds })
+    }),
+
+  // Admin Dictionaries
+  getAdminDictionaries: () => request<any[]>('/api/admin/dictionaries'),
+  createAdminDictionary: (data: any) =>
+    request<any>('/api/admin/dictionaries', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+  updateAdminDictionary: (id: string, data: any) =>
+    request<any>(`/api/admin/dictionaries/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    }),
+  deleteAdminDictionary: (id: string) =>
+    request<any>(`/api/admin/dictionaries/${id}`, {
+      method: 'DELETE'
+    }),
+  importAdminWords: (dictId: string, words: any[]) =>
+    request<any>(`/api/admin/dictionaries/${dictId}/import`, {
+      method: 'POST',
+      body: JSON.stringify({ words })
+    }),
+
+  // Study Sessions (The Core Step-by-Step Learning Engine)
+  previewStudySession: (params: {
+    dictionaryId: string;
+    count?: number;
+    excludeMastered?: boolean;
+    sortMode?: string;
+  }) =>
+    request<any>('/api/study-sessions/preview', {
+      method: 'POST',
+      body: JSON.stringify(params)
+    }),
+
+  createStudySession: (params: {
+    dictionaryId?: string;
+    count?: number;
+    excludeMastered?: boolean;
+    sortMode?: string;
+    mode?: string;
+  }) =>
+    request<any>('/api/study-sessions', {
+      method: 'POST',
+      body: JSON.stringify(params)
+    }),
+
+  getActiveStudySession: () => request<any | null>('/api/study-sessions/current'),
+  getStudySessionById: (id: string) => request<any>(`/api/study-sessions/${id}`),
+
+  learnSessionWord: (sessionId: string, wordId: string) =>
+    request<any>(`/api/study-sessions/${sessionId}/learn/${wordId}`, {
+      method: 'POST'
+    }),
+
+  writeSessionWord: (
+    sessionId: string,
+    wordId: string,
+    answer: string,
+    timeSpentSec = 5
+  ) =>
+    request<{
+      isCorrect: boolean;
+      userInput: string;
+      correctAnswer: string;
+      phonetic?: string;
+      meanings?: any[];
+      sessionWord: any;
+      sessionCompleted: boolean;
+      progress?: any;
+    }>(`/api/study-sessions/${sessionId}/write/${wordId}`, {
+      method: 'POST',
+      body: JSON.stringify({ answer, timeSpentSec })
+    }),
+
+  nextSessionWord: (sessionId: string) =>
+    request<any>(`/api/study-sessions/${sessionId}/next`, {
+      method: 'POST'
+    }),
+
+  cancelStudySession: (sessionId: string) =>
+    request<any>(`/api/study-sessions/${sessionId}/cancel`, {
+      method: 'POST'
+    }),
+
+  // Words (Legacy / Catalogue)
   getTodayWords: (limit = 20) => request<any[]>(`/api/words/today?limit=${limit}`),
   getWordById: (id: string) => request<any>(`/api/words/${id}`),
   getWordPhonics: (id: string) => request<any[]>(`/api/words/${id}/phonics`),

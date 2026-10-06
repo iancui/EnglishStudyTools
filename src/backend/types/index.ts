@@ -1,13 +1,43 @@
 export type ProgressStatus = 'NEW' | 'LEARNING' | 'REVIEW' | 'MASTERED';
 export type StepType = 'WORD' | 'PHRASE' | 'STRUCTURE' | 'SENTENCE';
+export type UserRole = 'USER' | 'ADMIN';
 
 export interface User {
   id: string;
   username: string;
   email: string;
   passwordHash: string;
+  role: UserRole;
   createdAt: string;
   updatedAt: string;
+}
+
+export type DictionaryOwnerType = 'SYSTEM' | 'USER';
+export type DictionaryStatus = 'ACTIVE' | 'INACTIVE';
+
+export interface Dictionary {
+  id: string;
+  name: string;
+  code: string;
+  description?: string;
+  ownerType: DictionaryOwnerType;
+  ownerUserId?: string | null;
+  isSystem: boolean;
+  isPublic: boolean;
+  status: DictionaryStatus;
+  wordCount?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DictionaryWord {
+  id: string;
+  dictionaryId: string;
+  wordId: string;
+  sequence: number;
+  isActive: boolean;
+  definitionSource?: string;
+  createdAt: string;
 }
 
 export interface WordMeaning {
@@ -60,7 +90,7 @@ export interface SentenceAnalysis {
   text: string;
   startPosition: number;
   endPosition: number;
-  type: string; // 称呼, 疑问词, 助动词, 主语, 动词, 时间状语, etc.
+  type: string;
   explanation: string;
 }
 
@@ -78,8 +108,9 @@ export interface Sentence {
 export interface UserDictionaryConfig {
   id: string;
   userId: string;
-  englishDict: string; // 'Oxford' | 'Cambridge' | 'Collins' | 'Longman'
-  ecDict: string;
+  defaultDictionaryId?: string;
+  englishDict?: string; // legacy fallback
+  ecDict?: string; // legacy fallback
   phoneticType: 'UK' | 'US';
   audioType: 'UK' | 'US';
   enablePhonics: boolean;
@@ -103,6 +134,44 @@ export interface UserWordProgress {
   nextReviewAt?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export type SessionMode = 'LEARN_AND_WRITE' | 'WRITE_ONLY';
+export type SessionStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+export type SessionSortMode = 'RANDOM' | 'SEQUENCE' | 'REVIEW_FIRST';
+export type SessionWordStatus = 'LEARN_PENDING' | 'LEARNED' | 'WRITE_PENDING' | 'WRITTEN' | 'COMPLETED';
+
+export interface StudySession {
+  id: string;
+  userId: string;
+  mode: SessionMode;
+  dictionaryId: string;
+  totalCount: number;
+  completedCount: number;
+  excludeMastered: boolean;
+  sortMode: SessionSortMode;
+  status: SessionStatus;
+  currentWordIndex: number;
+  startedAt: string;
+  completedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface StudySessionWord {
+  id: string;
+  sessionId: string;
+  wordId: string;
+  sequence: number;
+  learnStatus: SessionWordStatus;
+  writeStatus: SessionWordStatus;
+  completed: boolean;
+  isCorrect?: boolean | null;
+  userInput?: string | null;
+  learnedAt?: string | null;
+  writtenAt?: string | null;
+  createdAt: string;
+  word?: Word;
 }
 
 export interface UserSentenceProgress {

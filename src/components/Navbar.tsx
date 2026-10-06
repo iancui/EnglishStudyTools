@@ -1,11 +1,12 @@
 import React from 'react';
-import { Volume2, BookOpen, CheckSquare, Layers, Bookmark, BarChart3, Settings } from 'lucide-react';
+import { Volume2, BookOpen, CheckSquare, Layers, Bookmark, BarChart3, Settings, FolderKanban, Shield } from 'lucide-react';
 
 interface NavbarProps {
   currentRoute: string;
   navigate: (route: string) => void;
   user: any;
   onOpenAuth: () => void;
+  onOpenStudySetup: () => void;
   config: any;
 }
 
@@ -14,8 +15,11 @@ export const Navbar: React.FC<NavbarProps> = ({
   navigate,
   user,
   onOpenAuth,
+  onOpenStudySetup,
   config
 }) => {
+  const isAdmin = user?.role === 'ADMIN';
+
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-stone-200">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
@@ -31,7 +35,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </button>
 
         {/* Zone 2: 4-6 clean text navigation links */}
-        <nav className="hidden md:flex items-center gap-7 text-sm font-medium">
+        <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
           <button
             onClick={() => navigate('/')}
             className={`transition-colors pb-1 border-b-2 ${
@@ -43,24 +47,24 @@ export const Navbar: React.FC<NavbarProps> = ({
             首页
           </button>
           <button
-            onClick={() => navigate('/words/learn')}
+            onClick={onOpenStudySetup}
             className={`transition-colors pb-1 border-b-2 ${
-              currentRoute === '/words/learn'
-                ? 'border-stone-900 text-stone-900'
-                : 'border-transparent text-stone-600 hover:text-stone-900'
-            }`}
-          >
-            学单词
-          </button>
-          <button
-            onClick={() => navigate('/words/review')}
-            className={`transition-colors pb-1 border-b-2 ${
-              currentRoute === '/words/review'
+              currentRoute.startsWith('/study')
                 ? 'border-stone-900 text-stone-900'
                 : 'border-transparent text-stone-600 hover:text-stone-900'
             }`}
           >
             背单词
+          </button>
+          <button
+            onClick={() => navigate('/dictionaries')}
+            className={`transition-colors pb-1 border-b-2 ${
+              currentRoute === '/dictionaries'
+                ? 'border-stone-900 text-stone-900'
+                : 'border-transparent text-stone-600 hover:text-stone-900'
+            }`}
+          >
+            辞书库
           </button>
           <button
             onClick={() => navigate('/sentences')}
@@ -92,6 +96,19 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             学习记录
           </button>
+          {isAdmin && (
+            <button
+              onClick={() => navigate('/admin/dictionaries')}
+              className={`transition-colors pb-1 border-b-2 text-rose-700 flex items-center gap-1 ${
+                currentRoute.startsWith('/admin')
+                  ? 'border-rose-900 font-bold'
+                  : 'border-transparent hover:text-rose-900'
+              }`}
+            >
+              <Shield className="w-3.5 h-3.5" />
+              <span>管理后台</span>
+            </button>
+          )}
         </nav>
 
         {/* Zone 3: 1-2 primary actions */}
@@ -101,8 +118,8 @@ export const Navbar: React.FC<NavbarProps> = ({
             className={`p-2 rounded-lg text-stone-600 hover:text-stone-900 hover:bg-stone-100 transition-colors ${
               currentRoute === '/settings/dictionary' ? 'bg-stone-100 text-stone-900' : ''
             }`}
-            title="辞书配置"
-            aria-label="辞书配置"
+            title="发音与音标配置"
+            aria-label="发音与音标配置"
           >
             <Settings className="w-5 h-5" />
           </button>
@@ -110,9 +127,14 @@ export const Navbar: React.FC<NavbarProps> = ({
           {user ? (
             <button
               onClick={() => navigate('/settings')}
-              className="px-3 py-1.5 text-xs font-medium text-stone-700 bg-stone-100 rounded-lg hover:bg-stone-200 transition-colors whitespace-nowrap"
+              className="px-3 py-1.5 text-xs font-medium text-stone-700 bg-stone-100 rounded-lg hover:bg-stone-200 transition-colors whitespace-nowrap flex items-center gap-1.5"
             >
-              {user.username}
+              <span>{user.username}</span>
+              {isAdmin && (
+                <span className="text-[10px] bg-rose-100 text-rose-800 px-1 py-0.2 rounded font-bold">
+                  ADMIN
+                </span>
+              )}
             </button>
           ) : (
             <button
@@ -134,22 +156,22 @@ export const Navbar: React.FC<NavbarProps> = ({
           首页
         </button>
         <button
-          onClick={() => navigate('/words/learn')}
-          className={`flex flex-col items-center py-1 px-2 ${currentRoute === '/words/learn' ? 'text-stone-900 font-semibold' : 'text-stone-500'}`}
-        >
-          学单词
-        </button>
-        <button
-          onClick={() => navigate('/words/review')}
-          className={`flex flex-col items-center py-1 px-2 ${currentRoute === '/words/review' ? 'text-stone-900 font-semibold' : 'text-stone-500'}`}
+          onClick={onOpenStudySetup}
+          className={`flex flex-col items-center py-1 px-2 ${currentRoute.startsWith('/study') ? 'text-stone-900 font-semibold' : 'text-stone-500'}`}
         >
           背单词
+        </button>
+        <button
+          onClick={() => navigate('/dictionaries')}
+          className={`flex flex-col items-center py-1 px-2 ${currentRoute === '/dictionaries' ? 'text-stone-900 font-semibold' : 'text-stone-500'}`}
+        >
+          辞书
         </button>
         <button
           onClick={() => navigate('/sentences')}
           className={`flex flex-col items-center py-1 px-2 ${currentRoute.startsWith('/sentences') ? 'text-stone-900 font-semibold' : 'text-stone-500'}`}
         >
-          渐进句子
+          句子
         </button>
         <button
           onClick={() => navigate('/statistics')}

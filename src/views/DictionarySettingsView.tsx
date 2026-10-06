@@ -1,14 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Check, Settings, Save, Sparkles, BookOpen } from 'lucide-react';
+import { Check, Settings, Save, Sparkles, BookOpen, FolderKanban } from 'lucide-react';
 import { api } from '../api/client.ts';
-import { DictionaryConfig } from '../types/index.ts';
+import { DictionaryConfig, DictionaryItem } from '../types/index.ts';
 
 interface DictionarySettingsViewProps {
   navigate: (route: string) => void;
   onConfigUpdated: (cfg: DictionaryConfig) => void;
 }
-
-const DICTIONARY_OPTIONS = ['Oxford', 'Cambridge', 'Collins', 'Longman'];
 
 export const DictionarySettingsView: React.FC<DictionarySettingsViewProps> = ({
   navigate,
@@ -17,27 +15,31 @@ export const DictionarySettingsView: React.FC<DictionarySettingsViewProps> = ({
   const [config, setConfig] = useState<DictionaryConfig>({
     id: '',
     userId: '',
+    defaultDictionaryId: 'dict-primary-6',
     englishDict: 'Oxford',
     ecDict: 'Oxford',
     phoneticType: 'UK',
     audioType: 'UK',
     enablePhonics: true
   });
+  const [dictionaries, setDictionaries] = useState<DictionaryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
   useEffect(() => {
-    loadConfig();
+    loadData();
   }, []);
 
-  const loadConfig = async () => {
+  const loadData = async () => {
     try {
       setLoading(true);
-      const res = await api.getDictionaryConfig();
-      if (res) {
-        setConfig(res);
-      }
+      const [cfgRes, dictsRes] = await Promise.all([
+        api.getDictionaryConfig(),
+        api.getDictionaries()
+      ]);
+      if (cfgRes) setConfig(cfgRes);
+      if (dictsRes) setDictionaries(dictsRes);
     } catch (e) {
       console.error(e);
     } finally {
@@ -80,64 +82,46 @@ export const DictionarySettingsView: React.FC<DictionarySettingsViewProps> = ({
           辞书与语音配置
         </h1>
         <p className="text-stone-500 text-sm mt-1">
-          统一配置英语辞书源、英美音标显示、发音口音偏好以及自然拼读拆分。全局自动生效。
+          配置默认学习辞书、英美音标显示模式、朗读发音口音以及自然拼读音节拆分。
         </p>
       </div>
 
       <form onSubmit={handleSave} className="bg-white border border-stone-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-8">
-        {/* Section 1: English Dictionary Source */}
+        {/* Section 1: Default Dictionary */}
         <div className="space-y-3">
-          <label className="text-sm font-bold text-stone-900 block">
-            1. 英语权威辞书源 (English Dictionary)
-          </label>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-            {DICTIONARY_OPTIONS.map(opt => (
-              <button
-                key={opt}
-                type="button"
-                onClick={() => setConfig(prev => ({ ...prev, englishDict: opt }))}
-                className={`py-3 px-3 rounded-xl border text-center transition-all text-sm font-medium ${
-                  config.englishDict === opt
-                    ? 'bg-stone-900 border-stone-900 text-white shadow-sm'
-                    : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-50'
-                }`}
-              >
-                {opt}
-              </button>
-            ))}
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-bold text-stone-900 block">
+              1. 默认首选学习辞书
+            </label>
+            <button
+              type="button"
+              onClick={() => navigate('/dictionaries')}
+              className="text-xs text-amber-800 hover:underline flex items-center gap-1"
+            >
+              <FolderKanban className="w-3.5 h-3.5" />
+              <span>管理词库 →</span>
+            </button>
           </div>
+          <select
+            value={config.defaultDictionaryId || 'dict-primary-6'}
+            onChange={e => setConfig(prev => ({ ...prev, defaultDictionaryId: e.target.value }))}
+            className="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 text-sm font-medium text-stone-900 focus:bg-white focus:border-stone-900 outline-none cursor-pointer"
+          >
+            {dictionaries.map(d => (
+              <option key={d.id} value={d.id}>
+                {d.name} ({d.wordCount || 0} 词) {d.isSystem ? '· [系统辞书]' : '· [我的生词本]'}
+              </option>
+            ))}
+          </select>
           <p className="text-xs text-stone-400">
-            支持牛津(Oxford)、剑桥(Cambridge)、柯林斯(Collins)及朗文(Longman)权威释义体系架构。
+            当开始快速背单词时，系统将默认以该辞书作为单词候选池。
           </p>
         </div>
 
-        {/* Section 2: English-Chinese Dictionary Source */}
+        {/* Section 2: Phonetic Preference */}
         <div className="space-y-3">
           <label className="text-sm font-bold text-stone-900 block">
-            2. 英汉双解辞书 (English-Chinese Dictionary)
-          </label>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-            {DICTIONARY_OPTIONS.map(opt => (
-              <button
-                key={`ec-${opt}`}
-                type="button"
-                onClick={() => setConfig(prev => ({ ...prev, ecDict: opt }))}
-                className={`py-3 px-3 rounded-xl border text-center transition-all text-sm font-medium ${
-                  config.ecDict === opt
-                    ? 'bg-stone-900 border-stone-900 text-white shadow-sm'
-                    : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-50'
-                }`}
-              >
-                {opt}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Section 3: Phonetic Preference */}
-        <div className="space-y-3">
-          <label className="text-sm font-bold text-stone-900 block">
-            3. 音标显示偏好
+            2. 音标显示偏好
           </label>
           <div className="grid grid-cols-2 gap-3">
             <button
@@ -168,10 +152,10 @@ export const DictionarySettingsView: React.FC<DictionarySettingsViewProps> = ({
           </div>
         </div>
 
-        {/* Section 4: Audio Pronunciation */}
+        {/* Section 3: Audio Pronunciation */}
         <div className="space-y-3">
           <label className="text-sm font-bold text-stone-900 block">
-            4. 语音发音口音偏好
+            3. 语音发音口音偏好
           </label>
           <div className="grid grid-cols-2 gap-3">
             <button
@@ -183,9 +167,9 @@ export const DictionarySettingsView: React.FC<DictionarySettingsViewProps> = ({
                   : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-50'
               }`}
             >
-              <div className="font-bold text-sm">英式标准音 (Received Pronunciation)</div>
+              <div className="font-bold text-sm">英式标准音 (RP)</div>
               <div className={`text-xs mt-1 ${config.audioType === 'UK' ? 'text-stone-300' : 'text-stone-500'}`}>
-                纯正英伦发音 · en-GB
+                纯正英伦口音 · en-GB
               </div>
             </button>
 
@@ -198,7 +182,7 @@ export const DictionarySettingsView: React.FC<DictionarySettingsViewProps> = ({
                   : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-50'
               }`}
             >
-              <div className="font-bold text-sm">美式标准音 (General American)</div>
+              <div className="font-bold text-sm">美式标准音 (GA)</div>
               <div className={`text-xs mt-1 ${config.audioType === 'US' ? 'text-stone-300' : 'text-stone-500'}`}>
                 清晰美音口音 · en-US
               </div>
@@ -206,12 +190,12 @@ export const DictionarySettingsView: React.FC<DictionarySettingsViewProps> = ({
           </div>
         </div>
 
-        {/* Section 5: Natural Phonics Toggle */}
+        {/* Section 4: Natural Phonics Toggle */}
         <div className="flex items-center justify-between p-4 bg-stone-50 rounded-2xl border border-stone-100">
           <div>
             <div className="font-bold text-sm text-stone-900">启用自然拼读音节拆分</div>
             <div className="text-xs text-stone-500 mt-0.5">
-              在学单词界面提供 hol · i · day 多音节点击拆解发音支持
+              在单词“学”阶段提供 hol · i · day 多音节点击独立发音
             </div>
           </div>
 
@@ -238,7 +222,7 @@ export const DictionarySettingsView: React.FC<DictionarySettingsViewProps> = ({
             className="px-6 py-3 bg-stone-900 hover:bg-stone-800 disabled:opacity-40 text-white font-semibold rounded-xl transition-all shadow-sm flex items-center gap-2 text-sm"
           >
             <Save className="w-4 h-4" />
-            <span>{saving ? '正在保存...' : '保存辞书配置'}</span>
+            <span>{saving ? '正在保存...' : '保存配置'}</span>
           </button>
         </div>
       </form>

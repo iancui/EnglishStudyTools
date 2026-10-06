@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Navbar } from './components/Navbar.tsx';
 import { HomeView } from './views/HomeView.tsx';
-import { WordLearnView } from './views/WordLearnView.tsx';
-import { WordReviewView } from './views/WordReviewView.tsx';
+import { StudySessionView } from './views/StudySessionView.tsx';
+import { StudySetupModal } from './views/StudySetupModal.tsx';
+import { DictionariesView } from './views/DictionariesView.tsx';
+import { AdminDictionariesView } from './views/AdminDictionariesView.tsx';
 import { SentenceListView } from './views/SentenceListView.tsx';
 import { SentenceStudyView } from './views/SentenceStudyView.tsx';
 import { WrongWordsView } from './views/WrongWordsView.tsx';
@@ -19,9 +21,13 @@ export default function App() {
   });
   const [user, setUser] = useState<any>(() => authStorage.getUser());
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isStudySetupOpen, setIsStudySetupOpen] = useState(false);
+  const [setupInitialDictId, setSetupInitialDictId] = useState<string | undefined>(undefined);
+
   const [config, setConfig] = useState<DictionaryConfig>({
     id: 'cfg-default',
     userId: 'u-default',
+    defaultDictionaryId: 'dict-primary-6',
     englishDict: 'Oxford',
     ecDict: 'Oxford',
     phoneticType: 'UK',
@@ -30,10 +36,8 @@ export default function App() {
   });
 
   useEffect(() => {
-    // Initial data fetch
     initApp();
 
-    // Listen to browser popstate
     const handlePopState = () => {
       setCurrentRoute(window.location.pathname || '/');
     };
@@ -69,38 +73,108 @@ export default function App() {
     navigate('/');
   };
 
-  // Route parser for dynamic routes like /sentences/:id
+  const handleOpenStudySetup = (dictId?: string) => {
+    setSetupInitialDictId(dictId || config.defaultDictionaryId || 'dict-primary-6');
+    setIsStudySetupOpen(true);
+  };
+
+  const handleSessionStarted = (sessionId: string) => {
+    navigate(`/study/${sessionId}`);
+  };
+
+  // Route parser for dynamic and nested routes
   const renderCurrentView = () => {
     if (currentRoute === '/') {
-      return <HomeView navigate={navigate} />;
+      return (
+        <HomeView
+          navigate={navigate}
+          onOpenStudySetup={() => handleOpenStudySetup()}
+        />
+      );
     }
-    if (currentRoute === '/words/learn') {
-      return <WordLearnView navigate={navigate} config={config} />;
+
+    // Study session routes
+    if (currentRoute.startsWith('/study/')) {
+      const sessionId = currentRoute.split('/')[2];
+      return (
+        <StudySessionView
+          sessionId={sessionId}
+          navigate={navigate}
+          config={config}
+        />
+      );
     }
-    if (currentRoute === '/words/review') {
-      return <WordReviewView navigate={navigate} config={config} />;
+
+    // Direct /words/learn or /words/review fallback triggers active session or setup
+    if (currentRoute === '/words/learn' || currentRoute === '/words/review') {
+      return (
+        <div className="max-w-md mx-auto px-4 py-24 text-center space-y-4">
+          <h2 className="text-xl font-bold text-stone-900">开启新一轮单词任务</h2>
+          <p className="text-xs text-stone-500">
+            单词学习与背写已升级为一体化定制 Session。请选择词库与偏好开启学习。
+          </p>
+          <button
+            onClick={() => handleOpenStudySetup()}
+            className="px-6 py-3 bg-stone-900 text-white rounded-xl text-sm font-semibold shadow-sm"
+          >
+            配置并开始背单词
+          </button>
+        </div>
+      );
     }
+
+    if (currentRoute === '/dictionaries') {
+      return (
+        <DictionariesView
+          navigate={navigate}
+          onOpenStudySetup={handleOpenStudySetup}
+          user={user}
+          defaultDictId={config.defaultDictionaryId}
+          onDefaultDictChanged={id => setConfig(prev => ({ ...prev, defaultDictionaryId: id }))}
+        />
+      );
+    }
+
+    if (currentRoute === '/admin/dictionaries' || currentRoute === '/admin') {
+      return (
+        <AdminDictionariesView
+          navigate={navigate}
+          user={user}
+        />
+      );
+    }
+
     if (currentRoute === '/words/wrong') {
       return <WrongWordsView navigate={navigate} config={config} />;
     }
+
     if (currentRoute === '/sentences') {
       return <SentenceListView navigate={navigate} />;
     }
+
     if (currentRoute.startsWith('/sentences/')) {
       const sentenceId = currentRoute.split('/')[2];
       return <SentenceStudyView sentenceId={sentenceId} navigate={navigate} config={config} />;
     }
+
     if (currentRoute === '/statistics') {
       return <StatisticsView navigate={navigate} />;
     }
+
     if (currentRoute === '/settings/dictionary') {
       return <DictionarySettingsView navigate={navigate} onConfigUpdated={setConfig} />;
     }
+
     if (currentRoute === '/settings') {
       return <UserSettingsView user={user} onLogout={handleLogout} navigate={navigate} />;
     }
 
-    return <HomeView navigate={navigate} />;
+    return (
+      <HomeView
+        navigate={navigate}
+        onOpenStudySetup={() => handleOpenStudySetup()}
+      />
+    );
   };
 
   return (
@@ -110,6 +184,7 @@ export default function App() {
         navigate={navigate}
         user={user}
         onOpenAuth={() => setIsAuthOpen(true)}
+        onOpenStudySetup={() => handleOpenStudySetup()}
         config={config}
       />
 
@@ -125,11 +200,20 @@ export default function App() {
             <span>英语单词 + 句子渐进式学习平台</span>
           </div>
           <div>
-            基于认知规律与科学间隔复习构建 · 单词 → 短语 → 骨架 → 语境
+            基于认知闭环与学习会话架构 · 单词 (学 $\to$ 背写) $\to$ 渐进式长句
           </div>
         </div>
       </footer>
 
+      {/* Study Session Configuration Modal */}
+      <StudySetupModal
+        isOpen={isStudySetupOpen}
+        onClose={() => setIsStudySetupOpen(false)}
+        onSessionStarted={handleSessionStarted}
+        initialDictionaryId={setupInitialDictId}
+      />
+
+      {/* Authentication Modal */}
       <AuthModal
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}

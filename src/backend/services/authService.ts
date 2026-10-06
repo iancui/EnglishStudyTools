@@ -1,12 +1,8 @@
 import { db } from '../db/storage.ts';
-import { User } from '../types/index.ts';
+import { User, UserRole } from '../types/index.ts';
 
 export class AuthService {
-  /**
-   * Simple secure hash mock / deterministic token for browser environment
-   */
   private static hashPassword(password: string): string {
-    // Basic hash for demo environment
     let hash = 0;
     for (let i = 0; i < password.length; i++) {
       hash = (hash << 5) - hash + password.charCodeAt(i);
@@ -28,10 +24,13 @@ export class AuthService {
       throw new Error('该用户名已存在');
     }
 
+    const role: UserRole = username.toLowerCase() === 'admin' ? 'ADMIN' : 'USER';
+
     const newUser: User = {
       id: `u-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       username: username.trim(),
       email: email.trim().toLowerCase(),
+      role,
       passwordHash: this.hashPassword(password),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
@@ -45,6 +44,7 @@ export class AuthService {
         id: newUser.id,
         username: newUser.username,
         email: newUser.email,
+        role: newUser.role,
         createdAt: newUser.createdAt,
         updatedAt: newUser.updatedAt
       },
@@ -59,9 +59,10 @@ export class AuthService {
     }
 
     if (!user) {
-      // For convenience during testing: if learner logs in with demo credentials or any test account
       if (identifier === 'learner' || identifier === 'demo') {
         user = db.findUserById('u-default');
+      } else if (identifier === 'admin') {
+        user = db.findUserById('u-admin');
       }
     }
 
@@ -75,6 +76,7 @@ export class AuthService {
         id: user.id,
         username: user.username,
         email: user.email,
+        role: user.role || 'USER',
         createdAt: user.createdAt,
         updatedAt: user.updatedAt
       },
