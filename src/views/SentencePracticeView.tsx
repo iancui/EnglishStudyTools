@@ -57,6 +57,7 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
   const [allCorrect, setAllCorrect] = useState(false);
   const [practiceCompleted, setPracticeCompleted] = useState(false);
   const [wordPopup, setWordPopup] = useState<{ word: string; meanings: Array<{ pos: string; cn: string }> } | null>(null);
+  const [resultWordInfo, setResultWordInfo] = useState<Record<string, { phonetic: string; meaning: string }>>({});
   const popupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -319,6 +320,28 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
   // Keep ref in sync so useEffect can call latest version
   handleCheckRef.current = handleCheck;
 
+  // 成功结果页：加载每个单词的音标和中文释义
+  useEffect(() => {
+    if (!allCorrect || wordTokens.length === 0) {
+      if (!allCorrect) setResultWordInfo({});
+      return;
+    }
+    let cancelled = false;
+    Promise.all(wordTokens.map(async tok => {
+      try {
+        const data: any = await api.lookupWord(tok.word);
+        const meaning = data?.meanings?.find((m: any) => m?.definitionCn)?.definitionCn || data?.meanings?.[0]?.definitionCn || '';
+        const phonetic = data?.activePhonetic || data?.phonetic || data?.phoneticUk || data?.phoneticUs || '';
+        return [tok.word, { phonetic, meaning }] as const;
+      } catch {
+        return [tok.word, { phonetic: '', meaning: '' }] as const;
+      }
+    })).then(entries => {
+      if (!cancelled) setResultWordInfo(Object.fromEntries(entries));
+    });
+    return () => { cancelled = true; };
+  }, [allCorrect, wordTokens]);
+
   // Auto-check when all words are submitted && correct
   useEffect(() => {
     if (
@@ -562,7 +585,10 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
                     onMouseEnter={() => setHoveredWordIdx(i)}
                     onMouseLeave={() => setHoveredWordIdx(null)}
                   >
-                    <div className="px-5 sm:px-7 py-3 sm:py-4 rounded-2xl bg-[#EBF2FE] border border-white shadow-sm text-3xl sm:text-4xl font-extrabold text-[#29466F] tracking-tight select-none">
+                    <div className="px-5 sm:px-7 py-3 sm:py-4 rounded-2xl bg-[#EBF2FE] border border-white shadow-sm min-w-[110px]">
+                        <div className="text-xs sm:text-sm font-semibold text-[#8BA0BD] mb-1">{resultWordInfo[tok.word]?.phonetic || ' '}</div>
+                        <div className="text-3xl sm:text-4xl font-extrabold text-[#29466F] tracking-tight select-none">{correctWord}{tok.punctAfter}</div>
+                        <div className="text-sm sm:text-base font-semibold text-[#8BA0BD] mt-1 min-h-[1.25rem]">{resultWordInfo[tok.word]?.meaning || ' '}</div>
                       {correctWord}{tok.punctAfter}
                     </div>
 
@@ -607,11 +633,11 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
             <div className="pt-4 flex flex-col items-center gap-3">
               <button
                 type="button"
-                onClick={handleNext}
+                onClick={() => playAudio(sentence?.content)}
                 className="w-48 py-4 bg-[#4F7DF3] hover:bg-[#3D6CE5] active:scale-95 text-white font-bold rounded-2xl transition-all shadow-xs flex items-center justify-center gap-2 text-base cursor-pointer"
               >
-                <span>继续下一句</span>
-                <ArrowRight className="w-4 h-4" />
+                <span>再来一遍</span>
+                <RotateCcw className="w-4 h-4" />
               </button>
               <span className="text-[10px] text-[#8BA0BD] flex items-center gap-1">
                 <kbd className="px-1.5 py-0.5 rounded bg-[#EBF2FE] text-[#4F7DF3] font-mono font-semibold">Space</kbd>
