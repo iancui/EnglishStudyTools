@@ -9,7 +9,8 @@ export class SentencePracticeController {
    */
   static preview(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
-            const dictionaryId = (req.query.dictionaryId as string) || undefined;
+            const userId = req.user?.id || 'u-default';
+      const dictionaryId = (req.query.dictionaryId as string) || undefined;
       const preview = SentencePracticeService.previewPractice(userId, dictionaryId);
       res.json({
         code: 200,
@@ -31,7 +32,6 @@ export class SentencePracticeController {
       const userId = req.user?.id || 'u-default';
       const { dictionaryId } = req.body;
       const session = SentencePracticeService.createSession(userId, {
-        difficulty,
         dictionaryId
       });
       res.json({
