@@ -223,7 +223,7 @@ export const api = {
       body: JSON.stringify(payload)
     }),
 
-  // Sentences
+  // Sentences (Catalogue / auxiliary)
   getAllSentences: () => request<any[]>('/api/sentences'),
   getTodaySentences: (limit = 5) => request<any[]>(`/api/sentences/today?limit=${limit}`),
   getSentenceById: (id: string) => request<any>(`/api/sentences/${id}`),
@@ -232,6 +232,46 @@ export const api = {
     request<any>(`/api/sentences/${id}/complete`, {
       method: 'POST',
       body: JSON.stringify({ currentStep })
+    }),
+
+  // Sentence Practice Sessions (Phase 2 core)
+  previewSentencePractice: (difficulty = 'ALL', count = 5) =>
+    request<{
+      difficulty: string;
+      totalInDb: number;
+      matchingCount: number;
+      requestedCount: number;
+      effectiveCount: number;
+    }>(`/api/sentence-practice/preview?difficulty=${encodeURIComponent(difficulty)}&count=${count}`),
+  createSentencePracticeSession: (data: { difficulty?: string; count?: number }) =>
+    request<any>('/api/sentence-practice', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+  getActiveSentencePracticeSession: () => request<any>('/api/sentence-practice/current'),
+  getSentencePracticeSessionById: (id: string) => request<any>(`/api/sentence-practice/${id}`),
+  submitSentencePracticeAnswer: (id: string, answer: string) =>
+    request<{
+      isCorrect: boolean;
+      correctAnswer: string;
+      userInput?: string;
+      message: string;
+      currentPhase: 'PHRASE' | 'REBUILD' | 'COMPLETED';
+      currentPhraseIndex: number;
+      completed: boolean;
+      sessionCompleted: boolean;
+      progress: {
+        currentSentenceIndex: number;
+        totalCount: number;
+      };
+      session?: any;
+    }>(`/api/sentence-practice/${id}/answer`, {
+      method: 'POST',
+      body: JSON.stringify({ answer })
+    }),
+  cancelSentencePracticeSession: (id: string) =>
+    request<{ cancelled: boolean }>(`/api/sentence-practice/${id}/cancel`, {
+      method: 'POST'
     }),
 
   // Dictionary Config

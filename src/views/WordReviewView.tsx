@@ -149,22 +149,24 @@ export const WordReviewView: React.FC<WordReviewViewProps> = ({ navigate, config
           </h2>
         </div>
 
-        {/* Phonetic Reveal Trigger & Add to My Dictionary */}
-        <div className="flex items-center justify-center gap-3">
-          {!showPhonetic ? (
+        {/* Phonetic Display with Repeatable Audio & Add to My Dictionary */}
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <div className="flex items-center gap-2 bg-stone-50 border border-stone-200/80 px-4 py-1.5 rounded-full">
+            <span className="text-base font-mono font-medium text-stone-700">
+              {activePhonetic}
+            </span>
             <button
               type="button"
-              onClick={() => setShowPhonetic(true)}
-              className="text-xs text-stone-500 hover:text-stone-800 py-1.5 px-3 rounded-lg border border-dashed border-stone-300 hover:border-stone-400 transition-colors inline-flex items-center gap-1.5"
+              onClick={() => {
+                const lang = config?.audioType === 'US' ? 'en-US' : 'en-GB';
+                SpeechPlayer.speak(currentWord.text, { lang });
+              }}
+              className="p-1 rounded-full text-stone-500 hover:text-stone-900 hover:bg-stone-200/60 transition-colors"
+              title="播放发音"
             >
-              <Eye className="w-3.5 h-3.5" />
-              <span>[显示音标提示]</span>
+              <Volume2 className="w-4 h-4 text-amber-600" />
             </button>
-          ) : (
-            <div className="text-lg font-mono text-stone-600 animate-fadeIn">
-              {activePhonetic}
-            </div>
-          )}
+          </div>
 
           <AddToDictionaryButton word={currentWord} variant="compact" />
         </div>

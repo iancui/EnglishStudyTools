@@ -6,6 +6,7 @@ import { SentenceController } from '../controllers/sentenceController.ts';
 import { DictionaryController } from '../controllers/dictionaryController.ts';
 import { StatisticsController } from '../controllers/statisticsController.ts';
 import { StudySessionController } from '../controllers/studySessionController.ts';
+import { SentencePracticeController } from '../controllers/sentencePracticeController.ts';
 import { authMiddleware, requireAdmin } from '../middleware/authMiddleware.ts';
 
 export const apiRouter = Router();
@@ -76,6 +77,14 @@ apiRouter.get('/sentences/today', SentenceController.getTodaySentences);
 apiRouter.get('/sentences/:id', SentenceController.getSentenceById);
 apiRouter.get('/sentences/:id/steps', SentenceController.getSentenceSteps);
 apiRouter.post('/sentences/:id/complete', SentenceController.completeSentence);
+
+// Sentence Practice (Progressive Phrase -> Rebuild Sessions)
+apiRouter.get('/sentence-practice/preview', SentencePracticeController.preview);
+apiRouter.post('/sentence-practice', SentencePracticeController.createSession);
+apiRouter.get('/sentence-practice/current', SentencePracticeController.getCurrentSession);
+apiRouter.get('/sentence-practice/:id', SentencePracticeController.getSessionById);
+apiRouter.post('/sentence-practice/:id/answer', SentencePracticeController.submitAnswer);
+apiRouter.post('/sentence-practice/:id/cancel', SentencePracticeController.cancelSession);
 
 // Statistics
 apiRouter.get('/statistics/today', StatisticsController.getTodayStatistics);

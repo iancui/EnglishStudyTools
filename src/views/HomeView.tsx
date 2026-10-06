@@ -12,16 +12,22 @@ import {
   Clock
 } from 'lucide-react';
 import { api } from '../api/client.ts';
-import { StatisticsData, StudySessionItem } from '../types/index.ts';
+import { StatisticsData, StudySessionItem, SentencePracticeSession } from '../types/index.ts';
 
 interface HomeViewProps {
   navigate: (route: string) => void;
   onOpenStudySetup: (dictId?: string) => void;
+  onOpenSentencePracticeSetup?: () => void;
 }
 
-export const HomeView: React.FC<HomeViewProps> = ({ navigate, onOpenStudySetup }) => {
+export const HomeView: React.FC<HomeViewProps> = ({
+  navigate,
+  onOpenStudySetup,
+  onOpenSentencePracticeSetup
+}) => {
   const [stats, setStats] = useState<StatisticsData | null>(null);
   const [activeSession, setActiveSession] = useState<StudySessionItem | null>(null);
+  const [activeSentenceSession, setActiveSentenceSession] = useState<SentencePracticeSession | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -31,12 +37,14 @@ export const HomeView: React.FC<HomeViewProps> = ({ navigate, onOpenStudySetup }
   const loadHomeData = async () => {
     try {
       setLoading(true);
-      const [statsRes, sessionRes] = await Promise.all([
+      const [statsRes, sessionRes, sentenceSessionRes] = await Promise.all([
         api.getTodayStatistics(),
-        api.getActiveStudySession()
+        api.getActiveStudySession(),
+        api.getActiveSentencePracticeSession()
       ]);
       setStats(statsRes);
       setActiveSession(sessionRes);
+      setActiveSentenceSession(sentenceSessionRes);
     } catch (e) {
       console.error('Failed to load home data:', e);
     } finally {
@@ -203,33 +211,95 @@ export const HomeView: React.FC<HomeViewProps> = ({ navigate, onOpenStudySetup }
             </div>
 
             <p className="text-sm text-stone-600 leading-relaxed">
-              核心学习理念：单词 $\to$ 短语 $\to$ 句式结构 $\to$ 完整长句。步进展开并附带语法成分与句法精析。
+              核心学习理念：单词 $\to$ 短语逐步拼写 $\to$ 完整长句精准重建。彻底告别被动阅读，实现主动输出。
             </p>
 
-            <div className="bg-emerald-50/60 border border-emerald-100 rounded-2xl p-4 space-y-2 text-xs">
-              <div className="font-semibold text-emerald-950 flex items-center gap-1.5">
-                <GitCommit className="w-3.5 h-3.5 text-emerald-600" />
-                <span>递进式阶梯路径</span>
+            {/* If user has an ongoing IN_PROGRESS sentence practice session */}
+            {activeSentenceSession ? (
+              <div className="bg-emerald-50/80 border border-emerald-200 rounded-2xl p-4.5 space-y-3">
+                <div className="flex items-center justify-between text-xs">
+                  <div className="font-semibold text-stone-800">
+                    难度：{activeSentenceSession.difficulty}
+                  </div>
+                  <div className="font-mono font-bold text-emerald-900">
+                    继续练习 {activeSentenceSession.currentSentenceIndex} / {activeSentenceSession.totalCount} 句
+                  </div>
+                </div>
+
+                {/* Progress bar */}
+                <div className="h-2 w-full bg-emerald-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-emerald-600 rounded-full transition-all duration-300"
+                    style={{
+                      width: `${Math.min(
+                        100,
+                        Math.round(
+                          (activeSentenceSession.currentSentenceIndex / activeSentenceSession.totalCount) * 100
+                        )
+                      )}%`
+                    }}
+                  />
+                </div>
+
+                <div className="text-[11px] text-emerald-800 flex items-center justify-between">
+                  <span>句子顺序与阶段已固定</span>
+                  <span>
+                    完成度{' '}
+                    {Math.round(
+                      (activeSentenceSession.currentSentenceIndex / activeSentenceSession.totalCount) * 100
+                    )}
+                    %
+                  </span>
+                </div>
               </div>
-              <div className="grid grid-cols-4 gap-1 text-center font-mono text-[11px] pt-1">
-                <div className="bg-white/80 py-1 rounded border border-emerald-200 text-stone-700">1. 单词</div>
-                <div className="bg-white/80 py-1 rounded border border-emerald-200 text-stone-700">2. 短语</div>
-                <div className="bg-white/80 py-1 rounded border border-emerald-200 text-stone-700">3. 句式</div>
-                <div className="bg-white/80 py-1 rounded border border-emerald-200 text-stone-700">4. 长句</div>
+            ) : (
+              <div className="bg-emerald-50/60 border border-emerald-100 rounded-2xl p-4 space-y-2 text-xs">
+                <div className="font-semibold text-emerald-950 flex items-center gap-1.5">
+                  <GitCommit className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>递进式阶梯路径</span>
+                </div>
+                <div className="grid grid-cols-4 gap-1 text-center font-mono text-[11px] pt-1">
+                  <div className="bg-white/80 py-1 rounded border border-emerald-200 text-stone-700">1. 单词</div>
+                  <div className="bg-white/80 py-1 rounded border border-emerald-200 text-stone-700">2. 短语</div>
+                  <div className="bg-white/80 py-1 rounded border border-emerald-200 text-stone-700">3. 句式</div>
+                  <div className="bg-white/80 py-1 rounded border border-emerald-200 text-stone-700">4. 长句</div>
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Action button */}
           <div className="pt-6 relative z-10 border-t border-stone-100 mt-6">
-            <button
-              type="button"
-              onClick={() => navigate('/sentences')}
-              className="w-full py-3.5 px-6 bg-emerald-900 hover:bg-emerald-800 text-white font-bold rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 text-sm"
-            >
-              <span>开始练习</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
+            {activeSentenceSession ? (
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => navigate(`/sentence-practice/${activeSentenceSession.id}`)}
+                  className="flex-1 py-3.5 px-6 bg-emerald-900 hover:bg-emerald-800 text-white font-bold rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 text-sm"
+                >
+                  <span>继续练习</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => onOpenSentencePracticeSetup?.()}
+                  className="py-3.5 px-4 bg-white hover:bg-stone-50 text-stone-600 hover:text-stone-900 font-medium rounded-xl border border-stone-200 transition-colors text-xs"
+                  title="重新配置并开启新的句子练习任务"
+                >
+                  重新设置
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => onOpenSentencePracticeSetup?.()}
+                className="w-full py-3.5 px-6 bg-emerald-900 hover:bg-emerald-800 text-white font-bold rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 text-sm"
+              >
+                <span>开始练习</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            )}
           </div>
 
           <div className="absolute -right-8 -bottom-8 w-40 h-40 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
