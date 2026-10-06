@@ -63,7 +63,7 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const currentSentenceRef = useRef<string>('');
   const isPendingRef = useRef(false);
-  const handleCheckRef = useRef<() => void>(() => {});
+  const handleCheckRef = useRef<(states?: WordState[]) => void>(() => {});
   const autoCheckedRef = useRef(false);
   const pendingNextSessionRef = useRef<SentencePracticeSession | null>(null);
 
@@ -171,9 +171,12 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
   }, [allCorrect, sentence, playAudio]);
 
   const handleWordInput = (idx: number, value: string) => {
-    if (allCorrect) return;
-    const ws = wordStates[idx];
-    const correct = ws.correctWord.toLowerCase();
+    if (allCorrect || submitting || isPendingRef.current) return;
+
+    const current = wordStates[idx];
+    if (!current) return;
+
+    const correct = current.correctWord.toLowerCase();
     const clean = value.replace(/[^A-Za-z']/g, '').toLowerCase();
 
     let errorPos = -1;
@@ -186,36 +189,37 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
       }
       accepted += clean[i];
     }
-    if (errorPos === -1) accepted = clean;
 
-    setWordStates(prev => {
-      const next = [...prev];
-      next[idx] = {
-        ...next[idx],
-        userInput: accepted,
-        submitted: errorPos >= 0,
-        correct: false,
-        errorPos,
-      };
-      return next;
-    });
+    const isWordCorrect = errorPos === -1 && accepted.length === correct.length;
+
+    // 先基于当前事件直接计算出完整的 next 状态。
+    // 不再依赖下一次 React render/useEffect 才判断“全部正确”，
+    // 最后一个单词正确时就在这里立即提交。
+    const next = [...wordStates];
+    next[idx] = {
+      ...current,
+      userInput: accepted,
+      submitted: errorPos >= 0 || isWordCorrect,
+      correct: isWordCorrect,
+      errorPos: isWordCorrect ? -1 : errorPos,
+    };
+    setWordStates(next);
 
     if (errorPos >= 0) {
-      setTimeout(() => {
-        inputRefs.current[idx]?.focus();
-      }, 10);
-    } else if (accepted.length === correct.length) {
-      setWordStates(prev => {
-        const next = [...prev];
-        next[idx] = { ...next[idx], userInput: accepted, submitted: true, correct: true, errorPos: -1 };
-        const nextIdx = next.findIndex((w, i) => i !== idx && !w.correct);
-        if (nextIdx >= 0) {
-          setTimeout(() => inputRefs.current[nextIdx]?.focus(), 80);
-        } else {
-          setTimeout(() => inputRefs.current[idx]?.blur(), 80);
-        }
-        return next;
-      });
+      setTimeout(() => inputRefs.current[idx]?.focus(), 10);
+      return;
+    }
+
+    if (!isWordCorrect) return;
+
+    const nextIdx = next.findIndex((w, i) => i !== idx && !w.correct);
+    if (nextIdx >= 0) {
+      setTimeout(() => inputRefs.current[nextIdx]?.focus(), 80);
+    } else {
+      // 最后一个单词：这里直接调用提交函数，并把刚刚算出的 next 状态传进去。
+      // 这样不会因为 React state 异步更新造成“看起来全部正确，但没有提交”。
+      setTimeout(() => inputRefs.current[idx]?.blur(), 80);
+      setTimeout(() => handleCheckRef.current(next), 0);
     }
   };
 
@@ -250,9 +254,9 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
     });
   };
 
-  const handleCheck = async () => {
+  const handleCheck = async (states: WordState[] = wordStates) => {
     if (submitting || isPendingRef.current || allCorrect) return;
-    if (wordStates.some(w => !w.submitted && w.userInput.length > 0)) {
+    if (states.some(w => !w.submitted && w.userInput.length > 0)) {
       setWordStates(prev => prev.map(w => ({
         ...w,
         submitted: true,
@@ -260,7 +264,7 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
       })));
       return;
     }
-    if (wordStates.some(w => !w.correct)) return;
+    if (states.some(w => !w.correct)) return;
 
     isPendingRef.current = true;
     setSubmitting(true);
@@ -268,7 +272,7 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
       // 所有单词已经在前端逐字校验通过，因此直接提交原句。
       // 这样不会因为前端重新拼接单词时的空格/标点差异，导致服务端误判为错误。
       const fullAnswer = sentence?.content || wordTokens.map((t, i) => {
-        const ws = wordStates[i];
+        const ws = states[i];
         return (ws?.correct ? t.original : ws?.userInput || t.original) + t.punctAfter;
       }).join(' ').replace(/\s+([.,!?;:])/g, '$1').trim();
 
@@ -341,21 +345,6 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
     });
     return () => { cancelled = true; };
   }, [allCorrect, wordTokens]);
-
-  // Auto-check when all words are submitted && correct
-  useEffect(() => {
-    if (
-      !autoCheckedRef.current &&
-      wordStates.length > 0 &&
-      !allCorrect &&
-      !submitting &&
-      wordStates.every(w => w.submitted && w.correct)
-    ) {
-      autoCheckedRef.current = true;
-      const t = setTimeout(() => handleCheckRef.current(), 80);
-      return () => clearTimeout(t);
-    }
-  }, [wordStates, allCorrect, submitting]);
 
   const handleNext = async () => {
     if (!session) return;
