@@ -85,6 +85,7 @@ apiRouter.post('/sentence-practice', SentencePracticeController.createSession);
 apiRouter.get('/sentence-practice/current', SentencePracticeController.getCurrentSession);
 apiRouter.get('/sentence-practice/:id', SentencePracticeController.getSessionById);
 apiRouter.post('/sentence-practice/:id/answer', SentencePracticeController.submitAnswer);
+apiRouter.post('/sentence-practice/:id/retry', SentencePracticeController.retryCurrentSentence);
 apiRouter.post('/sentence-practice/:id/cancel', SentencePracticeController.cancelSession);
 
 // Statistics
