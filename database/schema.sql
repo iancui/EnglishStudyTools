@@ -1,8 +1,9 @@
--- LinguaStep MySQL 8 schema
+-- LinguaStep MySQL 5.7 schema
 -- 仅生成建表/初始化结构文件，本次不会执行。
+-- 兼容 MySQL 5.7，不使用 MySQL 8.0 专用排序规则。
 -- 业务数据应通过后台导入/管理，不再依赖 db_storage.json 作为最终数据源。
 
-CREATE DATABASE IF NOT EXISTS linguastep CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+CREATE DATABASE IF NOT EXISTS linguastep CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE linguastep;
 
 SET FOREIGN_KEY_CHECKS = 0;
