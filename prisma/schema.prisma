@@ -1,4 +1,4 @@
-// This is your Prisma schema file for MySQL 8
+// LinguaStep Prisma schema for MySQL 5.7
 // Learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
@@ -60,7 +60,8 @@ model Dictionary {
 
   ownerUser       User?            @relation("UserOwnedDictionaries", fields: [ownerUserId], references: [id], onDelete: SetNull)
   dictionaryWords DictionaryWord[]
-  studySessions   StudySession[]
+  studySessions      StudySession[]
+  sentenceDictionaries DictionarySentence[]
 
   @@index([ownerUserId])
   @@index([ownerType])
@@ -155,9 +156,27 @@ model Sentence {
   steps          SentenceStep[]
   words          SentenceWord[]
   analyses       SentenceAnalysis[]
+  dictionarySentences DictionarySentence[]
   userProgresses UserSentenceProgress[]
 
   @@map("sentence")
+}
+
+
+model DictionarySentence {
+  id           String     @id @default(uuid()) @db.VarChar(36)
+  dictionaryId String     @map("dictionary_id") @db.VarChar(36)
+  sentenceId   String     @map("sentence_id") @db.VarChar(36)
+  sequenceNo   Int        @default(1) @map("sequence_no")
+  isActive     Boolean    @default(true) @map("is_active")
+  createdAt    DateTime   @default(now()) @map("created_at")
+
+  dictionary Dictionary @relation(fields: [dictionaryId], references: [id], onDelete: Cascade)
+  sentence   Sentence   @relation(fields: [sentenceId], references: [id], onDelete: Cascade)
+
+  @@unique([dictionaryId, sentenceId])
+  @@index([dictionaryId, sequenceNo])
+  @@map("dictionary_sentence")
 }
 
 model SentenceWord {
