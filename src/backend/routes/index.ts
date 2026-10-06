@@ -15,7 +15,7 @@ export const apiRouter = Router();
 apiRouter.use(authMiddleware);
 
 // Auth
-apiRouter.post('/auth/register', AuthController.register);
+apiRouter.get('/auth/captcha', AuthController.captcha);\napiRouter.post('/auth/register', AuthController.register);
 apiRouter.post('/auth/login', AuthController.login);
 apiRouter.get('/auth/me', AuthController.getCurrentUser);
 
