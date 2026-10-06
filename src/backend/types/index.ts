@@ -109,6 +109,7 @@ export interface UserDictionaryConfig {
   id: string;
   userId: string;
   defaultDictionaryId?: string;
+  sentenceDictionaryId?: string;
   englishDict?: string; // legacy fallback
   ecDict?: string; // legacy fallback
   phoneticType: 'UK' | 'US';
