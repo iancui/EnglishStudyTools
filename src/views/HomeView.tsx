@@ -19,13 +19,13 @@ import { StatisticsData, StudySessionItem, SentencePracticeSession, SessionMode 
 interface HomeViewProps {
   navigate: (route: string) => void;
   onOpenStudySetup: (dictId?: string, mode?: SessionMode) => void;
-  onOpenSentencePracticeSetup?: () => void;
+  onStartSentencePractice?: () => void;
 }
 
 export const HomeView: React.FC<HomeViewProps> = ({
   navigate,
   onOpenStudySetup,
-  onOpenSentencePracticeSetup
+  onStartSentencePractice
 }) => {
   const [stats, setStats] = useState<StatisticsData | null>(null);
   const [activeSession, setActiveSession] = useState<StudySessionItem | null>(null);
@@ -241,7 +241,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   className="py-3.5 px-4 bg-white hover:bg-[#F7FAFF] text-[#8BA0BD] hover:text-[#29466F] font-semibold rounded-2xl border border-[#E7EEF8] transition-colors text-xs select-none cursor-pointer"
                   title="重新配置并开启新的背诵任务"
                 >
-                  重新设置
+                  重新开始
                 </button>
               </div>
             ) : (
@@ -374,9 +374,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
                 <button
                   type="button"
-                  onClick={() => onOpenSentencePracticeSetup?.()}
+                  onClick={() => onStartSentencePractice?.()}
                   className="py-3.5 px-4 bg-white hover:bg-[#F7FAFF] text-[#8BA0BD] hover:text-[#29466F] font-semibold rounded-2xl border border-[#E7EEF8] transition-colors text-xs select-none"
-                  title="重新配置并开启新的句子练习任务"
+                  title="按当前设置重新开启新的句子练习任务"
                 >
                   重新设置
                 </button>
