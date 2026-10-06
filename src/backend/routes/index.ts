@@ -7,6 +7,7 @@ import { DictionaryController } from '../controllers/dictionaryController.ts';
 import { StatisticsController } from '../controllers/statisticsController.ts';
 import { StudySessionController } from '../controllers/studySessionController.ts';
 import { SentencePracticeController } from '../controllers/sentencePracticeController.ts';
+import { AdminSentenceAIToolController } from '../controllers/adminSentenceAIToolController.ts';
 import { authMiddleware, requireAdmin } from '../middleware/authMiddleware.ts';
 
 export const apiRouter = Router();
@@ -35,6 +36,10 @@ apiRouter.post('/dictionaries/:id/words/batch', DictionaryController.batchAddWor
 // Word in User's Dictionaries
 apiRouter.get('/words/:wordId/my-dictionaries', DictionaryController.getWordMyDictionaries);
 apiRouter.post('/words/:wordId/my-dictionaries', DictionaryController.syncWordMyDictionaries);
+
+// AI sentence import tool
+apiRouter.post('/admin/ai-sentence-tool/analyze', requireAdmin, AdminSentenceAIToolController.analyze);
+apiRouter.post('/admin/ai-sentence-tool/import', requireAdmin, AdminSentenceAIToolController.import);
 
 // Admin Dictionaries
 apiRouter.get('/admin/dictionaries', requireAdmin, DictionaryController.getAdminDictionaries);
