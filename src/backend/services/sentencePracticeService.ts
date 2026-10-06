@@ -97,7 +97,7 @@ export class SentencePracticeService {
     const session: SentencePracticeSession = {
       id: sessionId,
       userId,
-      difficulty: diffUpper,
+      difficulty: 'ALL',
       dictionaryId,
       totalCount: selected.length,
       currentSentenceIndex: 0,
