@@ -114,6 +114,7 @@ export interface UserDictionaryConfig {
   phoneticType: 'UK' | 'US';
   audioType: 'UK' | 'US';
   enablePhonics: boolean;
+  sentencePracticeCount?: number;
   createdAt: string;
   updatedAt: string;
 }
