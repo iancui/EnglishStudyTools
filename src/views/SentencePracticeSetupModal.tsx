@@ -28,7 +28,6 @@ export const SentencePracticeSetupModal: React.FC<SentencePracticeSetupModalProp
 }) => {
   const [dictionaries, setDictionaries] = useState<DictionaryItem[]>([]);
   const [selectedDictionaryId, setSelectedDictionaryId] = useState<string>(config?.defaultDictionaryId || '');
-  const [selectedDifficulty, setSelectedDifficulty] = useState<string>('ALL');
   const [selectedCount, setSelectedCount] = useState<number>(5);
   const [isCustomCount, setIsCustomCount] = useState<boolean>(false);
   const [customCountInput, setCustomCountInput] = useState<string>('15');
@@ -56,9 +55,9 @@ export const SentencePracticeSetupModal: React.FC<SentencePracticeSetupModalProp
 
   useEffect(() => {
     if (isOpen && selectedDictionaryId) {
-      loadPreview(selectedDifficulty, getEffectiveCount(), selectedDictionaryId);
+      loadPreview(getEffectiveCount(), selectedDictionaryId);
     }
-  }, [isOpen, selectedDictionaryId, selectedDifficulty, selectedCount, isCustomCount, customCountInput]);
+  }, [isOpen, selectedDictionaryId, selectedCount, isCustomCount, customCountInput]);
 
   const getEffectiveCount = (): number => {
     if (isCustomCount) {
@@ -80,11 +79,11 @@ export const SentencePracticeSetupModal: React.FC<SentencePracticeSetupModalProp
     }
   };
 
-  const loadPreview = async (difficulty: string, count: number, dictionaryId: string) => {
+  const loadPreview = async (count: number, dictionaryId: string) => {
     try {
       setLoadingPreview(true);
       setError(null);
-      const res = await api.previewSentencePractice(difficulty, count, dictionaryId);
+      const res = await api.previewSentencePractice(count, dictionaryId);
       setPreviewInfo({
         totalInDb: res.totalInDb,
         matchingCount: res.matchingCount,
@@ -207,7 +206,7 @@ export const SentencePracticeSetupModal: React.FC<SentencePracticeSetupModalProp
           </div>
         </div>
 
-        {/* 3. 练习数量 */}
+        {/* 2. 练习数量 */}
         <div className="space-y-3">
           <label className="text-xs font-bold text-stone-700 uppercase tracking-wider block">
             本次句子数量
@@ -263,7 +262,7 @@ export const SentencePracticeSetupModal: React.FC<SentencePracticeSetupModalProp
           )}
         </div>
 
-        {/* 4. 数量提示与短缺说明 */}
+        {/* 3. 数量提示 */}
         <div className="bg-stone-50 border border-stone-200 rounded-2xl p-4 text-xs space-y-1.5">
           <div className="flex items-center justify-between text-stone-700 font-medium">
             <span>匹配句子情况：</span>
@@ -278,7 +277,7 @@ export const SentencePracticeSetupModal: React.FC<SentencePracticeSetupModalProp
 
           {isShortage && (
             <div className="text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-2.5 text-[11px] leading-relaxed">
-              ⚠️ 当前 {selectedDifficulty} 难度仅有 {previewInfo?.matchingCount} 个句子，已为你自动设定创建 {previewInfo?.matchingCount} 个练习，可正常开启练习。
+              ⚠️ 当前词库仅有 {previewInfo?.matchingCount} 个可练习句子，已为你自动设定创建 {previewInfo?.matchingCount} 个练习，可正常开启练习。
             </div>
           )}
 
