@@ -274,6 +274,10 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ answer })
     }),
+  retrySentencePractice: (id: string) =>
+    request<any>(`/api/sentence-practice/${id}/retry`, {
+      method: 'POST'
+    }),
   cancelSentencePracticeSession: (id: string) =>
     request<{ cancelled: boolean }>(`/api/sentence-practice/${id}/cancel`, {
       method: 'POST'
