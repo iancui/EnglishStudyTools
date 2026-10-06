@@ -180,6 +180,29 @@ export class SentencePracticeController {
   }
 
   /**
+   * Retry the sentence that was just completed.
+   * POST /api/sentence-practice/:id/retry
+   */
+  static retryCurrentSentence(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const userId = req.user?.id || 'u-default';
+      const { id } = req.params;
+      const session = SentencePracticeService.retryCurrentSentence(id, userId);
+      res.json({
+        code: 200,
+        message: 'success',
+        data: session
+      });
+    } catch (e: any) {
+      res.status(400).json({
+        code: 400,
+        message: e.message || '重新练习失败',
+        data: null
+      });
+    }
+  }
+
+  /**
    * Cancel session
    * POST /api/sentence-practice/:id/cancel
    */
