@@ -265,11 +265,11 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
     isPendingRef.current = true;
     setSubmitting(true);
     try {
-      const fullAnswer = wordTokens.map((t, i) => {
+      // 所有单词已经在前端逐字校验通过，因此直接提交原句。
+      // 这样不会因为前端重新拼接单词时的空格/标点差异，导致服务端误判为错误。
+      const fullAnswer = sentence?.content || wordTokens.map((t, i) => {
         const ws = wordStates[i];
-        const orig = t.original;
-        const punct = t.punctAfter;
-        return (ws?.correct ? orig : ws?.userInput || orig) + punct;
+        return (ws?.correct ? t.original : ws?.userInput || t.original) + t.punctAfter;
       }).join(' ').replace(/\s+([.,!?;:])/g, '$1').trim();
 
       const res = await api.submitSentencePracticeAnswer(session!.id, fullAnswer);
