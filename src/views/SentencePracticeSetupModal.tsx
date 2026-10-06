@@ -10,14 +10,6 @@ interface SentencePracticeSetupModalProps {
   config?: DictionaryConfig;
 }
 
-const DIFFICULTIES = [
-  { id: 'ALL', label: '全部难度', desc: '全库句子随机练习' },
-  { id: 'A1', label: 'A1 入门', desc: '基础日常表达' },
-  { id: 'A2', label: 'A2 初级', desc: '常用情境交际' },
-  { id: 'B1', label: 'B1 中级', desc: '复合句与叙事' },
-  { id: 'B2', label: 'B2 中高', desc: '较复杂观点与论述' }
-];
-
 const PRESET_COUNTS = [5, 10, 20];
 
 export const SentencePracticeSetupModal: React.FC<SentencePracticeSetupModalProps> = ({
@@ -102,7 +94,6 @@ export const SentencePracticeSetupModal: React.FC<SentencePracticeSetupModalProp
       setError(null);
       const count = getEffectiveCount();
       const session = await api.createSentencePracticeSession({
-        difficulty: selectedDifficulty,
         count,
         dictionaryId: selectedDictionaryId
       });
