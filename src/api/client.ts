@@ -49,13 +49,14 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 
 export const api = {
   // Auth
-  register: (data: { username: string; email: string; password: string }) =>
+  getCaptcha: () => request<{ captchaId: string; image: string }>('/api/auth/captcha'),
+  register: (data: { username: string; email: string; password: string; captchaId: string; captchaCode: string }) =>
     request<{ user: any; token: string }>('/api/auth/register', {
       method: 'POST',
       body: JSON.stringify(data)
     }),
 
-  login: (data: { identifier: string; password: string }) =>
+  login: (data: { identifier: string; password: string; captchaId: string; captchaCode: string }) =>
     request<{ user: any; token: string }>('/api/auth/login', {
       method: 'POST',
       body: JSON.stringify(data)
