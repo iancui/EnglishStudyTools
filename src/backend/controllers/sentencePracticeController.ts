@@ -10,8 +10,7 @@ export class SentencePracticeController {
   static preview(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
             const dictionaryId = (req.query.dictionaryId as string) || undefined;
-      const count = req.query.count ? parseInt(req.query.count as string, 10) : 5;
-      const preview = SentencePracticeService.previewPractice(count, dictionaryId);
+      const preview = SentencePracticeService.previewPractice(userId, dictionaryId);
       res.json({
         code: 200,
         message: 'success',
@@ -30,10 +29,9 @@ export class SentencePracticeController {
   static createSession(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id || 'u-default';
-      const { count, dictionaryId } = req.body;
+      const { dictionaryId } = req.body;
       const session = SentencePracticeService.createSession(userId, {
         difficulty,
-        count: count ? parseInt(count, 10) : 5,
         dictionaryId
       });
       res.json({
