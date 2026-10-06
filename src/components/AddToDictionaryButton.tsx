@@ -119,9 +119,10 @@ export const AddToDictionaryButton: React.FC<AddToDictionaryButtonProps> = ({
           className={`w-4 h-4 transition-transform ${
             isCollected
               ? 'text-amber-500 fill-amber-400 scale-110'
-              : 'text-stone-400 hover:text-amber-500'
+              : 'text-stone-400 group-hover:text-amber-500'
           }`}
         />
+        <span>{isCollected ? `已加入我的辞书 (${addedCount})` : '☆ 加入我的辞书'}</span>
       </button>
     );
   }

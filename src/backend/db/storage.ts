@@ -11,11 +11,14 @@ import {
   UserDictionaryConfig,
   UserWordProgress,
   UserSentenceProgress,
+  SentencePracticeSession,
+  SentencePracticeItem,
   LearningRecord,
   ReviewRecord,
   ProgressStatus
 } from '../types/index.ts';
 import { SEED_WORDS, SEED_SENTENCES } from './seedData.ts';
+import { extractSentencePhrases } from '../utils/sentenceUtils.ts';
 
 const STORAGE_FILE = path.resolve(process.cwd(), 'db_storage.json');
 
@@ -27,6 +30,8 @@ interface DatabaseState {
   dictionaryWords: DictionaryWord[];
   studySessions: StudySession[];
   studySessionWords: StudySessionWord[];
+  sentencePracticeSessions: SentencePracticeSession[];
+  sentencePracticeItems: SentencePracticeItem[];
   configs: UserDictionaryConfig[];
   wordProgresses: UserWordProgress[];
   sentenceProgresses: UserSentenceProgress[];
@@ -54,6 +59,8 @@ class Storage {
           dictionaryWords: parsed.dictionaryWords && parsed.dictionaryWords.length > 0 ? parsed.dictionaryWords : this.defaultDictionaryWords(),
           studySessions: parsed.studySessions || [],
           studySessionWords: parsed.studySessionWords || [],
+          sentencePracticeSessions: parsed.sentencePracticeSessions || [],
+          sentencePracticeItems: parsed.sentencePracticeItems || [],
           configs: parsed.configs || this.defaultConfigs(),
           wordProgresses: parsed.wordProgresses || this.defaultProgresses(),
           sentenceProgresses: parsed.sentenceProgresses || [],
@@ -709,6 +716,80 @@ class Storage {
     this.state.reviewRecords.push(record);
     this.saveState();
     return record;
+  }
+
+  // Sentence Practice Sessions
+  createSentencePracticeSession(session: SentencePracticeSession, items: SentencePracticeItem[]): SentencePracticeSession {
+    this.state.sentencePracticeSessions.forEach(s => {
+      if (s.userId === session.userId && s.status === 'IN_PROGRESS') {
+        s.status = 'CANCELLED';
+        s.updatedAt = new Date().toISOString();
+      }
+    });
+
+    this.state.sentencePracticeSessions.push(session);
+    this.state.sentencePracticeItems.push(...items);
+    this.saveState();
+    return session;
+  }
+
+  findSentencePracticeSessionById(id: string): (SentencePracticeSession & { items: SentencePracticeItem[] }) | undefined {
+    const session = this.state.sentencePracticeSessions.find(s => s.id === id);
+    if (!session) return undefined;
+
+    const items = this.state.sentencePracticeItems
+      .filter(item => item.sessionId === id)
+      .sort((a, b) => a.sequence - b.sequence)
+      .map(item => {
+        const sentence = this.findSentenceById(item.sentenceId);
+        const phrases = sentence ? extractSentencePhrases(sentence) : [];
+        return {
+          ...item,
+          sentence,
+          phrases
+        };
+      });
+
+    return {
+      ...session,
+      items
+    };
+  }
+
+  getActiveSentencePracticeSession(userId: string): (SentencePracticeSession & { items: SentencePracticeItem[] }) | undefined {
+    const session = this.state.sentencePracticeSessions
+      .filter(s => s.userId === userId && s.status === 'IN_PROGRESS')
+      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())[0];
+
+    if (!session) return undefined;
+    return this.findSentencePracticeSessionById(session.id);
+  }
+
+  updateSentencePracticeSession(session: SentencePracticeSession): SentencePracticeSession {
+    const idx = this.state.sentencePracticeSessions.findIndex(s => s.id === session.id);
+    if (idx >= 0) {
+      this.state.sentencePracticeSessions[idx] = { ...session, updatedAt: new Date().toISOString() };
+    }
+    this.saveState();
+    return session;
+  }
+
+  updateSentencePracticeItem(item: SentencePracticeItem): SentencePracticeItem {
+    const idx = this.state.sentencePracticeItems.findIndex(i => i.id === item.id);
+    if (idx >= 0) {
+      this.state.sentencePracticeItems[idx] = { ...item, updatedAt: new Date().toISOString() };
+    }
+    this.saveState();
+    return item;
+  }
+
+  cancelSentencePracticeSession(id: string, userId: string): boolean {
+    const session = this.state.sentencePracticeSessions.find(s => s.id === id && s.userId === userId);
+    if (!session) return false;
+    session.status = 'CANCELLED';
+    session.updatedAt = new Date().toISOString();
+    this.saveState();
+    return true;
   }
 }
 

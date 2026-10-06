@@ -194,3 +194,42 @@ export interface StatisticsData {
   progressPercent: number;
   accuracyRate: number;
 }
+
+export type SentenceSessionStatus = 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+export type SentencePhase = 'PHRASE' | 'REBUILD' | 'COMPLETED';
+
+export interface SentencePhrase {
+  id: string;
+  sentenceId: string;
+  sequence: number;
+  english: string;
+  chinese: string;
+  phonetic?: string;
+  type: StepType;
+}
+
+export interface SentencePracticeItem {
+  id: string;
+  sessionId: string;
+  sentenceId: string;
+  sequence: number;
+  currentPhase: SentencePhase;
+  currentPhraseIndex: number;
+  completed: boolean;
+  createdAt: string;
+  updatedAt: string;
+  sentence?: SentenceItem;
+  phrases?: SentencePhrase[];
+}
+
+export interface SentencePracticeSession {
+  id: string;
+  userId: string;
+  difficulty: string;
+  totalCount: number;
+  currentSentenceIndex: number;
+  status: SentenceSessionStatus;
+  createdAt: string;
+  updatedAt: string;
+  items: SentencePracticeItem[];
+}
