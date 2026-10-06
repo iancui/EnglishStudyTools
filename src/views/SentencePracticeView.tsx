@@ -289,7 +289,6 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
           // 最后一题也先显示本句结果页，点击“完成”后再进入结算页。
           setPracticeCompleted(false);
           setAllCorrect(true);
-          playAudio(sentence?.content);
           return;
         }
 
@@ -354,7 +353,7 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
       wordStates.every(w => w.submitted && w.correct)
     ) {
       autoCheckedRef.current = true;
-      const t = setTimeout(() => handleCheckRef.current(), 200);
+      const t = setTimeout(() => handleCheckRef.current(), 80);
       return () => clearTimeout(t);
     }
   }, [wordStates, allCorrect, submitting]);
@@ -454,14 +453,28 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.code === 'Space' && allCorrect) {
-        e.preventDefault();
-        handleNext();
+      if (e.code !== 'Space' || allCorrect) return;
+
+      e.preventDefault();
+
+      // Shift + Space：播放整句
+      if (e.shiftKey) {
+        playAudio(sentence?.content);
+        return;
+      }
+
+      // Space：播放当前正在输入的单词
+      const active = document.activeElement as HTMLInputElement | null;
+      const idx = active ? inputRefs.current.indexOf(active) : -1;
+      const targetIdx = idx >= 0 ? idx : wordStates.findIndex(w => !w.correct);
+      if (targetIdx >= 0 && wordTokens[targetIdx]) {
+        playAudio(wordTokens[targetIdx].original);
       }
     };
+
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [allCorrect, currentSentenceIndex]);
+  }, [allCorrect, sentence?.content, wordStates, wordTokens, playAudio]);
 
   if (loading) {
     return (
@@ -506,7 +519,7 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
         />
         <main className="flex-1 w-full flex flex-col items-center justify-center px-4 sm:px-6 py-10 animate-fadeIn">
           <div className="w-full max-w-5xl text-center">
-            <h2 className="text-2xl sm:text-4xl font-extrabold text-[#29466F] tracking-tight leading-snug mb-10">
+            <h2 className="text-lg sm:text-2xl font-bold text-[#29466F] tracking-tight leading-relaxed mb-8 max-w-2xl mx-auto">
               {sentence.translation || '暂无译文'}
             </h2>
 
@@ -522,10 +535,10 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
                     <div className="text-xs sm:text-sm font-semibold text-[#8BA0BD] min-h-[1.25rem]">
                       {info?.phonetic || ' '}
                     </div>
-                    <div className="text-3xl sm:text-4xl font-extrabold text-[#29466F] tracking-tight mt-1">
+                    <div className="text-2xl sm:text-3xl font-extrabold text-[#29466F] tracking-tight mt-1">
                       {correctWord}{tok.punctAfter}
                     </div>
-                    <div className="text-sm sm:text-base font-semibold text-[#8BA0BD] mt-2 min-h-[1.5rem]">
+                    <div className="text-xs sm:text-sm font-semibold text-[#8BA0BD] mt-2 min-h-[1.25rem]">
                       {info?.meaning || ' '}
                     </div>
 
@@ -757,60 +770,19 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
               })}
             </div>
 
-            {/* Action buttons */}
-            <div className="flex items-center justify-center gap-3 pt-8">
-              <button
-                type="button"
-                onClick={handleResetSentence}
-                className="px-5 py-3 bg-white border border-[#E7EEF8] hover:bg-[#F7FAFF] text-[#8BA0BD] hover:text-[#29466F] rounded-2xl text-sm font-semibold transition-all flex items-center gap-2 cursor-pointer shadow-2xs"
-              >
-                <RotateCcw className="w-4 h-4" />
-                <span>重置</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleCheck}
-                disabled={submitting || allCorrect}
-                className="px-8 py-3 bg-[#4F7DF3] hover:bg-[#3D6CE5] disabled:opacity-40 text-white rounded-2xl text-sm font-bold transition-all shadow-xs flex items-center gap-2 cursor-pointer"
-              >
-                {submitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>验证中...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>检查答案</span>
-                  </>
-                )}
-              </button>
-            </div>
           </div>
         )}
 
         {/* Keyboard hints */}
-        <div className="pt-2 flex items-center justify-center gap-6 text-[11px] text-[#8BA0BD] select-none">
-          {allCorrect ? (
-            <span className="flex items-center gap-1.5">
-              <kbd className="px-1.5 py-0.5 bg-white border border-[#E7EEF8] rounded font-mono text-[10px] text-[#29466F]">Space</kbd>
-              <span>继续下一句</span>
-            </span>
-          ) : (
-            <>
-              <span className="flex items-center gap-1.5">
-                <kbd className="px-1.5 py-0.5 bg-white border border-[#E7EEF8] rounded font-mono text-[10px] text-[#29466F]">Enter</kbd>
-                <span>检查答案</span>
-              </span>
-              <span className="flex items-center gap-1.5">
-                <kbd className="px-1.5 py-0.5 bg-white border border-[#E7EEF8] rounded font-mono text-[10px] text-[#29466F]">Space</kbd>
-                <span>跳到下一个词</span>
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span>点击 🔊 播放整句</span>
-              </span>
-            </>
-          )}
+        <div className="pt-2 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[11px] text-[#8BA0BD] select-none">
+          <span className="flex items-center gap-1.5">
+            <kbd className="px-1.5 py-0.5 bg-white border border-[#E7EEF8] rounded font-mono text-[10px] text-[#29466F]">Space</kbd>
+            <span>播放正在输入的单词</span>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <kbd className="px-1.5 py-0.5 bg-white border border-[#E7EEF8] rounded font-mono text-[10px] text-[#29466F]">Shift + Space</kbd>
+            <span>播放整句</span>
+          </span>
         </div>
       </main>
     </div>
