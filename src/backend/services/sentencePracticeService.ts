@@ -10,16 +10,33 @@ export class SentencePracticeService {
   /**
    * Preview matching sentences count for difficulty filter
    */
-  static previewPractice(difficulty: string = 'ALL', count: number = 5) {
+  static previewPractice(difficulty: string = 'ALL', count: number = 5, dictionaryId?: string) {
     const all = db.getAllSentences();
     const diffUpper = (difficulty || 'ALL').toUpperCase();
+    const dict = dictionaryId ? db.findDictionaryById(dictionaryId) : undefined;
+    const dictWordSet = new Set(
+      dictionaryId
+        ? db.getDictionaryWords(dictionaryId)
+            .map(dw => dw.word?.text?.toLowerCase())
+            .filter(Boolean) as string[]
+        : []
+    );
 
-    const matching = diffUpper === 'ALL'
+    const byDifficulty = diffUpper === 'ALL'
       ? all
       : all.filter(s => s.level.toUpperCase() === diffUpper);
 
+    const matching = dictionaryId && dictWordSet.size > 0
+      ? byDifficulty.filter(s => {
+          const words = s.content.toLowerCase().match(/[a-z']+/g) || [];
+          return words.some(w => dictWordSet.has(w));
+        })
+      : byDifficulty;
+
     return {
       difficulty: diffUpper,
+      dictionaryId,
+      dictionaryName: dict?.name,
       totalInDb: all.length,
       matchingCount: matching.length,
       requestedCount: count,
@@ -35,6 +52,7 @@ export class SentencePracticeService {
     params: {
       difficulty?: string;
       count?: number;
+      dictionaryId?: string;
     }
   ) {
     const all = db.getAllSentences();
@@ -43,9 +61,25 @@ export class SentencePracticeService {
     }
 
     const diffUpper = (params.difficulty || 'ALL').toUpperCase();
+    const dictionaryId = params.dictionaryId;
+    const dictWordSet = new Set(
+      dictionaryId
+        ? db.getDictionaryWords(dictionaryId)
+            .map(dw => dw.word?.text?.toLowerCase())
+            .filter(Boolean) as string[]
+        : []
+    );
+
     let candidates = diffUpper === 'ALL'
       ? [...all]
       : all.filter(s => s.level.toUpperCase() === diffUpper);
+
+    if (dictionaryId && dictWordSet.size > 0) {
+      candidates = candidates.filter(s => {
+        const words = s.content.toLowerCase().match(/[a-z']+/g) || [];
+        return words.some(w => dictWordSet.has(w));
+      });
+    }
 
     // If not enough or no matching, fallback to all sentences
     if (candidates.length === 0) {
@@ -68,6 +102,7 @@ export class SentencePracticeService {
       id: sessionId,
       userId,
       difficulty: diffUpper,
+      dictionaryId,
       totalCount: selected.length,
       currentSentenceIndex: 0,
       status: 'IN_PROGRESS',
