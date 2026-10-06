@@ -10,7 +10,9 @@ export class SentencePracticeService {
   /**
    * Preview matching sentences count for difficulty filter
    */
-  static previewPractice(count: number = 5, dictionaryId?: string) {
+  static previewPractice(userId: string, dictionaryId?: string) {
+    const config = db.getDictionaryConfig(userId);
+    const count = Math.max(1, config.sentencePracticeCount || 5);
     const all = db.getAllSentences();
     const dict = dictionaryId ? db.findDictionaryById(dictionaryId) : undefined;
     const dictWordSet = new Set(
@@ -44,7 +46,6 @@ export class SentencePracticeService {
   static createSession(
     userId: string,
     params: {
-      count?: number;
       dictionaryId?: string;
     }
   ) {
@@ -86,7 +87,8 @@ export class SentencePracticeService {
       [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
     }
 
-    const requestedCount = Math.max(1, params.count || 5);
+    const config = db.getDictionaryConfig(userId);
+    const requestedCount = Math.max(1, config.sentencePracticeCount || 5);
     const selected = candidates.slice(0, requestedCount);
 
     const nowStr = new Date().toISOString();
