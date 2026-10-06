@@ -19,14 +19,21 @@ apiRouter.post('/auth/login', AuthController.login);
 apiRouter.get('/auth/me', AuthController.getCurrentUser);
 
 // Dictionaries (User & Public)
+apiRouter.get('/dictionaries/my', DictionaryController.getMyDictionaries);
+apiRouter.get('/dictionaries/my/:dictionaryId/words', DictionaryController.getMyDictionaryWords);
 apiRouter.get('/dictionaries', DictionaryController.getAllDictionaries);
 apiRouter.post('/dictionaries', DictionaryController.createDictionary);
 apiRouter.get('/dictionaries/:id', DictionaryController.getDictionaryById);
 apiRouter.put('/dictionaries/:id', DictionaryController.updateDictionary);
 apiRouter.delete('/dictionaries/:id', DictionaryController.deleteDictionary);
+apiRouter.post('/dictionaries/:id/words/:wordId', DictionaryController.addWord);
 apiRouter.post('/dictionaries/:id/words', DictionaryController.addWord);
 apiRouter.delete('/dictionaries/:id/words/:wordId', DictionaryController.removeWord);
 apiRouter.post('/dictionaries/:id/words/batch', DictionaryController.batchAddWords);
+
+// Word in User's Dictionaries
+apiRouter.get('/words/:wordId/my-dictionaries', DictionaryController.getWordMyDictionaries);
+apiRouter.post('/words/:wordId/my-dictionaries', DictionaryController.syncWordMyDictionaries);
 
 // Admin Dictionaries
 apiRouter.get('/admin/dictionaries', requireAdmin, DictionaryController.getAdminDictionaries);

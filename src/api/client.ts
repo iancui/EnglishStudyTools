@@ -65,6 +65,8 @@ export const api = {
 
   // Dictionaries
   getDictionaries: () => request<any[]>('/api/dictionaries'),
+  getMyDictionaries: () => request<any[]>('/api/dictionaries/my'),
+  getMyDictionaryWords: (dictId: string) => request<any[]>(`/api/dictionaries/my/${dictId}/words`),
   getDictionaryById: (id: string) => request<any>(`/api/dictionaries/${id}`),
   createDictionary: (data: { name: string; description?: string }) =>
     request<any>('/api/dictionaries', {
@@ -81,7 +83,7 @@ export const api = {
       method: 'DELETE'
     }),
   addWordToDictionary: (dictId: string, wordId: string) =>
-    request<any>(`/api/dictionaries/${dictId}/words`, {
+    request<any>(`/api/dictionaries/${dictId}/words/${wordId}`, {
       method: 'POST',
       body: JSON.stringify({ wordId })
     }),
@@ -94,6 +96,20 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ wordIds })
     }),
+
+  // Word - User Dictionaries Association
+  getWordMyDictionaries: (wordId: string) =>
+    request<{ wordId: string; dictionaryIds: string[]; dictionaries: any[] }>(
+      `/api/words/${wordId}/my-dictionaries`
+    ),
+  syncWordMyDictionaries: (wordId: string, dictionaryIds: string[]) =>
+    request<{ wordId: string; dictionaryIds: string[]; dictionaries: any[] }>(
+      `/api/words/${wordId}/my-dictionaries`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ dictionaryIds })
+      }
+    ),
 
   // Admin Dictionaries
   getAdminDictionaries: () => request<any[]>('/api/admin/dictionaries'),

@@ -18,6 +18,7 @@ import { api } from '../api/client.ts';
 import { StudySessionItem, StudySessionWordItem, WordItem } from '../types/index.ts';
 import { SpeechPlayer } from '../utils/speech.ts';
 import { PhonicsSplitter } from '../components/PhonicsSplitter.tsx';
+import { AddToDictionaryButton } from '../components/AddToDictionaryButton.tsx';
 
 interface StudySessionViewProps {
   sessionId: string;
@@ -345,8 +346,8 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
             </div>
           </div>
 
-          {/* Audio Player Controls */}
-          <div className="flex items-center justify-center gap-3">
+          {/* Audio Player Controls & Dictionary Bookmark */}
+          <div className="flex flex-wrap items-center justify-center gap-3">
             <button
               onClick={() => playWordAudio('normal')}
               className={`px-5 py-2.5 rounded-full border transition-all flex items-center gap-2 text-sm font-medium ${
@@ -382,6 +383,9 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
               <Split className="w-3.5 h-3.5" />
               <span>{showPhonics ? '收起拆分' : '自然拼读拆分'}</span>
             </button>
+
+            {/* Add to user's personal dictionary */}
+            <AddToDictionaryButton word={wordData} />
           </div>
 
           {/* Phonics Splitter Section */}
@@ -443,8 +447,8 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
             </h2>
           </div>
 
-          {/* Optional Phonetic Reveal */}
-          <div>
+          {/* Optional Phonetic Reveal & Add to My Dictionary */}
+          <div className="flex items-center justify-center gap-3">
             {!showPhonetic ? (
               <button
                 type="button"
@@ -459,6 +463,8 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
                 {activePhonetic}
               </div>
             )}
+
+            <AddToDictionaryButton word={wordData} variant="compact" />
           </div>
 
           {/* User Input Form */}

@@ -4,6 +4,7 @@ import { api } from '../api/client.ts';
 import { WordItem, WordPhonics } from '../types/index.ts';
 import { SpeechPlayer } from '../utils/speech.ts';
 import { PhonicsSplitter } from '../components/PhonicsSplitter.tsx';
+import { AddToDictionaryButton } from '../components/AddToDictionaryButton.tsx';
 
 interface WordLearnViewProps {
   navigate: (route: string) => void;
@@ -137,8 +138,8 @@ export const WordLearnView: React.FC<WordLearnViewProps> = ({ navigate, config }
           </div>
         </div>
 
-        {/* Audio Player Controls */}
-        <div className="flex items-center justify-center gap-4">
+        {/* Audio Player Controls & Dictionary Bookmark */}
+        <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
           <button
             onClick={() => playAudio('normal')}
             className={`px-5 py-2.5 rounded-full border transition-all flex items-center gap-2 text-sm font-medium ${
@@ -174,6 +175,9 @@ export const WordLearnView: React.FC<WordLearnViewProps> = ({ navigate, config }
             <Split className="w-3.5 h-3.5" />
             <span>{showPhonics ? '收起拆分' : '自然拼读拆分'}</span>
           </button>
+
+          {/* Prominent Add to My Dictionary Button */}
+          <AddToDictionaryButton word={currentWord} />
         </div>
 
         {/* Phonics Splitter Card (Conditional Reveal) */}

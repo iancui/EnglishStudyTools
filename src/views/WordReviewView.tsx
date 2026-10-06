@@ -3,6 +3,7 @@ import { Volume2, CheckCircle2, XCircle, Eye, ArrowRight, RotateCcw, Sparkles } 
 import { api } from '../api/client.ts';
 import { WordItem } from '../types/index.ts';
 import { SpeechPlayer } from '../utils/speech.ts';
+import { AddToDictionaryButton } from '../components/AddToDictionaryButton.tsx';
 
 interface WordReviewViewProps {
   navigate: (route: string) => void;
@@ -148,8 +149,8 @@ export const WordReviewView: React.FC<WordReviewViewProps> = ({ navigate, config
           </h2>
         </div>
 
-        {/* Phonetic Reveal Trigger */}
-        <div>
+        {/* Phonetic Reveal Trigger & Add to My Dictionary */}
+        <div className="flex items-center justify-center gap-3">
           {!showPhonetic ? (
             <button
               type="button"
@@ -164,6 +165,8 @@ export const WordReviewView: React.FC<WordReviewViewProps> = ({ navigate, config
               {activePhonetic}
             </div>
           )}
+
+          <AddToDictionaryButton word={currentWord} variant="compact" />
         </div>
 
         {/* Input Form */}

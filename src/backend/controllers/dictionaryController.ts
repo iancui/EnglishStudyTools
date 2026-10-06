@@ -33,6 +33,35 @@ export class DictionaryController {
   }
 
   // User / Public Dictionaries
+  static getMyDictionaries(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const userId = req.user?.id || 'u-default';
+      const list = DictionaryService.getUserDictionaries(userId);
+      res.json({
+        code: 200,
+        message: 'success',
+        data: list
+      });
+    } catch (e) {
+      next(e);
+    }
+  }
+
+  static getMyDictionaryWords(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const userId = req.user?.id || 'u-default';
+      const dictId = req.params.dictionaryId || req.params.id;
+      const list = DictionaryService.getUserDictionaryWords(userId, dictId);
+      res.json({
+        code: 200,
+        message: 'success',
+        data: list
+      });
+    } catch (e) {
+      next(e);
+    }
+  }
+
   static getAllDictionaries(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id || 'u-default';
@@ -115,8 +144,11 @@ export class DictionaryController {
   static addWord(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id || 'u-default';
-      const { id } = req.params;
-      const { wordId } = req.body;
+      const id = req.params.dictionaryId || req.params.id;
+      const wordId = req.params.wordId || req.body?.wordId;
+      if (!wordId) {
+        return res.status(400).json({ code: 400, message: 'wordId 不能为空', data: null });
+      }
       const result = DictionaryService.addWordToDictionary(userId, id, wordId);
       res.json({
         code: 200,
@@ -131,12 +163,47 @@ export class DictionaryController {
   static removeWord(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id || 'u-default';
-      const { id, wordId } = req.params;
+      const id = req.params.dictionaryId || req.params.id;
+      const wordId = req.params.wordId || req.body?.wordId;
+      if (!wordId) {
+        return res.status(400).json({ code: 400, message: 'wordId 不能为空', data: null });
+      }
       DictionaryService.removeWordFromDictionary(userId, id, wordId);
       res.json({
         code: 200,
         message: 'success',
         data: { success: true }
+      });
+    } catch (e) {
+      next(e);
+    }
+  }
+
+  static getWordMyDictionaries(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const userId = req.user?.id || 'u-default';
+      const { wordId } = req.params;
+      const data = DictionaryService.getWordUserDictionaries(userId, wordId);
+      res.json({
+        code: 200,
+        message: 'success',
+        data
+      });
+    } catch (e) {
+      next(e);
+    }
+  }
+
+  static syncWordMyDictionaries(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const userId = req.user?.id || 'u-default';
+      const { wordId } = req.params;
+      const { dictionaryIds } = req.body;
+      const data = DictionaryService.syncWordUserDictionaries(userId, wordId, dictionaryIds || []);
+      res.json({
+        code: 200,
+        message: 'success',
+        data
       });
     } catch (e) {
       next(e);

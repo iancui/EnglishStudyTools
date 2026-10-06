@@ -406,6 +406,23 @@ class Storage {
       });
   }
 
+  getUserDictionaries(userId: string): (Dictionary & { wordCount: number })[] {
+    return this.state.dictionaries
+      .filter(d => d.ownerType === 'USER' && d.ownerUserId === userId && d.status !== 'INACTIVE')
+      .map(d => {
+        const count = this.state.dictionaryWords.filter(dw => dw.dictionaryId === d.id && dw.isActive).length;
+        return { ...d, wordCount: count };
+      });
+  }
+
+  getWordUserDictionaries(userId: string, wordId: string): string[] {
+    const userDicts = this.getUserDictionaries(userId);
+    const userDictIds = new Set(userDicts.map(d => d.id));
+    return this.state.dictionaryWords
+      .filter(dw => userDictIds.has(dw.dictionaryId) && dw.wordId === wordId && dw.isActive)
+      .map(dw => dw.dictionaryId);
+  }
+
   getAdminDictionaries(): (Dictionary & { wordCount: number })[] {
     return this.state.dictionaries.map(d => {
       const count = this.state.dictionaryWords.filter(dw => dw.dictionaryId === d.id && dw.isActive).length;

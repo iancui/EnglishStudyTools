@@ -27,6 +27,23 @@ export interface DictionaryItem {
   updatedAt: string;
 }
 
+export interface DictionaryWordItem {
+  id: string;
+  dictionaryId: string;
+  wordId: string;
+  sequence: number;
+  isActive: boolean;
+  definitionSource?: string;
+  createdAt: string;
+  word?: WordItem;
+}
+
+export interface WordMyDictionariesInfo {
+  wordId: string;
+  dictionaryIds: string[];
+  dictionaries: DictionaryItem[];
+}
+
 export interface WordMeaning {
   id: string;
   wordId: string;

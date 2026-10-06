@@ -3762,14 +3762,6 @@
       "createdAt": "2026-10-06T05:17:22.756Z"
     },
     {
-      "id": "dw-1791263951679-d8du",
-      "dictionaryId": "dict-user-1791263941766-h3u4",
-      "wordId": "w-1",
-      "sequence": 1,
-      "isActive": true,
-      "createdAt": "2026-10-06T05:19:11.679Z"
-    },
-    {
       "id": "dw-1791263951681-oh9c",
       "dictionaryId": "dict-user-1791263941766-h3u4",
       "wordId": "w-4",
@@ -3796,11 +3788,11 @@
       "completedCount": 2,
       "excludeMastered": false,
       "sortMode": "SEQUENCE",
-      "status": "IN_PROGRESS",
-      "currentWordIndex": 1,
+      "status": "CANCELLED",
+      "currentWordIndex": 2,
       "startedAt": "2026-10-06T05:17:48.300Z",
       "createdAt": "2026-10-06T05:17:48.300Z",
-      "updatedAt": "2026-10-06T05:18:26.502Z",
+      "updatedAt": "2026-10-06T05:22:17.351Z",
       "words": [
         {
           "id": "sw-session-1791263868300-damo-1",
@@ -3866,11 +3858,11 @@
           "sessionId": "session-1791263868300-damo",
           "wordId": "w-2",
           "sequence": 2,
-          "learnStatus": "LEARN_PENDING",
+          "learnStatus": "LEARNED",
           "writeStatus": "WRITTEN",
           "completed": true,
-          "isCorrect": false,
-          "userInput": "wher",
+          "isCorrect": true,
+          "userInput": "where",
           "createdAt": "2026-10-06T05:17:48.300Z",
           "word": {
             "id": "w-2",
@@ -3909,7 +3901,8 @@
               }
             ]
           },
-          "writtenAt": "2026-10-06T05:18:26.496Z"
+          "writtenAt": "2026-10-06T05:20:28.788Z",
+          "learnedAt": "2026-10-06T05:20:24.776Z"
         },
         {
           "id": "sw-session-1791263868300-damo-3",
@@ -4073,6 +4066,21 @@
         "updatedAt": "2026-10-06T05:17:22.755Z",
         "wordCount": 20
       }
+    },
+    {
+      "id": "session-1791264137351-4g1e",
+      "userId": "u-default",
+      "mode": "LEARN_AND_WRITE",
+      "dictionaryId": "dict-junior",
+      "totalCount": 10,
+      "completedCount": 0,
+      "excludeMastered": true,
+      "sortMode": "RANDOM",
+      "status": "IN_PROGRESS",
+      "currentWordIndex": 0,
+      "startedAt": "2026-10-06T05:22:17.351Z",
+      "createdAt": "2026-10-06T05:22:17.351Z",
+      "updatedAt": "2026-10-06T05:22:17.351Z"
     }
   ],
   "studySessionWords": [
@@ -4140,11 +4148,11 @@
       "sessionId": "session-1791263868300-damo",
       "wordId": "w-2",
       "sequence": 2,
-      "learnStatus": "LEARN_PENDING",
+      "learnStatus": "LEARNED",
       "writeStatus": "WRITTEN",
       "completed": true,
-      "isCorrect": false,
-      "userInput": "wher",
+      "isCorrect": true,
+      "userInput": "where",
       "createdAt": "2026-10-06T05:17:48.300Z",
       "word": {
         "id": "w-2",
@@ -4183,7 +4191,8 @@
           }
         ]
       },
-      "writtenAt": "2026-10-06T05:18:26.496Z"
+      "writtenAt": "2026-10-06T05:20:28.788Z",
+      "learnedAt": "2026-10-06T05:20:24.776Z"
     },
     {
       "id": "sw-session-1791263868300-damo-3",
@@ -4331,6 +4340,512 @@
           }
         ]
       }
+    },
+    {
+      "id": "sw-session-1791264137351-4g1e-1",
+      "sessionId": "session-1791264137351-4g1e",
+      "wordId": "w-23",
+      "sequence": 1,
+      "learnStatus": "LEARN_PENDING",
+      "writeStatus": "WRITE_PENDING",
+      "completed": false,
+      "isCorrect": null,
+      "userInput": null,
+      "createdAt": "2026-10-06T05:22:17.351Z",
+      "word": {
+        "id": "w-23",
+        "text": "language",
+        "phoneticUk": "/ˈlæŋɡwɪdʒ/",
+        "phoneticUs": "/ˈlæŋɡwɪdʒ/",
+        "pos": "n.",
+        "difficulty": 2,
+        "meanings": [
+          {
+            "id": "wm-23",
+            "wordId": "w-23",
+            "pos": "n.",
+            "definitionCn": "语言；文字",
+            "definitionEn": "the method of human communication using words",
+            "exampleEn": "English is an international language.",
+            "exampleCn": "英语是一门国际语言。"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-23-1",
+            "wordId": "w-23",
+            "sequence": 1,
+            "text": "lan",
+            "phonetic": "/læŋ/",
+            "syllable": "lan"
+          },
+          {
+            "id": "wp-23-2",
+            "wordId": "w-23",
+            "sequence": 2,
+            "text": "guage",
+            "phonetic": "/ɡwɪdʒ/",
+            "syllable": "guage"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sw-session-1791264137351-4g1e-2",
+      "sessionId": "session-1791264137351-4g1e",
+      "wordId": "w-6",
+      "sequence": 2,
+      "learnStatus": "LEARN_PENDING",
+      "writeStatus": "WRITE_PENDING",
+      "completed": false,
+      "isCorrect": null,
+      "userInput": null,
+      "createdAt": "2026-10-06T05:22:17.351Z",
+      "word": {
+        "id": "w-6",
+        "text": "important",
+        "phoneticUk": "/ɪmˈpɔːtnt/",
+        "phoneticUs": "/ɪmˈpɔːrtnt/",
+        "pos": "adj.",
+        "difficulty": 2,
+        "meanings": [
+          {
+            "id": "wm-6",
+            "wordId": "w-6",
+            "pos": "adj.",
+            "definitionCn": "重要的；重大的",
+            "definitionEn": "of great significance or value",
+            "exampleEn": "Health is the most important thing in life.",
+            "exampleCn": "健康是人生中最重要的东西。"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-6-1",
+            "wordId": "w-6",
+            "sequence": 1,
+            "text": "im",
+            "phonetic": "/ɪm/",
+            "syllable": "im"
+          },
+          {
+            "id": "wp-6-2",
+            "wordId": "w-6",
+            "sequence": 2,
+            "text": "por",
+            "phonetic": "/pɔːr/",
+            "syllable": "por"
+          },
+          {
+            "id": "wp-6-3",
+            "wordId": "w-6",
+            "sequence": 3,
+            "text": "tant",
+            "phonetic": "/tnt/",
+            "syllable": "tant"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sw-session-1791264137351-4g1e-3",
+      "sessionId": "session-1791264137351-4g1e",
+      "wordId": "w-22",
+      "sequence": 3,
+      "learnStatus": "LEARN_PENDING",
+      "writeStatus": "WRITE_PENDING",
+      "completed": false,
+      "isCorrect": null,
+      "userInput": null,
+      "createdAt": "2026-10-06T05:22:17.351Z",
+      "word": {
+        "id": "w-22",
+        "text": "practice",
+        "phoneticUk": "/ˈpræktɪs/",
+        "phoneticUs": "/ˈpræktɪs/",
+        "pos": "n./v.",
+        "difficulty": 2,
+        "meanings": [
+          {
+            "id": "wm-22",
+            "wordId": "w-22",
+            "pos": "v.",
+            "definitionCn": "练习；实习",
+            "definitionEn": "perform an activity repeatedly to improve skill",
+            "exampleEn": "Practice makes perfect.",
+            "exampleCn": "熟能生巧。"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-22-1",
+            "wordId": "w-22",
+            "sequence": 1,
+            "text": "prac",
+            "phonetic": "/præk/",
+            "syllable": "prac"
+          },
+          {
+            "id": "wp-22-2",
+            "wordId": "w-22",
+            "sequence": 2,
+            "text": "tice",
+            "phonetic": "/tɪs/",
+            "syllable": "tice"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sw-session-1791264137351-4g1e-4",
+      "sessionId": "session-1791264137351-4g1e",
+      "wordId": "w-24",
+      "sequence": 4,
+      "learnStatus": "LEARN_PENDING",
+      "writeStatus": "WRITE_PENDING",
+      "completed": false,
+      "isCorrect": null,
+      "userInput": null,
+      "createdAt": "2026-10-06T05:22:17.351Z",
+      "word": {
+        "id": "w-24",
+        "text": "knowledge",
+        "phoneticUk": "/ˈnɒlɪdʒ/",
+        "phoneticUs": "/ˈnɑːlɪdʒ/",
+        "pos": "n.",
+        "difficulty": 2,
+        "meanings": [
+          {
+            "id": "wm-24",
+            "wordId": "w-24",
+            "pos": "n.",
+            "definitionCn": "知识；学问",
+            "definitionEn": "facts, information, and skills acquired through experience or education",
+            "exampleEn": "Knowledge is power.",
+            "exampleCn": "知识就是力量。"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-24-1",
+            "wordId": "w-24",
+            "sequence": 1,
+            "text": "know",
+            "phonetic": "/nɒ/",
+            "syllable": "know"
+          },
+          {
+            "id": "wp-24-2",
+            "wordId": "w-24",
+            "sequence": 2,
+            "text": "ledge",
+            "phonetic": "/lɪdʒ/",
+            "syllable": "ledge"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sw-session-1791264137351-4g1e-5",
+      "sessionId": "session-1791264137351-4g1e",
+      "wordId": "w-20",
+      "sequence": 5,
+      "learnStatus": "LEARN_PENDING",
+      "writeStatus": "WRITE_PENDING",
+      "completed": false,
+      "isCorrect": null,
+      "userInput": null,
+      "createdAt": "2026-10-06T05:22:17.351Z",
+      "word": {
+        "id": "w-20",
+        "text": "question",
+        "phoneticUk": "/ˈkwestʃən/",
+        "phoneticUs": "/ˈkwestʃən/",
+        "pos": "n./v.",
+        "difficulty": 2,
+        "meanings": [
+          {
+            "id": "wm-20",
+            "wordId": "w-20",
+            "pos": "n.",
+            "definitionCn": "问题；疑问",
+            "definitionEn": "a sentence worded or expressed so as to elicit information",
+            "exampleEn": "Please raise your hand if you have a question.",
+            "exampleCn": "如果你有问题，请举手。"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-20-1",
+            "wordId": "w-20",
+            "sequence": 1,
+            "text": "ques",
+            "phonetic": "/kwes/",
+            "syllable": "ques"
+          },
+          {
+            "id": "wp-20-2",
+            "wordId": "w-20",
+            "sequence": 2,
+            "text": "tion",
+            "phonetic": "/tʃən/",
+            "syllable": "tion"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sw-session-1791264137351-4g1e-6",
+      "sessionId": "session-1791264137351-4g1e",
+      "wordId": "w-30",
+      "sequence": 6,
+      "learnStatus": "LEARN_PENDING",
+      "writeStatus": "WRITE_PENDING",
+      "completed": false,
+      "isCorrect": null,
+      "userInput": null,
+      "createdAt": "2026-10-06T05:22:17.351Z",
+      "word": {
+        "id": "w-30",
+        "text": "exercise",
+        "phoneticUk": "/ˈeksəsaɪz/",
+        "phoneticUs": "/ˈeksərsaɪz/",
+        "pos": "n./v.",
+        "difficulty": 2,
+        "meanings": [
+          {
+            "id": "wm-30",
+            "wordId": "w-30",
+            "pos": "n.",
+            "definitionCn": "锻炼；习题",
+            "definitionEn": "activity requiring physical or mental effort",
+            "exampleEn": "Regular exercise keeps your body fit.",
+            "exampleCn": "定期锻炼能保持身体健康。"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-30-1",
+            "wordId": "w-30",
+            "sequence": 1,
+            "text": "ex",
+            "phonetic": "/ek/",
+            "syllable": "ex"
+          },
+          {
+            "id": "wp-30-2",
+            "wordId": "w-30",
+            "sequence": 2,
+            "text": "er",
+            "phonetic": "/sər/",
+            "syllable": "er"
+          },
+          {
+            "id": "wp-30-3",
+            "wordId": "w-30",
+            "sequence": 3,
+            "text": "cise",
+            "phonetic": "/saɪz/",
+            "syllable": "cise"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sw-session-1791264137351-4g1e-7",
+      "sessionId": "session-1791264137351-4g1e",
+      "wordId": "w-36",
+      "sequence": 7,
+      "learnStatus": "LEARN_PENDING",
+      "writeStatus": "WRITE_PENDING",
+      "completed": false,
+      "isCorrect": null,
+      "userInput": null,
+      "createdAt": "2026-10-06T05:22:17.351Z",
+      "word": {
+        "id": "w-36",
+        "text": "review",
+        "phoneticUk": "/rɪˈvjuː/",
+        "phoneticUs": "/rɪˈvjuː/",
+        "pos": "v./n.",
+        "difficulty": 2,
+        "meanings": [
+          {
+            "id": "wm-36",
+            "wordId": "w-36",
+            "pos": "v.",
+            "definitionCn": "复习；回顾；审阅",
+            "definitionEn": "view or inspect again; examine",
+            "exampleEn": "Review the new words before going to sleep.",
+            "exampleCn": "睡前复习一下生词。"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-36-1",
+            "wordId": "w-36",
+            "sequence": 1,
+            "text": "re",
+            "phonetic": "/rɪ/",
+            "syllable": "re"
+          },
+          {
+            "id": "wp-36-2",
+            "wordId": "w-36",
+            "sequence": 2,
+            "text": "view",
+            "phonetic": "/vjuː/",
+            "syllable": "view"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sw-session-1791264137351-4g1e-8",
+      "sessionId": "session-1791264137351-4g1e",
+      "wordId": "w-34",
+      "sequence": 8,
+      "learnStatus": "LEARN_PENDING",
+      "writeStatus": "WRITE_PENDING",
+      "completed": false,
+      "isCorrect": null,
+      "userInput": null,
+      "createdAt": "2026-10-06T05:22:17.351Z",
+      "word": {
+        "id": "w-34",
+        "text": "write",
+        "phoneticUk": "/raɪt/",
+        "phoneticUs": "/raɪt/",
+        "pos": "v.",
+        "difficulty": 1,
+        "meanings": [
+          {
+            "id": "wm-34",
+            "wordId": "w-34",
+            "pos": "v.",
+            "definitionCn": "写；书写；写作",
+            "definitionEn": "mark on a surface with a pen, pencil, or other instrument",
+            "exampleEn": "Write your thoughts in an English journal.",
+            "exampleCn": "把你的想法写在英语日记里。"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-34-1",
+            "wordId": "w-34",
+            "sequence": 1,
+            "text": "wr",
+            "phonetic": "/r/",
+            "syllable": "wr"
+          },
+          {
+            "id": "wp-34-2",
+            "wordId": "w-34",
+            "sequence": 2,
+            "text": "ite",
+            "phonetic": "/aɪt/",
+            "syllable": "ite"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sw-session-1791264137351-4g1e-9",
+      "sessionId": "session-1791264137351-4g1e",
+      "wordId": "w-32",
+      "sequence": 9,
+      "learnStatus": "LEARN_PENDING",
+      "writeStatus": "WRITE_PENDING",
+      "completed": false,
+      "isCorrect": null,
+      "userInput": null,
+      "createdAt": "2026-10-06T05:22:17.351Z",
+      "word": {
+        "id": "w-32",
+        "text": "speak",
+        "phoneticUk": "/spiːk/",
+        "phoneticUs": "/spiːk/",
+        "pos": "v.",
+        "difficulty": 1,
+        "meanings": [
+          {
+            "id": "wm-32",
+            "wordId": "w-32",
+            "pos": "v.",
+            "definitionCn": "讲；谈话；演说",
+            "definitionEn": "say something in order to convey information or an opinion",
+            "exampleEn": "Can you speak English fluently?",
+            "exampleCn": "你能流利说英语吗？"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-32-1",
+            "wordId": "w-32",
+            "sequence": 1,
+            "text": "sp",
+            "phonetic": "/sp/",
+            "syllable": "sp"
+          },
+          {
+            "id": "wp-32-2",
+            "wordId": "w-32",
+            "sequence": 2,
+            "text": "eak",
+            "phonetic": "/iːk/",
+            "syllable": "eak"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sw-session-1791264137351-4g1e-10",
+      "sessionId": "session-1791264137351-4g1e",
+      "wordId": "w-35",
+      "sequence": 10,
+      "learnStatus": "LEARN_PENDING",
+      "writeStatus": "WRITE_PENDING",
+      "completed": false,
+      "isCorrect": null,
+      "userInput": null,
+      "createdAt": "2026-10-06T05:22:17.351Z",
+      "word": {
+        "id": "w-35",
+        "text": "learn",
+        "phoneticUk": "/lɜːn/",
+        "phoneticUs": "/lɜːrn/",
+        "pos": "v.",
+        "difficulty": 1,
+        "meanings": [
+          {
+            "id": "wm-35",
+            "wordId": "w-35",
+            "pos": "v.",
+            "definitionCn": "学习；学会",
+            "definitionEn": "gain knowledge of or skill in something",
+            "exampleEn": "It is never too late to learn.",
+            "exampleCn": "活到老，学到老。"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-35-1",
+            "wordId": "w-35",
+            "sequence": 1,
+            "text": "l",
+            "phonetic": "/l/",
+            "syllable": "l"
+          },
+          {
+            "id": "wp-35-2",
+            "wordId": "w-35",
+            "sequence": 2,
+            "text": "earn",
+            "phonetic": "/ɜːn/",
+            "syllable": "earn"
+          }
+        ]
+      }
     }
   ],
   "configs": [
@@ -4368,18 +4883,18 @@
       "id": "p-2",
       "userId": "u-default",
       "wordId": "w-2",
-      "status": "LEARNING",
-      "learnCount": 5,
-      "reviewCount": 5,
-      "correctCount": 5,
+      "status": "REVIEW",
+      "learnCount": 6,
+      "reviewCount": 6,
+      "correctCount": 6,
       "wrongCount": 1,
-      "streak": 0,
-      "mastery": 80,
-      "lastLearnAt": "2026-10-05T04:53:02.664Z",
-      "lastReviewAt": "2026-10-06T05:18:26.497Z",
-      "nextReviewAt": "2026-10-06T05:28:26.497Z",
+      "streak": 1,
+      "mastery": 95,
+      "lastLearnAt": "2026-10-06T05:20:24.776Z",
+      "lastReviewAt": "2026-10-06T05:20:28.790Z",
+      "nextReviewAt": "2026-10-06T05:30:28.790Z",
       "createdAt": "2026-10-06T04:53:02.664Z",
-      "updatedAt": "2026-10-06T05:18:26.497Z"
+      "updatedAt": "2026-10-06T05:20:28.790Z"
     },
     {
       "id": "p-1791262458686",
@@ -4438,10 +4953,11 @@
       "id": "sp-u-default-s-1",
       "userId": "u-default",
       "sentenceId": "s-1",
-      "status": "IN_PROGRESS",
-      "currentStep": 4,
-      "createdAt": "2026-10-06T04:56:47.916Z",
-      "updatedAt": "2026-10-06T04:56:47.916Z"
+      "status": "COMPLETED",
+      "currentStep": 6,
+      "completedAt": "2026-10-06T05:21:37.669Z",
+      "createdAt": "2026-10-06T05:21:37.669Z",
+      "updatedAt": "2026-10-06T05:21:37.669Z"
     }
   ],
   "learningRecords": [
@@ -4590,6 +5106,37 @@
       "inputText": "wher",
       "timeSpentSec": 5,
       "createdAt": "2026-10-06T05:18:26.496Z"
+    },
+    {
+      "id": "lr-1791264028795",
+      "userId": "u-default",
+      "itemType": "WORD",
+      "itemId": "w-2",
+      "action": "MEMORIZE",
+      "isCorrect": true,
+      "inputText": "where",
+      "timeSpentSec": 5,
+      "createdAt": "2026-10-06T05:20:28.788Z"
+    },
+    {
+      "id": "lr-1791264097124",
+      "userId": "u-default",
+      "itemType": "SENTENCE",
+      "itemId": "s-1",
+      "action": "STEP_COMPLETE",
+      "isCorrect": true,
+      "timeSpentSec": 20,
+      "createdAt": "2026-10-06T05:21:37.122Z"
+    },
+    {
+      "id": "lr-1791264097671",
+      "userId": "u-default",
+      "itemType": "SENTENCE",
+      "itemId": "s-1",
+      "action": "LEARN",
+      "isCorrect": true,
+      "timeSpentSec": 20,
+      "createdAt": "2026-10-06T05:21:37.669Z"
     }
   ],
   "reviewRecords": [
@@ -4646,6 +5193,15 @@
       "nextReviewAt": "2026-10-06T05:28:26.497Z",
       "result": "FAIL",
       "createdAt": "2026-10-06T05:18:26.497Z"
+    },
+    {
+      "id": "rr-1791264028792",
+      "userId": "u-default",
+      "wordId": "w-2",
+      "intervalDays": 0.006944444444444444,
+      "nextReviewAt": "2026-10-06T05:30:28.790Z",
+      "result": "SUCCESS",
+      "createdAt": "2026-10-06T05:20:28.790Z"
     }
   ]
 }

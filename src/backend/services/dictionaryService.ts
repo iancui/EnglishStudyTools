@@ -85,6 +85,9 @@ export class DictionaryService {
   static addWordToDictionary(userId: string, dictionaryId: string, wordId: string) {
     const dict = db.findDictionaryById(dictionaryId);
     if (!dict) throw new Error('辞书不存在');
+    if (dict.isSystem || dict.ownerType === 'SYSTEM') {
+      throw new Error('系统辞书由管理员维护，普通用户不能修改内容');
+    }
     if (dict.ownerType === 'USER' && dict.ownerUserId !== userId) {
       throw new Error('无权向该辞书添加单词');
     }
@@ -98,11 +101,66 @@ export class DictionaryService {
   static removeWordFromDictionary(userId: string, dictionaryId: string, wordId: string) {
     const dict = db.findDictionaryById(dictionaryId);
     if (!dict) throw new Error('辞书不存在');
+    if (dict.isSystem || dict.ownerType === 'SYSTEM') {
+      throw new Error('系统辞书由管理员维护，普通用户不能修改内容');
+    }
     if (dict.ownerType === 'USER' && dict.ownerUserId !== userId) {
       throw new Error('无权从该辞书移除单词');
     }
 
     return db.removeWordFromDictionary(dictionaryId, wordId);
+  }
+
+  static getUserDictionaries(userId: string) {
+    return db.getUserDictionaries(userId);
+  }
+
+  static getUserDictionaryWords(userId: string, dictionaryId: string) {
+    const dict = db.findDictionaryById(dictionaryId);
+    if (!dict) throw new Error('辞书不存在');
+    if (dict.ownerType === 'USER' && dict.ownerUserId !== userId) {
+      throw new Error('无权查看该私有辞书');
+    }
+    return db.getDictionaryWords(dictionaryId);
+  }
+
+  static getWordUserDictionaries(userId: string, wordId: string) {
+    const word = db.findWordById(wordId);
+    if (!word) throw new Error('单词不存在');
+    const dictionaryIds = db.getWordUserDictionaries(userId, wordId);
+    const userDicts = db.getUserDictionaries(userId);
+    return {
+      wordId,
+      dictionaryIds,
+      dictionaries: userDicts.filter(d => dictionaryIds.includes(d.id))
+    };
+  }
+
+  static syncWordUserDictionaries(userId: string, wordId: string, targetDictionaryIds: string[]) {
+    const word = db.findWordById(wordId);
+    if (!word) throw new Error('单词不存在');
+
+    const userDicts = db.getUserDictionaries(userId);
+    const validUserDictIds = new Set(userDicts.map(d => d.id));
+    const currentDictIds = new Set(db.getWordUserDictionaries(userId, wordId));
+
+    const toAdd = targetDictionaryIds.filter(id => validUserDictIds.has(id) && !currentDictIds.has(id));
+    const toRemove = [...currentDictIds].filter(id => !targetDictionaryIds.includes(id));
+
+    toAdd.forEach(dictId => {
+      db.addWordToDictionary(dictId, wordId);
+    });
+
+    toRemove.forEach(dictId => {
+      db.removeWordFromDictionary(dictId, wordId);
+    });
+
+    const updatedDictIds = db.getWordUserDictionaries(userId, wordId);
+    return {
+      wordId,
+      dictionaryIds: updatedDictIds,
+      dictionaries: userDicts.filter(d => updatedDictIds.includes(d.id))
+    };
   }
 
   static batchAddWords(userId: string, dictionaryId: string, wordIds: string[]) {
