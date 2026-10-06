@@ -311,11 +311,18 @@ export class StudySessionService {
     const isCorrect = cleanInput === expected;
 
     const now = new Date().toISOString();
-    sw.writeStatus = 'WRITTEN';
-    sw.completed = true;
-    sw.isCorrect = isCorrect;
     sw.userInput = rawInput;
-    sw.writtenAt = now;
+
+    if (isCorrect) {
+      sw.writeStatus = 'WRITTEN';
+      sw.completed = true;
+      sw.isCorrect = true;
+      sw.writtenAt = now;
+    } else {
+      sw.writeStatus = 'WRITE_PENDING';
+      sw.completed = false;
+      sw.isCorrect = false;
+    }
 
     db.updateStudySessionWord(sw);
 
@@ -324,7 +331,7 @@ export class StudySessionService {
 
     // Save learning record
     db.addLearningRecord({
-      id: `lr-${Date.now()}`,
+      id: `lr-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       userId,
       itemType: 'WORD',
       itemId: wordId,
@@ -335,14 +342,20 @@ export class StudySessionService {
       createdAt: now
     });
 
-    // Check session progress
-    const allWords = session.words;
-    const completedWordsCount = allWords.filter(w => w.completed).length;
+    // Check session progress strictly based on completed words
+    const freshSession = db.findStudySessionById(sessionId);
+    const completedWordsCount = freshSession
+      ? freshSession.words.filter(w => w.completed).length
+      : session.words.filter(w => w.completed).length;
+
     session.completedCount = completedWordsCount;
 
-    if (completedWordsCount >= session.totalCount) {
+    if (completedWordsCount >= session.totalCount && session.totalCount > 0) {
       session.status = 'COMPLETED';
       session.completedAt = now;
+    } else {
+      session.status = 'IN_PROGRESS';
+      delete (session as any).completedAt;
     }
 
     db.updateStudySession(session);
@@ -355,6 +368,8 @@ export class StudySessionService {
       meanings: word.meanings,
       sessionWord: sw,
       sessionCompleted: session.status === 'COMPLETED',
+      completedCount: session.completedCount,
+      totalCount: session.totalCount,
       progress: updatedProgress
     };
   }
@@ -365,6 +380,11 @@ export class StudySessionService {
   static nextWord(sessionId: string, userId: string) {
     const session = db.findStudySessionById(sessionId);
     if (!session || session.userId !== userId) throw new Error('学习任务不存在');
+
+    const currentWord = session.words[session.currentWordIndex];
+    if (currentWord && !currentWord.completed) {
+      throw new Error('当前单词尚未拼写正确，不能进入下一个单词');
+    }
 
     if (session.currentWordIndex < session.totalCount - 1) {
       session.currentWordIndex += 1;

@@ -1,12 +1,53 @@
 import { db } from '../db/storage.ts';
+import { LearningRecord } from '../types/index.ts';
 
 export class StatisticsService {
+  /**
+   * Calculates continuous streak days based strictly on real learning records.
+   * If user was active today, count backwards consecutively.
+   * If user was not active today, streak is 0.
+   */
+  static calculateStreakDays(records: LearningRecord[]): number {
+    if (!records || records.length === 0) return 0;
+
+    const activeDates = new Set<string>();
+    records.forEach(r => {
+      const d = new Date(r.createdAt);
+      if (!isNaN(d.getTime())) {
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        activeDates.add(key);
+      }
+    });
+
+    const now = new Date();
+    const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+    if (!activeDates.has(todayKey)) {
+      return 0;
+    }
+
+    let streak = 0;
+    const checkDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    while (true) {
+      const key = `${checkDate.getFullYear()}-${String(checkDate.getMonth() + 1).padStart(2, '0')}-${String(checkDate.getDate()).padStart(2, '0')}`;
+      if (activeDates.has(key)) {
+        streak += 1;
+        checkDate.setDate(checkDate.getDate() - 1);
+      } else {
+        break;
+      }
+    }
+
+    return streak;
+  }
+
   static getTodayStatistics(userId: string) {
     const records = db.getLearningRecords(userId);
     const progresses = db.getAllWordProgresses(userId);
     const totalWords = db.getAllWords().length;
 
-    // Filter today's records (past 24h)
+    // Filter today's records (strictly starting from 00:00:00 today)
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -15,46 +56,58 @@ export class StatisticsService {
     const todayWordRecords = todayRecords.filter(r => r.itemType === 'WORD');
     const todaySentenceRecords = todayRecords.filter(r => r.itemType === 'SENTENCE');
 
-    const todayCorrect = todayWordRecords.filter(r => r.isCorrect).length;
-    const todayWrong = todayWordRecords.filter(r => !r.isCorrect).length;
+    const todayCorrect = todayWordRecords.filter(r => r.isCorrect === true).length;
+    const todayWrong = todayWordRecords.filter(r => r.isCorrect === false).length;
+
+    // Distinct words and sentences with activity today
     const todayLearnedWords = new Set(todayWordRecords.map(r => r.itemId)).size;
     const todaySentences = new Set(todaySentenceRecords.map(r => r.itemId)).size;
 
-    const totalTimeSec = todayRecords.reduce((acc, r) => acc + (r.timeSpentSec || 15), 0);
-    const studyTimeMinutes = Math.max(5, Math.round(totalTimeSec / 60));
+    // Real study time spent in minutes strictly based on recorded timeSpentSec
+    const totalTimeSec = todayRecords.reduce((acc, r) => acc + (r.timeSpentSec || 0), 0);
+    const studyTimeMinutes = Math.round(totalTimeSec / 60);
 
     const masteredWords = progresses.filter(p => p.status === 'MASTERED').length;
     const learningWords = progresses.filter(p => p.status === 'LEARNING' || p.status === 'REVIEW').length;
 
-    // Progress percentage
-    const progressPercent = totalWords > 0 ? Math.round(((masteredWords + learningWords * 0.5) / totalWords) * 100) : 0;
+    // Progress percentage strictly computed from mastered & learning words
+    const progressPercent = totalWords > 0
+      ? Math.min(100, Math.round(((masteredWords + learningWords * 0.5) / totalWords) * 100))
+      : 0;
+
+    // Accuracy rate: 0% if no attempts, otherwise real percentage
+    const totalAttempts = todayCorrect + todayWrong;
+    const accuracyRate = totalAttempts > 0
+      ? Math.round((todayCorrect / totalAttempts) * 100)
+      : 0;
 
     return {
-      todayLearnedWords: todayLearnedWords || 12,
-      todayCorrect: todayCorrect || 10,
-      todayWrong: todayWrong || 2,
-      todaySentences: todaySentences || 3,
+      todayLearnedWords,
+      todayCorrect,
+      todayWrong,
+      todaySentences,
       studyTimeMinutes,
       masteredWords,
       learningWords,
       totalWords,
-      progressPercent: Math.min(100, Math.max(10, progressPercent)),
-      accuracyRate: (todayCorrect + todayWrong) > 0
-        ? Math.round((todayCorrect / (todayCorrect + todayWrong)) * 100)
-        : 85
+      progressPercent,
+      accuracyRate
     };
   }
 
   static getOverviewStatistics(userId: string) {
     const todayStats = this.getTodayStatistics(userId);
+    const records = db.getLearningRecords(userId);
     const progresses = db.getAllWordProgresses(userId);
     const sentences = db.getAllSentences();
+
+    const currentStreakDays = this.calculateStreakDays(records);
 
     return {
       ...todayStats,
       totalReviewedWords: progresses.reduce((acc, p) => acc + p.reviewCount, 0),
       totalSentences: sentences.length,
-      currentStreakDays: 3
+      currentStreakDays
     };
   }
 }

@@ -41,8 +41,8 @@ export const StatisticsView: React.FC<StatisticsViewProps> = ({ navigate }) => {
     );
   }
 
-  const accuracy = stats?.accuracyRate ?? 88;
-  const progressPercent = stats?.progressPercent ?? 45;
+  const accuracy = stats?.accuracyRate ?? 0;
+  const progressPercent = stats?.progressPercent ?? 0;
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10 space-y-10">
@@ -75,7 +75,7 @@ export const StatisticsView: React.FC<StatisticsViewProps> = ({ navigate }) => {
               <div>
                 <div className="text-xs text-stone-400">连续打卡</div>
                 <div className="text-sm font-bold text-stone-800 font-mono">
-                  {overview?.currentStreakDays ?? 3} 天
+                  {overview?.currentStreakDays ?? 0} 天
                 </div>
               </div>
             </div>
@@ -95,33 +95,33 @@ export const StatisticsView: React.FC<StatisticsViewProps> = ({ navigate }) => {
         {/* Progress Visual Bar (Section Eighteen) */}
         <div className="space-y-2">
           <div className="flex justify-between text-xs text-stone-500 font-medium">
-            <span>基础核心词汇库 (已掌握 {stats?.masteredWords} 词 / 总 {stats?.totalWords} 词)</span>
+            <span>基础核心词汇库 (已掌握 {stats?.masteredWords ?? 0} 词 / 总 {stats?.totalWords ?? 0} 词)</span>
             <span className="font-mono">{progressPercent}%</span>
           </div>
           <div className="h-3.5 w-full bg-stone-100 rounded-full overflow-hidden flex">
             <div
               className="bg-emerald-500 h-full transition-all duration-500"
-              style={{ width: `${Math.round(((stats?.masteredWords || 0) / (stats?.totalWords || 50)) * 100)}%` }}
+              style={{ width: `${stats?.totalWords ? Math.round(((stats.masteredWords || 0) / stats.totalWords) * 100) : 0}%` }}
               title="已掌握"
             />
             <div
               className="bg-amber-400 h-full transition-all duration-500"
-              style={{ width: `${Math.round(((stats?.learningWords || 0) / (stats?.totalWords || 50)) * 100)}%` }}
+              style={{ width: `${stats?.totalWords ? Math.round(((stats.learningWords || 0) / stats.totalWords) * 100) : 0}%` }}
               title="学习中"
             />
           </div>
           <div className="flex items-center gap-4 text-[11px] text-stone-400 pt-1">
             <div className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-              <span>已掌握 ({stats?.masteredWords})</span>
+              <span>已掌握 ({stats?.masteredWords ?? 0})</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
-              <span>学习中 ({stats?.learningWords})</span>
+              <span>学习中 ({stats?.learningWords ?? 0})</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-stone-200" />
-              <span>未学习 ({(stats?.totalWords || 50) - (stats?.masteredWords || 0) - (stats?.learningWords || 0)})</span>
+              <span>未学习 ({Math.max(0, (stats?.totalWords || 0) - (stats?.masteredWords || 0) - (stats?.learningWords || 0))})</span>
             </div>
           </div>
         </div>
@@ -132,7 +132,7 @@ export const StatisticsView: React.FC<StatisticsViewProps> = ({ navigate }) => {
         <div className="bg-white border border-stone-200 rounded-2xl p-5 space-y-1">
           <div className="text-xs text-stone-500">今日学习单词</div>
           <div className="text-3xl font-bold font-mono text-stone-900">
-            {stats?.todayLearnedWords ?? 20}
+            {stats?.todayLearnedWords ?? 0}
           </div>
           <div className="text-[11px] text-stone-400">词汇新知与回顾</div>
         </div>
@@ -140,7 +140,7 @@ export const StatisticsView: React.FC<StatisticsViewProps> = ({ navigate }) => {
         <div className="bg-white border border-stone-200 rounded-2xl p-5 space-y-1">
           <div className="text-xs text-stone-500">今日正确拼写</div>
           <div className="text-3xl font-bold font-mono text-emerald-600">
-            {stats?.todayCorrect ?? 18}
+            {stats?.todayCorrect ?? 0}
           </div>
           <div className="text-[11px] text-emerald-600 font-medium">精准记忆反馈</div>
         </div>
@@ -148,7 +148,7 @@ export const StatisticsView: React.FC<StatisticsViewProps> = ({ navigate }) => {
         <div className="bg-white border border-stone-200 rounded-2xl p-5 space-y-1">
           <div className="text-xs text-stone-500">今日拼写错误</div>
           <div className="text-3xl font-bold font-mono text-rose-500">
-            {stats?.todayWrong ?? 2}
+            {stats?.todayWrong ?? 0}
           </div>
           <div className="text-[11px] text-stone-400">已列入错词本</div>
         </div>
@@ -156,7 +156,7 @@ export const StatisticsView: React.FC<StatisticsViewProps> = ({ navigate }) => {
         <div className="bg-white border border-stone-200 rounded-2xl p-5 space-y-1">
           <div className="text-xs text-stone-500">今日渐进句子</div>
           <div className="text-3xl font-bold font-mono text-sky-700">
-            {stats?.todaySentences ?? 5}
+            {stats?.todaySentences ?? 0}
           </div>
           <div className="text-[11px] text-stone-400">句法递进阶梯</div>
         </div>
@@ -164,7 +164,7 @@ export const StatisticsView: React.FC<StatisticsViewProps> = ({ navigate }) => {
         <div className="bg-white border border-stone-200 rounded-2xl p-5 space-y-1">
           <div className="text-xs text-stone-500">今日学习时间</div>
           <div className="text-3xl font-bold font-mono text-stone-900">
-            {stats?.studyTimeMinutes ?? 35}
+            {stats?.studyTimeMinutes ?? 0}
             <span className="text-xs font-normal text-stone-500 ml-1">分钟</span>
           </div>
           <div className="text-[11px] text-stone-400">高效专注时长</div>
@@ -173,7 +173,7 @@ export const StatisticsView: React.FC<StatisticsViewProps> = ({ navigate }) => {
         <div className="bg-white border border-stone-200 rounded-2xl p-5 space-y-1">
           <div className="text-xs text-stone-500">累计掌握单词</div>
           <div className="text-3xl font-bold font-mono text-amber-600">
-            {stats?.masteredWords ?? 120}
+            {stats?.masteredWords ?? 0}
           </div>
           <div className="text-[11px] text-amber-700">长时记忆固化</div>
         </div>

@@ -10,7 +10,8 @@ import {
   Headphones,
   BookOpen,
   Sparkles,
-  Loader2
+  Loader2,
+  Shuffle
 } from 'lucide-react';
 import { api } from '../api/client.ts';
 import { WordItem } from '../types/index.ts';
@@ -65,6 +66,19 @@ export const WrongWordsView: React.FC<WrongWordsViewProps> = ({ navigate, config
     setSelectedWordIds([]);
   };
 
+  // 随机选择指定数量的错词（Fisher-Yates 真正随机分布）
+  const handleRandomSelect = (count: number) => {
+    if (words.length === 0) return;
+    const targetCount = Math.min(count, words.length);
+    const shuffled = [...words];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    const pickedIds = shuffled.slice(0, targetCount).map(w => w.id);
+    setSelectedWordIds(pickedIds);
+  };
+
   // 复习选中: LEARN_AND_WRITE
   const handleReviewSelected = async () => {
     if (selectedWordIds.length === 0) return;
@@ -109,7 +123,7 @@ export const WrongWordsView: React.FC<WrongWordsViewProps> = ({ navigate, config
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10 space-y-8 animate-fadeIn pb-28">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10 space-y-8 animate-fadeIn pb-16">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -120,13 +134,13 @@ export const WrongWordsView: React.FC<WrongWordsViewProps> = ({ navigate, config
             错词本
           </h1>
           <p className="text-[#8BA0BD] text-sm mt-1">
-            背诵中拼写错误的单词自动汇聚于此。支持多选单词开启“专项复习”或“纯听写默写”。
+            背诵中拼写错误的单词自动汇聚于此。支持按需勾选或随机抽选单词开启“专项复习”与“单词听写”。
           </p>
         </div>
 
         {words.length > 0 && (
           <div className="flex items-center gap-3">
-            <span className="text-xs font-bold font-mono px-3 py-1.5 rounded-full bg-rose-50 text-rose-600 border border-rose-200">
+            <span className="text-xs font-bold font-mono px-3.5 py-1.5 rounded-full bg-rose-50 text-rose-600 border border-rose-200">
               共 {words.length} 个错词
             </span>
           </div>
@@ -134,7 +148,7 @@ export const WrongWordsView: React.FC<WrongWordsViewProps> = ({ navigate, config
       </div>
 
       {actionError && (
-        <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs flex items-center gap-2">
+        <div className="p-3.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl text-xs flex items-center gap-2">
           <span>{actionError}</span>
         </div>
       )}
@@ -151,44 +165,139 @@ export const WrongWordsView: React.FC<WrongWordsViewProps> = ({ navigate, config
           <div className="pt-2 flex justify-center gap-3">
             <button
               onClick={() => navigate('/')}
-              className="px-6 py-2.5 bg-[#4F7DF3] text-white rounded-xl text-sm font-semibold hover:bg-[#3D6CE5] transition-colors shadow-xs"
+              className="px-6 py-2.5 bg-[#4F7DF3] text-white rounded-xl text-sm font-semibold hover:bg-[#3D6CE5] transition-colors shadow-xs cursor-pointer"
             >
               返回首页
             </button>
           </div>
         </div>
       ) : (
-        <div className="space-y-4">
-          {/* Top Operation Bar: Select All / Deselect All / Selected Count */}
-          <div className="bg-white border border-[#E7EEF8] rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 shadow-2xs">
-            <div className="flex items-center gap-3 text-xs font-medium">
-              <span className="text-[#29466F] font-bold">
-                错词列表（共 {words.length} 词）
-              </span>
-              <span className="text-stone-300">·</span>
-              <button
-                type="button"
-                onClick={handleSelectAll}
-                className="text-[#4F7DF3] hover:underline cursor-pointer"
-              >
-                全选
-              </button>
-              <span className="text-stone-300">|</span>
-              <button
-                type="button"
-                onClick={handleDeselectAll}
-                className="text-[#8BA0BD] hover:underline cursor-pointer"
-              >
-                取消全选
-              </button>
+        <div className="space-y-6">
+          {/* Top Control & Action Panel (Sticky & Clean) */}
+          <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-md border border-[#E7EEF8] rounded-3xl p-5 shadow-sm space-y-4">
+            {/* Upper Row: Selected Stats & Primary CTA Buttons (Moved to Top) */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E7EEF8]/80 pb-4">
+              <div className="flex items-center gap-2.5 text-xs sm:text-sm">
+                <span className="text-[#8BA0BD]">当前已选：</span>
+                <span className="font-extrabold text-[#4F7DF3] font-mono text-lg">
+                  {selectedWordIds.length}
+                </span>
+                <span className="text-[#8BA0BD]">/ {words.length} 词</span>
+                {selectedWordIds.length === 0 ? (
+                  <span className="text-rose-500 text-xs ml-1 font-medium">（请先勾选或随机选择）</span>
+                ) : (
+                  <span className="text-emerald-600 text-xs ml-1 font-medium bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200/60">
+                    已就绪
+                  </span>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <button
+                  type="button"
+                  disabled={selectedWordIds.length === 0 || startingSession}
+                  onClick={handleReviewSelected}
+                  className="flex-1 sm:flex-initial py-2.5 px-5 bg-white hover:bg-[#F7FAFF] border border-[#4F7DF3] text-[#4F7DF3] disabled:opacity-40 disabled:border-[#E7EEF8] disabled:text-[#8BA0BD] font-bold rounded-2xl text-xs sm:text-sm transition-all shadow-2xs flex items-center justify-center gap-2 cursor-pointer"
+                  title="学 -> 发音 -> 释义 -> 背写"
+                >
+                  {startingSession ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <RotateCcw className="w-4 h-4" />
+                  )}
+                  <span>复习选中 ({selectedWordIds.length})</span>
+                </button>
+
+                <button
+                  type="button"
+                  disabled={selectedWordIds.length === 0 || startingSession}
+                  onClick={handleDictateSelected}
+                  className="flex-1 sm:flex-initial py-2.5 px-5 bg-[#4F7DF3] hover:bg-[#3D6CE5] disabled:opacity-40 text-white font-bold rounded-2xl text-xs sm:text-sm transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer"
+                  title="直接播放发音，输入英文背写"
+                >
+                  {startingSession ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Headphones className="w-4 h-4" />
+                  )}
+                  <span>听写选中 ({selectedWordIds.length})</span>
+                </button>
+              </div>
             </div>
 
-            <div className="text-xs">
-              <span className="text-[#8BA0BD]">已选择 </span>
-              <strong className="text-[#4F7DF3] font-mono text-sm font-bold">
-                {selectedWordIds.length}
-              </strong>
-              <span className="text-[#8BA0BD]"> / {words.length} 个单词</span>
+            {/* Lower Row: Quick Selection Tools (All / Deselect / Random Selections) */}
+            <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-[#8BA0BD] font-medium mr-1">快捷选择:</span>
+
+                <button
+                  type="button"
+                  onClick={handleSelectAll}
+                  className="px-3 py-1.5 rounded-xl border border-[#E7EEF8] bg-[#F7FAFF] hover:bg-white text-[#29466F] font-semibold transition-colors cursor-pointer"
+                >
+                  全选 ({words.length})
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleDeselectAll}
+                  disabled={selectedWordIds.length === 0}
+                  className="px-3 py-1.5 rounded-xl border border-[#E7EEF8] bg-white hover:bg-[#F7FAFF] disabled:opacity-40 text-[#8BA0BD] hover:text-[#29466F] transition-colors cursor-pointer"
+                >
+                  取消全选
+                </button>
+
+                <span className="text-stone-300 mx-1">|</span>
+
+                {/* Random Selection Tools */}
+                <div className="inline-flex flex-wrap items-center gap-1.5">
+                  <span className="text-[#8BA0BD] flex items-center gap-1 mr-0.5">
+                    <Shuffle className="w-3.5 h-3.5 text-[#4F7DF3]" />
+                    <span>随机选择:</span>
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={() => handleRandomSelect(5)}
+                    className="px-2.5 py-1.5 rounded-xl border border-[#D5E3FC] bg-[#EBF2FE] hover:bg-[#DCEBFE] text-[#4F7DF3] font-bold transition-all cursor-pointer shadow-2xs"
+                    title="随机选择 5 个错词"
+                  >
+                    随机 5 词
+                  </button>
+
+                  {words.length >= 10 && (
+                    <button
+                      type="button"
+                      onClick={() => handleRandomSelect(10)}
+                      className="px-2.5 py-1.5 rounded-xl border border-[#D5E3FC] bg-[#EBF2FE] hover:bg-[#DCEBFE] text-[#4F7DF3] font-bold transition-all cursor-pointer shadow-2xs"
+                      title="随机选择 10 个错词"
+                    >
+                      随机 10 词
+                    </button>
+                  )}
+
+                  {words.length >= 20 && (
+                    <button
+                      type="button"
+                      onClick={() => handleRandomSelect(20)}
+                      className="px-2.5 py-1.5 rounded-xl border border-[#D5E3FC] bg-[#EBF2FE] hover:bg-[#DCEBFE] text-[#4F7DF3] font-bold transition-all cursor-pointer shadow-2xs"
+                      title="随机选择 20 个错词"
+                    >
+                      随机 20 词
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => handleRandomSelect(selectedWordIds.length > 0 ? selectedWordIds.length : 5)}
+                    className="px-2.5 py-1.5 rounded-xl border border-[#E7EEF8] bg-white hover:bg-[#F7FAFF] text-[#8BA0BD] hover:text-[#29466F] transition-all cursor-pointer"
+                    title="重新随机换一批"
+                  >
+                    换一批随机
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -257,56 +366,6 @@ export const WrongWordsView: React.FC<WrongWordsViewProps> = ({ navigate, config
                 </div>
               );
             })}
-          </div>
-        </div>
-      )}
-
-      {/* Floating Bottom Action Bar */}
-      {words.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-[#E7EEF8] py-4 px-4 shadow-lg">
-          <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2 text-xs sm:text-sm">
-              <span className="text-[#8BA0BD]">当前已选：</span>
-              <span className="font-bold text-[#29466F] font-mono text-base">
-                {selectedWordIds.length}
-              </span>
-              <span className="text-[#8BA0BD]">个错词</span>
-              {selectedWordIds.length === 0 && (
-                <span className="text-rose-500 text-xs ml-2">（请勾选单词后开启练习）</span>
-              )}
-            </div>
-
-            <div className="flex items-center gap-3 w-full sm:w-auto">
-              <button
-                type="button"
-                disabled={selectedWordIds.length === 0 || startingSession}
-                onClick={handleReviewSelected}
-                className="flex-1 sm:flex-initial py-3 px-6 bg-white hover:bg-[#F7FAFF] border border-[#4F7DF3] text-[#4F7DF3] disabled:opacity-40 disabled:border-[#E7EEF8] disabled:text-[#8BA0BD] font-bold rounded-2xl text-xs sm:text-sm transition-all shadow-2xs flex items-center justify-center gap-2 cursor-pointer"
-                title="学 -> 发音 -> 释义 -> 背写"
-              >
-                {startingSession ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <RotateCcw className="w-4 h-4" />
-                )}
-                <span>复习选中 ({selectedWordIds.length})</span>
-              </button>
-
-              <button
-                type="button"
-                disabled={selectedWordIds.length === 0 || startingSession}
-                onClick={handleDictateSelected}
-                className="flex-1 sm:flex-initial py-3 px-6 bg-[#4F7DF3] hover:bg-[#3D6CE5] disabled:opacity-40 text-white font-bold rounded-2xl text-xs sm:text-sm transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer"
-                title="直接播放发音，输入英文背写"
-              >
-                {startingSession ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Headphones className="w-4 h-4" />
-                )}
-                <span>听写选中 ({selectedWordIds.length})</span>
-              </button>
-            </div>
           </div>
         </div>
       )}

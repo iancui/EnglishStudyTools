@@ -661,7 +661,8 @@ class Storage {
   updateStudySession(session: StudySession): StudySession {
     const idx = this.state.studySessions.findIndex(s => s.id === session.id);
     if (idx >= 0) {
-      this.state.studySessions[idx] = { ...session, updatedAt: new Date().toISOString() };
+      const { words, dictionary, ...baseSession } = session as any;
+      this.state.studySessions[idx] = { ...this.state.studySessions[idx], ...baseSession, updatedAt: new Date().toISOString() };
     }
     this.saveState();
     return session;

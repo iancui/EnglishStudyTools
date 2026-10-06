@@ -4689,14 +4689,14 @@
       "mode": "WRITE_ONLY",
       "dictionaryId": "dict-custom-selection",
       "totalCount": 3,
-      "completedCount": 1,
+      "completedCount": 3,
       "excludeMastered": true,
       "sortMode": "RANDOM",
-      "status": "IN_PROGRESS",
-      "currentWordIndex": 1,
+      "status": "COMPLETED",
+      "currentWordIndex": 2,
       "startedAt": "2026-10-06T08:26:40.065Z",
       "createdAt": "2026-10-06T08:26:40.065Z",
-      "updatedAt": "2026-10-06T08:26:40.128Z",
+      "updatedAt": "2026-10-06T08:34:31.861Z",
       "words": [
         {
           "id": "sw-session-1791275200066-g3ir-1",
@@ -4762,11 +4762,1346 @@
           "wordId": "w-5",
           "sequence": 2,
           "learnStatus": "LEARNED",
+          "writeStatus": "WRITTEN",
+          "completed": true,
+          "isCorrect": true,
+          "userInput": "beautiful",
+          "createdAt": "2026-10-06T08:26:40.065Z",
+          "word": {
+            "id": "w-5",
+            "text": "beautiful",
+            "phoneticUk": "/ˈbjuːtɪfl/",
+            "phoneticUs": "/ˈbjuːt̬ɪfəl/",
+            "pos": "adj.",
+            "difficulty": 2,
+            "meanings": [
+              {
+                "id": "wm-5",
+                "wordId": "w-5",
+                "pos": "adj.",
+                "definitionCn": "美丽的；漂亮的；优美的",
+                "definitionEn": "pleasing the senses or mind aesthetically",
+                "exampleEn": "The sunrise this morning was truly beautiful.",
+                "exampleCn": "今晨的日出非常美丽。"
+              }
+            ],
+            "phonics": [
+              {
+                "id": "wp-5-1",
+                "wordId": "w-5",
+                "sequence": 1,
+                "text": "beau",
+                "phonetic": "/bjuː/",
+                "syllable": "beau"
+              },
+              {
+                "id": "wp-5-2",
+                "wordId": "w-5",
+                "sequence": 2,
+                "text": "ti",
+                "phonetic": "/tɪ/",
+                "syllable": "ti"
+              },
+              {
+                "id": "wp-5-3",
+                "wordId": "w-5",
+                "sequence": 3,
+                "text": "ful",
+                "phonetic": "/fəl/",
+                "syllable": "ful"
+              }
+            ]
+          },
+          "writtenAt": "2026-10-06T08:34:21.906Z"
+        },
+        {
+          "id": "sw-session-1791275200066-g3ir-3",
+          "sessionId": "session-1791275200066-g3ir",
+          "wordId": "w-6",
+          "sequence": 3,
+          "learnStatus": "LEARNED",
+          "writeStatus": "WRITTEN",
+          "completed": true,
+          "isCorrect": true,
+          "userInput": "important",
+          "createdAt": "2026-10-06T08:26:40.065Z",
+          "word": {
+            "id": "w-6",
+            "text": "important",
+            "phoneticUk": "/ɪmˈpɔːtnt/",
+            "phoneticUs": "/ɪmˈpɔːrtnt/",
+            "pos": "adj.",
+            "difficulty": 2,
+            "meanings": [
+              {
+                "id": "wm-6",
+                "wordId": "w-6",
+                "pos": "adj.",
+                "definitionCn": "重要的；重大的",
+                "definitionEn": "of great significance or value",
+                "exampleEn": "Health is the most important thing in life.",
+                "exampleCn": "健康是人生中最重要的东西。"
+              }
+            ],
+            "phonics": [
+              {
+                "id": "wp-6-1",
+                "wordId": "w-6",
+                "sequence": 1,
+                "text": "im",
+                "phonetic": "/ɪm/",
+                "syllable": "im"
+              },
+              {
+                "id": "wp-6-2",
+                "wordId": "w-6",
+                "sequence": 2,
+                "text": "por",
+                "phonetic": "/pɔːr/",
+                "syllable": "por"
+              },
+              {
+                "id": "wp-6-3",
+                "wordId": "w-6",
+                "sequence": 3,
+                "text": "tant",
+                "phonetic": "/tnt/",
+                "syllable": "tant"
+              }
+            ]
+          },
+          "writtenAt": "2026-10-06T08:34:31.846Z"
+        }
+      ],
+      "completedAt": "2026-10-06T08:34:31.846Z"
+    },
+    {
+      "id": "session-1791275682156-hi53",
+      "userId": "u-default",
+      "mode": "LEARN_AND_WRITE",
+      "dictionaryId": "dict-primary-6",
+      "totalCount": 20,
+      "completedCount": 4,
+      "excludeMastered": true,
+      "sortMode": "RANDOM",
+      "status": "CANCELLED",
+      "currentWordIndex": 5,
+      "startedAt": "2026-10-06T08:34:42.156Z",
+      "createdAt": "2026-10-06T08:34:42.156Z",
+      "updatedAt": "2026-10-06T08:36:18.748Z",
+      "words": [
+        {
+          "id": "sw-session-1791275682156-hi53-1",
+          "sessionId": "session-1791275682156-hi53",
+          "wordId": "w-7",
+          "sequence": 1,
+          "learnStatus": "LEARNED",
+          "writeStatus": "WRITTEN",
+          "completed": true,
+          "isCorrect": true,
+          "userInput": "school",
+          "createdAt": "2026-10-06T08:34:42.156Z",
+          "word": {
+            "id": "w-7",
+            "text": "school",
+            "phoneticUk": "/skuːl/",
+            "phoneticUs": "/skuːl/",
+            "pos": "n.",
+            "difficulty": 1,
+            "meanings": [
+              {
+                "id": "wm-7",
+                "wordId": "w-7",
+                "pos": "n.",
+                "definitionCn": "学校；上学",
+                "definitionEn": "an institution for educating children",
+                "exampleEn": "He walks to school every weekday morning.",
+                "exampleCn": "他每个工作日早晨都走路去上学。"
+              }
+            ],
+            "phonics": [
+              {
+                "id": "wp-7-1",
+                "wordId": "w-7",
+                "sequence": 1,
+                "text": "sch",
+                "phonetic": "/sk/",
+                "syllable": "sch"
+              },
+              {
+                "id": "wp-7-2",
+                "wordId": "w-7",
+                "sequence": 2,
+                "text": "ool",
+                "phonetic": "/uːl/",
+                "syllable": "ool"
+              }
+            ]
+          },
+          "learnedAt": "2026-10-06T08:34:44.905Z",
+          "writtenAt": "2026-10-06T08:34:48.551Z"
+        },
+        {
+          "id": "sw-session-1791275682156-hi53-2",
+          "sessionId": "session-1791275682156-hi53",
+          "wordId": "w-47",
+          "sequence": 2,
+          "learnStatus": "LEARNED",
+          "writeStatus": "WRITTEN",
+          "completed": true,
+          "isCorrect": true,
+          "userInput": "spring",
+          "createdAt": "2026-10-06T08:34:42.156Z",
+          "word": {
+            "id": "w-47",
+            "text": "spring",
+            "phoneticUk": "/sprɪŋ/",
+            "phoneticUs": "/sprɪŋ/",
+            "pos": "n.",
+            "difficulty": 1,
+            "meanings": [
+              {
+                "id": "wm-47",
+                "wordId": "w-47",
+                "pos": "n.",
+                "definitionCn": "春天；春季；泉水",
+                "definitionEn": "the season after winter and before summer",
+                "exampleEn": "Flowers begin to bloom in early spring.",
+                "exampleCn": "早春时节鲜花盛开。"
+              }
+            ],
+            "phonics": [
+              {
+                "id": "wp-47-1",
+                "wordId": "w-47",
+                "sequence": 1,
+                "text": "spr",
+                "phonetic": "/spr/",
+                "syllable": "spr"
+              },
+              {
+                "id": "wp-47-2",
+                "wordId": "w-47",
+                "sequence": 2,
+                "text": "ing",
+                "phonetic": "/ɪŋ/",
+                "syllable": "ing"
+              }
+            ]
+          },
+          "learnedAt": "2026-10-06T08:35:22.242Z",
+          "writtenAt": "2026-10-06T08:35:24.927Z"
+        },
+        {
+          "id": "sw-session-1791275682156-hi53-3",
+          "sessionId": "session-1791275682156-hi53",
+          "wordId": "w-3",
+          "sequence": 3,
+          "learnStatus": "LEARNED",
+          "writeStatus": "WRITTEN",
+          "completed": true,
+          "isCorrect": true,
+          "userInput": "during",
+          "createdAt": "2026-10-06T08:34:42.156Z",
+          "word": {
+            "id": "w-3",
+            "text": "during",
+            "phoneticUk": "/ˈdjʊərɪŋ/",
+            "phoneticUs": "/ˈdʊrɪŋ/",
+            "pos": "prep.",
+            "difficulty": 2,
+            "meanings": [
+              {
+                "id": "wm-3",
+                "wordId": "w-3",
+                "pos": "prep.",
+                "definitionCn": "在……期间",
+                "definitionEn": "throughout the entire time of an event or period",
+                "exampleEn": "She remained silent during the meeting.",
+                "exampleCn": "会议期间她保持沉默。"
+              }
+            ],
+            "phonics": [
+              {
+                "id": "wp-3-1",
+                "wordId": "w-3",
+                "sequence": 1,
+                "text": "dur",
+                "phonetic": "/djʊər/",
+                "syllable": "dur"
+              },
+              {
+                "id": "wp-3-2",
+                "wordId": "w-3",
+                "sequence": 2,
+                "text": "ing",
+                "phonetic": "/ɪŋ/",
+                "syllable": "ing"
+              }
+            ]
+          },
+          "learnedAt": "2026-10-06T08:35:36.495Z",
+          "writtenAt": "2026-10-06T08:35:49.016Z"
+        },
+        {
+          "id": "sw-session-1791275682156-hi53-4",
+          "sessionId": "session-1791275682156-hi53",
+          "wordId": "w-19",
+          "sequence": 4,
+          "learnStatus": "LEARN_PENDING",
           "writeStatus": "WRITE_PENDING",
           "completed": false,
           "isCorrect": null,
           "userInput": null,
-          "createdAt": "2026-10-06T08:26:40.065Z",
+          "createdAt": "2026-10-06T08:34:42.156Z",
+          "word": {
+            "id": "w-19",
+            "text": "city",
+            "phoneticUk": "/ˈsɪti/",
+            "phoneticUs": "/ˈsɪt̬i/",
+            "pos": "n.",
+            "difficulty": 1,
+            "meanings": [
+              {
+                "id": "wm-19",
+                "wordId": "w-19",
+                "pos": "n.",
+                "definitionCn": "城市；都市",
+                "definitionEn": "a large town",
+                "exampleEn": "Shanghai is a bustling modern city.",
+                "exampleCn": "上海是一座繁华的现代大都市。"
+              }
+            ],
+            "phonics": [
+              {
+                "id": "wp-19-1",
+                "wordId": "w-19",
+                "sequence": 1,
+                "text": "ci",
+                "phonetic": "/sɪ/",
+                "syllable": "ci"
+              },
+              {
+                "id": "wp-19-2",
+                "wordId": "w-19",
+                "sequence": 2,
+                "text": "ty",
+                "phonetic": "/ti/",
+                "syllable": "ty"
+              }
+            ]
+          }
+        },
+        {
+          "id": "sw-session-1791275682156-hi53-5",
+          "sessionId": "session-1791275682156-hi53",
+          "wordId": "w-11",
+          "sequence": 5,
+          "learnStatus": "LEARNED",
+          "writeStatus": "WRITTEN",
+          "completed": true,
+          "isCorrect": true,
+          "userInput": "friend",
+          "createdAt": "2026-10-06T08:34:42.156Z",
+          "word": {
+            "id": "w-11",
+            "text": "friend",
+            "phoneticUk": "/frend/",
+            "phoneticUs": "/frend/",
+            "pos": "n.",
+            "difficulty": 1,
+            "meanings": [
+              {
+                "id": "wm-11",
+                "wordId": "w-11",
+                "pos": "n.",
+                "definitionCn": "朋友；同伴",
+                "definitionEn": "a person whom one knows and with whom one has a bond of mutual affection",
+                "exampleEn": "A true friend is always by your side.",
+                "exampleCn": "真正的朋友总是在你身边。"
+              }
+            ],
+            "phonics": [
+              {
+                "id": "wp-11-1",
+                "wordId": "w-11",
+                "sequence": 1,
+                "text": "fr",
+                "phonetic": "/fr/",
+                "syllable": "fr"
+              },
+              {
+                "id": "wp-11-2",
+                "wordId": "w-11",
+                "sequence": 2,
+                "text": "iend",
+                "phonetic": "/end/",
+                "syllable": "iend"
+              }
+            ]
+          },
+          "learnedAt": "2026-10-06T08:35:56.809Z",
+          "writtenAt": "2026-10-06T08:35:59.665Z"
+        },
+        {
+          "id": "sw-session-1791275682156-hi53-6",
+          "sessionId": "session-1791275682156-hi53",
+          "wordId": "w-1",
+          "sequence": 6,
+          "learnStatus": "LEARN_PENDING",
+          "writeStatus": "WRITE_PENDING",
+          "completed": false,
+          "isCorrect": null,
+          "userInput": null,
+          "createdAt": "2026-10-06T08:34:42.156Z",
+          "word": {
+            "id": "w-1",
+            "text": "holiday",
+            "phoneticUk": "/ˈhɒlədeɪ/",
+            "phoneticUs": "/ˈhɑːlədeɪ/",
+            "pos": "n.",
+            "difficulty": 1,
+            "meanings": [
+              {
+                "id": "wm-1",
+                "wordId": "w-1",
+                "pos": "n.",
+                "definitionCn": "假期；假日；节日",
+                "definitionEn": "a time of rest from work, school etc.",
+                "exampleEn": "Where did you go during the holiday?",
+                "exampleCn": "假期你去了哪里？"
+              }
+            ],
+            "phonics": [
+              {
+                "id": "wp-1-1",
+                "wordId": "w-1",
+                "sequence": 1,
+                "text": "hol",
+                "phonetic": "/hɒl/",
+                "syllable": "hol"
+              },
+              {
+                "id": "wp-1-2",
+                "wordId": "w-1",
+                "sequence": 2,
+                "text": "i",
+                "phonetic": "/ə/",
+                "syllable": "i"
+              },
+              {
+                "id": "wp-1-3",
+                "wordId": "w-1",
+                "sequence": 3,
+                "text": "day",
+                "phonetic": "/deɪ/",
+                "syllable": "day"
+              }
+            ]
+          }
+        },
+        {
+          "id": "sw-session-1791275682156-hi53-7",
+          "sessionId": "session-1791275682156-hi53",
+          "wordId": "w-45",
+          "sequence": 7,
+          "learnStatus": "LEARN_PENDING",
+          "writeStatus": "WRITE_PENDING",
+          "completed": false,
+          "isCorrect": null,
+          "userInput": null,
+          "createdAt": "2026-10-06T08:34:42.156Z",
+          "word": {
+            "id": "w-45",
+            "text": "simple",
+            "phoneticUk": "/ˈsɪmpl/",
+            "phoneticUs": "/ˈsɪmpl/",
+            "pos": "adj.",
+            "difficulty": 1,
+            "meanings": [
+              {
+                "id": "wm-45",
+                "wordId": "w-45",
+                "pos": "adj.",
+                "definitionCn": "简单的；单纯的",
+                "definitionEn": "easily understood or done; presenting no difficulty",
+                "exampleEn": "Keep your sentences simple and clear.",
+                "exampleCn": "保持句子简单清晰。"
+              }
+            ],
+            "phonics": [
+              {
+                "id": "wp-45-1",
+                "wordId": "w-45",
+                "sequence": 1,
+                "text": "sim",
+                "phonetic": "/sɪm/",
+                "syllable": "sim"
+              },
+              {
+                "id": "wp-45-2",
+                "wordId": "w-45",
+                "sequence": 2,
+                "text": "ple",
+                "phonetic": "/pl/",
+                "syllable": "ple"
+              }
+            ]
+          }
+        },
+        {
+          "id": "sw-session-1791275682156-hi53-8",
+          "sessionId": "session-1791275682156-hi53",
+          "wordId": "w-2",
+          "sequence": 8,
+          "learnStatus": "LEARN_PENDING",
+          "writeStatus": "WRITE_PENDING",
+          "completed": false,
+          "isCorrect": null,
+          "userInput": null,
+          "createdAt": "2026-10-06T08:34:42.156Z",
+          "word": {
+            "id": "w-2",
+            "text": "where",
+            "phoneticUk": "/weə(r)/",
+            "phoneticUs": "/wer/",
+            "pos": "adv.",
+            "difficulty": 1,
+            "meanings": [
+              {
+                "id": "wm-2",
+                "wordId": "w-2",
+                "pos": "adv.",
+                "definitionCn": "在哪里；向哪里",
+                "definitionEn": "at, in, or to what place or position",
+                "exampleEn": "Where is the nearest bus stop?",
+                "exampleCn": "最近的公交站在哪里？"
+              }
+            ],
+            "phonics": [
+              {
+                "id": "wp-2-1",
+                "wordId": "w-2",
+                "sequence": 1,
+                "text": "wh",
+                "phonetic": "/w/",
+                "syllable": "wh"
+              },
+              {
+                "id": "wp-2-2",
+                "wordId": "w-2",
+                "sequence": 2,
+                "text": "ere",
+                "phonetic": "/eə(r)/",
+                "syllable": "ere"
+              }
+            ]
+          }
+        },
+        {
+          "id": "sw-session-1791275682156-hi53-9",
+          "sessionId": "session-1791275682156-hi53",
+          "wordId": "w-15",
+          "sequence": 9,
+          "learnStatus": "LEARN_PENDING",
+          "writeStatus": "WRITE_PENDING",
+          "completed": false,
+          "isCorrect": null,
+          "userInput": null,
+          "createdAt": "2026-10-06T08:34:42.156Z",
+          "word": {
+            "id": "w-15",
+            "text": "summer",
+            "phoneticUk": "/ˈsʌmə(r)/",
+            "phoneticUs": "/ˈsʌmər/",
+            "pos": "n.",
+            "difficulty": 1,
+            "meanings": [
+              {
+                "id": "wm-15",
+                "wordId": "w-15",
+                "pos": "n.",
+                "definitionCn": "夏天；夏季",
+                "definitionEn": "the warmest season of the year",
+                "exampleEn": "Summer is the best season for swimming.",
+                "exampleCn": "夏天是游泳的最佳季节。"
+              }
+            ],
+            "phonics": [
+              {
+                "id": "wp-15-1",
+                "wordId": "w-15",
+                "sequence": 1,
+                "text": "sum",
+                "phonetic": "/sʌm/",
+                "syllable": "sum"
+              },
+              {
+                "id": "wp-15-2",
+                "wordId": "w-15",
+                "sequence": 2,
+                "text": "mer",
+                "phonetic": "/ər/",
+                "syllable": "mer"
+              }
+            ]
+          }
+        },
+        {
+          "id": "sw-session-1791275682156-hi53-10",
+          "sessionId": "session-1791275682156-hi53",
+          "wordId": "w-16",
+          "sequence": 10,
+          "learnStatus": "LEARN_PENDING",
+          "writeStatus": "WRITE_PENDING",
+          "completed": false,
+          "isCorrect": null,
+          "userInput": null,
+          "createdAt": "2026-10-06T08:34:42.156Z",
+          "word": {
+            "id": "w-16",
+            "text": "winter",
+            "phoneticUk": "/ˈwɪntə(r)/",
+            "phoneticUs": "/ˈwɪntər/",
+            "pos": "n.",
+            "difficulty": 1,
+            "meanings": [
+              {
+                "id": "wm-16",
+                "wordId": "w-16",
+                "pos": "n.",
+                "definitionCn": "冬天；冬季",
+                "definitionEn": "the coldest season of the year",
+                "exampleEn": "Snow covered the mountain in winter.",
+                "exampleCn": "冬天的积雪覆盖了山峰。"
+              }
+            ],
+            "phonics": [
+              {
+                "id": "wp-16-1",
+                "wordId": "w-16",
+                "sequence": 1,
+                "text": "win",
+                "phonetic": "/wɪn/",
+                "syllable": "win"
+              },
+              {
+                "id": "wp-16-2",
+                "wordId": "w-16",
+                "sequence": 2,
+                "text": "ter",
+                "phonetic": "/tər/",
+                "syllable": "ter"
+              }
+            ]
+          }
+        },
+        {
+          "id": "sw-session-1791275682156-hi53-11",
+          "sessionId": "session-1791275682156-hi53",
+          "wordId": "w-10",
+          "sequence": 11,
+          "learnStatus": "LEARN_PENDING",
+          "writeStatus": "WRITE_PENDING",
+          "completed": false,
+          "isCorrect": null,
+          "userInput": null,
+          "createdAt": "2026-10-06T08:34:42.156Z",
+          "word": {
+            "id": "w-10",
+            "text": "family",
+            "phoneticUk": "/ˈfæməli/",
+            "phoneticUs": "/ˈfæməli/",
+            "pos": "n.",
+            "difficulty": 1,
+            "meanings": [
+              {
+                "id": "wm-10",
+                "wordId": "w-10",
+                "pos": "n.",
+                "definitionCn": "家庭；家人",
+                "definitionEn": "a group of one or more parents and their children living together",
+                "exampleEn": "Family dinner is our weekend tradition.",
+                "exampleCn": "全家共进晚餐是我们的周末传统。"
+              }
+            ],
+            "phonics": [
+              {
+                "id": "wp-10-1",
+                "wordId": "w-10",
+                "sequence": 1,
+                "text": "fam",
+                "phonetic": "/fæm/",
+                "syllable": "fam"
+              },
+              {
+                "id": "wp-10-2",
+                "wordId": "w-10",
+                "sequence": 2,
+                "text": "i",
+                "phonetic": "/ə/",
+                "syllable": "i"
+              },
+              {
+                "id": "wp-10-3",
+                "wordId": "w-10",
+                "sequence": 3,
+                "text": "ly",
+                "phonetic": "/li/",
+                "syllable": "ly"
+              }
+            ]
+          }
+        },
+        {
+          "id": "sw-session-1791275682156-hi53-12",
+          "sessionId": "session-1791275682156-hi53",
+          "wordId": "w-48",
+          "sequence": 12,
+          "learnStatus": "LEARN_PENDING",
+          "writeStatus": "WRITE_PENDING",
+          "completed": false,
+          "isCorrect": null,
+          "userInput": null,
+          "createdAt": "2026-10-06T08:34:42.156Z",
+          "word": {
+            "id": "w-48",
+            "text": "autumn",
+            "phoneticUk": "/ˈɔːtəm/",
+            "phoneticUs": "/ˈɑːtəm/",
+            "pos": "n.",
+            "difficulty": 2,
+            "meanings": [
+              {
+                "id": "wm-48",
+                "wordId": "w-48",
+                "pos": "n.",
+                "definitionCn": "秋天；秋季",
+                "definitionEn": "the season between summer and winter",
+                "exampleEn": "Golden leaves fall gently in autumn.",
+                "exampleCn": "秋天金黄的树叶轻轻飘落。"
+              }
+            ],
+            "phonics": [
+              {
+                "id": "wp-48-1",
+                "wordId": "w-48",
+                "sequence": 1,
+                "text": "au",
+                "phonetic": "/ɔː/",
+                "syllable": "au"
+              },
+              {
+                "id": "wp-48-2",
+                "wordId": "w-48",
+                "sequence": 2,
+                "text": "tumn",
+                "phonetic": "/təm/",
+                "syllable": "tumn"
+              }
+            ]
+          }
+        },
+        {
+          "id": "sw-session-1791275682156-hi53-13",
+          "sessionId": "session-1791275682156-hi53",
+          "wordId": "w-21",
+          "sequence": 13,
+          "learnStatus": "LEARN_PENDING",
+          "writeStatus": "WRITE_PENDING",
+          "completed": false,
+          "isCorrect": null,
+          "userInput": null,
+          "createdAt": "2026-10-06T08:34:42.156Z",
+          "word": {
+            "id": "w-21",
+            "text": "weather",
+            "phoneticUk": "/ˈweðə(r)/",
+            "phoneticUs": "/ˈweðər/",
+            "pos": "n.",
+            "difficulty": 1,
+            "meanings": [
+              {
+                "id": "wm-21",
+                "wordId": "w-21",
+                "pos": "n.",
+                "definitionCn": "天气；气候",
+                "definitionEn": "the state of the atmosphere at a place and time",
+                "exampleEn": "The weather is warm and sunny today.",
+                "exampleCn": "今天天气温暖晴朗。"
+              }
+            ],
+            "phonics": [
+              {
+                "id": "wp-21-1",
+                "wordId": "w-21",
+                "sequence": 1,
+                "text": "weath",
+                "phonetic": "/weð/",
+                "syllable": "weath"
+              },
+              {
+                "id": "wp-21-2",
+                "wordId": "w-21",
+                "sequence": 2,
+                "text": "er",
+                "phonetic": "/ər/",
+                "syllable": "er"
+              }
+            ]
+          }
+        },
+        {
+          "id": "sw-session-1791275682156-hi53-14",
+          "sessionId": "session-1791275682156-hi53",
+          "wordId": "w-12",
+          "sequence": 14,
+          "learnStatus": "LEARN_PENDING",
+          "writeStatus": "WRITE_PENDING",
+          "completed": false,
+          "isCorrect": null,
+          "userInput": null,
+          "createdAt": "2026-10-06T08:34:42.156Z",
+          "word": {
+            "id": "w-12",
+            "text": "morning",
+            "phoneticUk": "/ˈmɔːnɪŋ/",
+            "phoneticUs": "/ˈmɔːrnɪŋ/",
+            "pos": "n.",
+            "difficulty": 1,
+            "meanings": [
+              {
+                "id": "wm-12",
+                "wordId": "w-12",
+                "pos": "n.",
+                "definitionCn": "早晨；上午",
+                "definitionEn": "the period of time between sunrise and noon",
+                "exampleEn": "I like reading English in the early morning.",
+                "exampleCn": "我喜欢在清晨读英语。"
+              }
+            ],
+            "phonics": [
+              {
+                "id": "wp-12-1",
+                "wordId": "w-12",
+                "sequence": 1,
+                "text": "morn",
+                "phonetic": "/mɔːrn/",
+                "syllable": "morn"
+              },
+              {
+                "id": "wp-12-2",
+                "wordId": "w-12",
+                "sequence": 2,
+                "text": "ing",
+                "phonetic": "/ɪŋ/",
+                "syllable": "ing"
+              }
+            ]
+          }
+        },
+        {
+          "id": "sw-session-1791275682156-hi53-15",
+          "sessionId": "session-1791275682156-hi53",
+          "wordId": "w-13",
+          "sequence": 15,
+          "learnStatus": "LEARN_PENDING",
+          "writeStatus": "WRITE_PENDING",
+          "completed": false,
+          "isCorrect": null,
+          "userInput": null,
+          "createdAt": "2026-10-06T08:34:42.156Z",
+          "word": {
+            "id": "w-13",
+            "text": "afternoon",
+            "phoneticUk": "/ˌɑːftəˈnuːn/",
+            "phoneticUs": "/ˌæftərˈnuːn/",
+            "pos": "n.",
+            "difficulty": 1,
+            "meanings": [
+              {
+                "id": "wm-13",
+                "wordId": "w-13",
+                "pos": "n.",
+                "definitionCn": "下午；午后",
+                "definitionEn": "the time between midday and the evening",
+                "exampleEn": "Let us have a cup of tea this afternoon.",
+                "exampleCn": "今天下午我们喝杯茶吧。"
+              }
+            ],
+            "phonics": [
+              {
+                "id": "wp-13-1",
+                "wordId": "w-13",
+                "sequence": 1,
+                "text": "af",
+                "phonetic": "/æf/",
+                "syllable": "af"
+              },
+              {
+                "id": "wp-13-2",
+                "wordId": "w-13",
+                "sequence": 2,
+                "text": "ter",
+                "phonetic": "/tər/",
+                "syllable": "ter"
+              },
+              {
+                "id": "wp-13-3",
+                "wordId": "w-13",
+                "sequence": 3,
+                "text": "noon",
+                "phonetic": "/nuːn/",
+                "syllable": "noon"
+              }
+            ]
+          }
+        },
+        {
+          "id": "sw-session-1791275682156-hi53-16",
+          "sessionId": "session-1791275682156-hi53",
+          "wordId": "w-18",
+          "sequence": 16,
+          "learnStatus": "LEARN_PENDING",
+          "writeStatus": "WRITE_PENDING",
+          "completed": false,
+          "isCorrect": null,
+          "userInput": null,
+          "createdAt": "2026-10-06T08:34:42.156Z",
+          "word": {
+            "id": "w-18",
+            "text": "country",
+            "phoneticUk": "/ˈkʌntri/",
+            "phoneticUs": "/ˈkʌntri/",
+            "pos": "n.",
+            "difficulty": 1,
+            "meanings": [
+              {
+                "id": "wm-18",
+                "wordId": "w-18",
+                "pos": "n.",
+                "definitionCn": "国家；乡村",
+                "definitionEn": "a nation with its own government, occupying a particular territory",
+                "exampleEn": "China is a country with rich history.",
+                "exampleCn": "中国是一个历史悠久的国家。"
+              }
+            ],
+            "phonics": [
+              {
+                "id": "wp-18-1",
+                "wordId": "w-18",
+                "sequence": 1,
+                "text": "coun",
+                "phonetic": "/kʌn/",
+                "syllable": "coun"
+              },
+              {
+                "id": "wp-18-2",
+                "wordId": "w-18",
+                "sequence": 2,
+                "text": "try",
+                "phonetic": "/tri/",
+                "syllable": "try"
+              }
+            ]
+          }
+        },
+        {
+          "id": "sw-session-1791275682156-hi53-17",
+          "sessionId": "session-1791275682156-hi53",
+          "wordId": "w-9",
+          "sequence": 17,
+          "learnStatus": "LEARN_PENDING",
+          "writeStatus": "WRITE_PENDING",
+          "completed": false,
+          "isCorrect": null,
+          "userInput": null,
+          "createdAt": "2026-10-06T08:34:42.156Z",
+          "word": {
+            "id": "w-9",
+            "text": "student",
+            "phoneticUk": "/ˈstjuːdnt/",
+            "phoneticUs": "/ˈstuːdnt/",
+            "pos": "n.",
+            "difficulty": 1,
+            "meanings": [
+              {
+                "id": "wm-9",
+                "wordId": "w-9",
+                "pos": "n.",
+                "definitionCn": "学生；学者",
+                "definitionEn": "a person who is studying at a school or college",
+                "exampleEn": "Every student in the class passed the exam.",
+                "exampleCn": "班里每个学生都通过了考试。"
+              }
+            ],
+            "phonics": [
+              {
+                "id": "wp-9-1",
+                "wordId": "w-9",
+                "sequence": 1,
+                "text": "stu",
+                "phonetic": "/stjuː/",
+                "syllable": "stu"
+              },
+              {
+                "id": "wp-9-2",
+                "wordId": "w-9",
+                "sequence": 2,
+                "text": "dent",
+                "phonetic": "/dnt/",
+                "syllable": "dent"
+              }
+            ]
+          }
+        },
+        {
+          "id": "sw-session-1791275682156-hi53-18",
+          "sessionId": "session-1791275682156-hi53",
+          "wordId": "w-50",
+          "sequence": 18,
+          "learnStatus": "LEARN_PENDING",
+          "writeStatus": "WRITE_PENDING",
+          "completed": false,
+          "isCorrect": null,
+          "userInput": null,
+          "createdAt": "2026-10-06T08:34:42.156Z",
+          "word": {
+            "id": "w-50",
+            "text": "season",
+            "phoneticUk": "/ˈsiːzn/",
+            "phoneticUs": "/ˈsiːzn/",
+            "pos": "n.",
+            "difficulty": 1,
+            "meanings": [
+              {
+                "id": "wm-50",
+                "wordId": "w-50",
+                "pos": "n.",
+                "definitionCn": "季节；节期",
+                "definitionEn": "each of the four divisions of the year",
+                "exampleEn": "Which season do you like best?",
+                "exampleCn": "你最喜欢哪个季节？"
+              }
+            ],
+            "phonics": [
+              {
+                "id": "wp-50-1",
+                "wordId": "w-50",
+                "sequence": 1,
+                "text": "sea",
+                "phonetic": "/siː/",
+                "syllable": "sea"
+              },
+              {
+                "id": "wp-50-2",
+                "wordId": "w-50",
+                "sequence": 2,
+                "text": "son",
+                "phonetic": "/zn/",
+                "syllable": "son"
+              }
+            ]
+          }
+        },
+        {
+          "id": "sw-session-1791275682156-hi53-19",
+          "sessionId": "session-1791275682156-hi53",
+          "wordId": "w-14",
+          "sequence": 19,
+          "learnStatus": "LEARN_PENDING",
+          "writeStatus": "WRITE_PENDING",
+          "completed": false,
+          "isCorrect": null,
+          "userInput": null,
+          "createdAt": "2026-10-06T08:34:42.156Z",
+          "word": {
+            "id": "w-14",
+            "text": "evening",
+            "phoneticUk": "/ˈiːvnɪŋ/",
+            "phoneticUs": "/ˈiːvnɪŋ/",
+            "pos": "n.",
+            "difficulty": 1,
+            "meanings": [
+              {
+                "id": "wm-14",
+                "wordId": "w-14",
+                "pos": "n.",
+                "definitionCn": "傍晚；晚上",
+                "definitionEn": "the period of time at the end of the day",
+                "exampleEn": "We took a quiet walk in the evening.",
+                "exampleCn": "我们在傍晚安静地散了步。"
+              }
+            ],
+            "phonics": [
+              {
+                "id": "wp-14-1",
+                "wordId": "w-14",
+                "sequence": 1,
+                "text": "eve",
+                "phonetic": "/iːv/",
+                "syllable": "eve"
+              },
+              {
+                "id": "wp-14-2",
+                "wordId": "w-14",
+                "sequence": 2,
+                "text": "ning",
+                "phonetic": "/nɪŋ/",
+                "syllable": "ning"
+              }
+            ]
+          }
+        },
+        {
+          "id": "sw-session-1791275682156-hi53-20",
+          "sessionId": "session-1791275682156-hi53",
+          "wordId": "w-8",
+          "sequence": 20,
+          "learnStatus": "LEARN_PENDING",
+          "writeStatus": "WRITE_PENDING",
+          "completed": false,
+          "isCorrect": null,
+          "userInput": null,
+          "createdAt": "2026-10-06T08:34:42.156Z",
+          "word": {
+            "id": "w-8",
+            "text": "teacher",
+            "phoneticUk": "/ˈtiːtʃə(r)/",
+            "phoneticUs": "/ˈtiːtʃər/",
+            "pos": "n.",
+            "difficulty": 1,
+            "meanings": [
+              {
+                "id": "wm-8",
+                "wordId": "w-8",
+                "pos": "n.",
+                "definitionCn": "教师；老师",
+                "definitionEn": "a person who teaches, especially in a school",
+                "exampleEn": "Our teacher explains grammar clearly.",
+                "exampleCn": "我们的老师把语法讲得很透彻。"
+              }
+            ],
+            "phonics": [
+              {
+                "id": "wp-8-1",
+                "wordId": "w-8",
+                "sequence": 1,
+                "text": "teach",
+                "phonetic": "/tiːtʃ/",
+                "syllable": "teach"
+              },
+              {
+                "id": "wp-8-2",
+                "wordId": "w-8",
+                "sequence": 2,
+                "text": "er",
+                "phonetic": "/ər/",
+                "syllable": "er"
+              }
+            ]
+          }
+        }
+      ],
+      "dictionary": {
+        "id": "dict-primary-6",
+        "name": "小学英语六年级上册",
+        "code": "primary_grade_6",
+        "description": "教育部教材同步词汇，涵盖日常生活、学校活动与假期的核心常用词汇",
+        "ownerType": "SYSTEM",
+        "ownerUserId": null,
+        "isSystem": true,
+        "isPublic": true,
+        "status": "ACTIVE",
+        "createdAt": "2026-10-06T05:17:22.755Z",
+        "updatedAt": "2026-10-06T05:17:22.755Z",
+        "wordCount": 20
+      }
+    },
+    {
+      "id": "session-1791275778748-z8ne",
+      "userId": "u-default",
+      "mode": "WRITE_ONLY",
+      "dictionaryId": "dict-custom-selection",
+      "totalCount": 6,
+      "completedCount": 3,
+      "excludeMastered": true,
+      "sortMode": "RANDOM",
+      "status": "CANCELLED",
+      "currentWordIndex": 3,
+      "startedAt": "2026-10-06T08:36:18.748Z",
+      "createdAt": "2026-10-06T08:36:18.748Z",
+      "updatedAt": "2026-10-06T08:37:19.766Z",
+      "words": [
+        {
+          "id": "sw-session-1791275778748-z8ne-1",
+          "sessionId": "session-1791275778748-z8ne",
+          "wordId": "w-2",
+          "sequence": 1,
+          "learnStatus": "LEARNED",
+          "writeStatus": "WRITTEN",
+          "completed": true,
+          "isCorrect": true,
+          "userInput": "where",
+          "createdAt": "2026-10-06T08:36:18.748Z",
+          "word": {
+            "id": "w-2",
+            "text": "where",
+            "phoneticUk": "/weə(r)/",
+            "phoneticUs": "/wer/",
+            "pos": "adv.",
+            "difficulty": 1,
+            "meanings": [
+              {
+                "id": "wm-2",
+                "wordId": "w-2",
+                "pos": "adv.",
+                "definitionCn": "在哪里；向哪里",
+                "definitionEn": "at, in, or to what place or position",
+                "exampleEn": "Where is the nearest bus stop?",
+                "exampleCn": "最近的公交站在哪里？"
+              }
+            ],
+            "phonics": [
+              {
+                "id": "wp-2-1",
+                "wordId": "w-2",
+                "sequence": 1,
+                "text": "wh",
+                "phonetic": "/w/",
+                "syllable": "wh"
+              },
+              {
+                "id": "wp-2-2",
+                "wordId": "w-2",
+                "sequence": 2,
+                "text": "ere",
+                "phonetic": "/eə(r)/",
+                "syllable": "ere"
+              }
+            ]
+          },
+          "writtenAt": "2026-10-06T08:36:22.068Z"
+        },
+        {
+          "id": "sw-session-1791275778748-z8ne-2",
+          "sessionId": "session-1791275778748-z8ne",
+          "wordId": "w-3",
+          "sequence": 2,
+          "learnStatus": "LEARNED",
+          "writeStatus": "WRITTEN",
+          "completed": true,
+          "isCorrect": true,
+          "userInput": "during",
+          "createdAt": "2026-10-06T08:36:18.748Z",
+          "word": {
+            "id": "w-3",
+            "text": "during",
+            "phoneticUk": "/ˈdjʊərɪŋ/",
+            "phoneticUs": "/ˈdʊrɪŋ/",
+            "pos": "prep.",
+            "difficulty": 2,
+            "meanings": [
+              {
+                "id": "wm-3",
+                "wordId": "w-3",
+                "pos": "prep.",
+                "definitionCn": "在……期间",
+                "definitionEn": "throughout the entire time of an event or period",
+                "exampleEn": "She remained silent during the meeting.",
+                "exampleCn": "会议期间她保持沉默。"
+              }
+            ],
+            "phonics": [
+              {
+                "id": "wp-3-1",
+                "wordId": "w-3",
+                "sequence": 1,
+                "text": "dur",
+                "phonetic": "/djʊər/",
+                "syllable": "dur"
+              },
+              {
+                "id": "wp-3-2",
+                "wordId": "w-3",
+                "sequence": 2,
+                "text": "ing",
+                "phonetic": "/ɪŋ/",
+                "syllable": "ing"
+              }
+            ]
+          },
+          "writtenAt": "2026-10-06T08:36:30.785Z"
+        },
+        {
+          "id": "sw-session-1791275778748-z8ne-3",
+          "sessionId": "session-1791275778748-z8ne",
+          "wordId": "w-4",
+          "sequence": 3,
+          "learnStatus": "LEARNED",
+          "writeStatus": "WRITTEN",
+          "completed": true,
+          "isCorrect": true,
+          "userInput": "computer",
+          "createdAt": "2026-10-06T08:36:18.748Z",
+          "word": {
+            "id": "w-4",
+            "text": "computer",
+            "phoneticUk": "/kəmˈpjuːtə(r)/",
+            "phoneticUs": "/kəmˈpjuːtər/",
+            "pos": "n.",
+            "difficulty": 2,
+            "meanings": [
+              {
+                "id": "wm-4",
+                "wordId": "w-4",
+                "pos": "n.",
+                "definitionCn": "计算机；电脑",
+                "definitionEn": "an electronic device for storing and processing data",
+                "exampleEn": "I use my computer for online research.",
+                "exampleCn": "我用电脑做在线调研。"
+              }
+            ],
+            "phonics": [
+              {
+                "id": "wp-4-1",
+                "wordId": "w-4",
+                "sequence": 1,
+                "text": "com",
+                "phonetic": "/kəm/",
+                "syllable": "com"
+              },
+              {
+                "id": "wp-4-2",
+                "wordId": "w-4",
+                "sequence": 2,
+                "text": "pu",
+                "phonetic": "/pjuː/",
+                "syllable": "pu"
+              },
+              {
+                "id": "wp-4-3",
+                "wordId": "w-4",
+                "sequence": 3,
+                "text": "ter",
+                "phonetic": "/tər/",
+                "syllable": "ter"
+              }
+            ]
+          },
+          "writtenAt": "2026-10-06T08:36:42.460Z"
+        },
+        {
+          "id": "sw-session-1791275778748-z8ne-4",
+          "sessionId": "session-1791275778748-z8ne",
+          "wordId": "w-5",
+          "sequence": 4,
+          "learnStatus": "LEARNED",
+          "writeStatus": "WRITE_PENDING",
+          "completed": false,
+          "isCorrect": null,
+          "userInput": null,
+          "createdAt": "2026-10-06T08:36:18.748Z",
           "word": {
             "id": "w-5",
             "text": "beautiful",
@@ -4814,16 +6149,16 @@
           }
         },
         {
-          "id": "sw-session-1791275200066-g3ir-3",
-          "sessionId": "session-1791275200066-g3ir",
+          "id": "sw-session-1791275778748-z8ne-5",
+          "sessionId": "session-1791275778748-z8ne",
           "wordId": "w-6",
-          "sequence": 3,
+          "sequence": 5,
           "learnStatus": "LEARNED",
           "writeStatus": "WRITE_PENDING",
           "completed": false,
           "isCorrect": null,
           "userInput": null,
-          "createdAt": "2026-10-06T08:26:40.065Z",
+          "createdAt": "2026-10-06T08:36:18.748Z",
           "word": {
             "id": "w-6",
             "text": "important",
@@ -4866,6 +6201,709 @@
                 "text": "tant",
                 "phonetic": "/tnt/",
                 "syllable": "tant"
+              }
+            ]
+          }
+        },
+        {
+          "id": "sw-session-1791275778748-z8ne-6",
+          "sessionId": "session-1791275778748-z8ne",
+          "wordId": "w-22",
+          "sequence": 6,
+          "learnStatus": "LEARNED",
+          "writeStatus": "WRITE_PENDING",
+          "completed": false,
+          "isCorrect": null,
+          "userInput": null,
+          "createdAt": "2026-10-06T08:36:18.748Z",
+          "word": {
+            "id": "w-22",
+            "text": "practice",
+            "phoneticUk": "/ˈpræktɪs/",
+            "phoneticUs": "/ˈpræktɪs/",
+            "pos": "n./v.",
+            "difficulty": 2,
+            "meanings": [
+              {
+                "id": "wm-22",
+                "wordId": "w-22",
+                "pos": "v.",
+                "definitionCn": "练习；实习",
+                "definitionEn": "perform an activity repeatedly to improve skill",
+                "exampleEn": "Practice makes perfect.",
+                "exampleCn": "熟能生巧。"
+              }
+            ],
+            "phonics": [
+              {
+                "id": "wp-22-1",
+                "wordId": "w-22",
+                "sequence": 1,
+                "text": "prac",
+                "phonetic": "/præk/",
+                "syllable": "prac"
+              },
+              {
+                "id": "wp-22-2",
+                "wordId": "w-22",
+                "sequence": 2,
+                "text": "tice",
+                "phonetic": "/tɪs/",
+                "syllable": "tice"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "session-1791275839766-2vhk",
+      "userId": "u-default",
+      "mode": "LEARN_AND_WRITE",
+      "dictionaryId": "dict-custom-selection",
+      "totalCount": 6,
+      "completedCount": 1,
+      "excludeMastered": true,
+      "sortMode": "RANDOM",
+      "status": "CANCELLED",
+      "currentWordIndex": 1,
+      "startedAt": "2026-10-06T08:37:19.766Z",
+      "createdAt": "2026-10-06T08:37:19.766Z",
+      "updatedAt": "2026-10-06T09:00:21.989Z",
+      "words": [
+        {
+          "id": "sw-session-1791275839766-2vhk-1",
+          "sessionId": "session-1791275839766-2vhk",
+          "wordId": "w-2",
+          "sequence": 1,
+          "learnStatus": "LEARNED",
+          "writeStatus": "WRITTEN",
+          "completed": true,
+          "isCorrect": true,
+          "userInput": "where",
+          "createdAt": "2026-10-06T08:37:19.766Z",
+          "word": {
+            "id": "w-2",
+            "text": "where",
+            "phoneticUk": "/weə(r)/",
+            "phoneticUs": "/wer/",
+            "pos": "adv.",
+            "difficulty": 1,
+            "meanings": [
+              {
+                "id": "wm-2",
+                "wordId": "w-2",
+                "pos": "adv.",
+                "definitionCn": "在哪里；向哪里",
+                "definitionEn": "at, in, or to what place or position",
+                "exampleEn": "Where is the nearest bus stop?",
+                "exampleCn": "最近的公交站在哪里？"
+              }
+            ],
+            "phonics": [
+              {
+                "id": "wp-2-1",
+                "wordId": "w-2",
+                "sequence": 1,
+                "text": "wh",
+                "phonetic": "/w/",
+                "syllable": "wh"
+              },
+              {
+                "id": "wp-2-2",
+                "wordId": "w-2",
+                "sequence": 2,
+                "text": "ere",
+                "phonetic": "/eə(r)/",
+                "syllable": "ere"
+              }
+            ]
+          },
+          "learnedAt": "2026-10-06T08:37:23.130Z",
+          "writtenAt": "2026-10-06T08:37:25.229Z"
+        },
+        {
+          "id": "sw-session-1791275839766-2vhk-2",
+          "sessionId": "session-1791275839766-2vhk",
+          "wordId": "w-3",
+          "sequence": 2,
+          "learnStatus": "LEARN_PENDING",
+          "writeStatus": "WRITE_PENDING",
+          "completed": false,
+          "isCorrect": null,
+          "userInput": null,
+          "createdAt": "2026-10-06T08:37:19.766Z",
+          "word": {
+            "id": "w-3",
+            "text": "during",
+            "phoneticUk": "/ˈdjʊərɪŋ/",
+            "phoneticUs": "/ˈdʊrɪŋ/",
+            "pos": "prep.",
+            "difficulty": 2,
+            "meanings": [
+              {
+                "id": "wm-3",
+                "wordId": "w-3",
+                "pos": "prep.",
+                "definitionCn": "在……期间",
+                "definitionEn": "throughout the entire time of an event or period",
+                "exampleEn": "She remained silent during the meeting.",
+                "exampleCn": "会议期间她保持沉默。"
+              }
+            ],
+            "phonics": [
+              {
+                "id": "wp-3-1",
+                "wordId": "w-3",
+                "sequence": 1,
+                "text": "dur",
+                "phonetic": "/djʊər/",
+                "syllable": "dur"
+              },
+              {
+                "id": "wp-3-2",
+                "wordId": "w-3",
+                "sequence": 2,
+                "text": "ing",
+                "phonetic": "/ɪŋ/",
+                "syllable": "ing"
+              }
+            ]
+          }
+        },
+        {
+          "id": "sw-session-1791275839766-2vhk-3",
+          "sessionId": "session-1791275839766-2vhk",
+          "wordId": "w-4",
+          "sequence": 3,
+          "learnStatus": "LEARN_PENDING",
+          "writeStatus": "WRITE_PENDING",
+          "completed": false,
+          "isCorrect": null,
+          "userInput": null,
+          "createdAt": "2026-10-06T08:37:19.766Z",
+          "word": {
+            "id": "w-4",
+            "text": "computer",
+            "phoneticUk": "/kəmˈpjuːtə(r)/",
+            "phoneticUs": "/kəmˈpjuːtər/",
+            "pos": "n.",
+            "difficulty": 2,
+            "meanings": [
+              {
+                "id": "wm-4",
+                "wordId": "w-4",
+                "pos": "n.",
+                "definitionCn": "计算机；电脑",
+                "definitionEn": "an electronic device for storing and processing data",
+                "exampleEn": "I use my computer for online research.",
+                "exampleCn": "我用电脑做在线调研。"
+              }
+            ],
+            "phonics": [
+              {
+                "id": "wp-4-1",
+                "wordId": "w-4",
+                "sequence": 1,
+                "text": "com",
+                "phonetic": "/kəm/",
+                "syllable": "com"
+              },
+              {
+                "id": "wp-4-2",
+                "wordId": "w-4",
+                "sequence": 2,
+                "text": "pu",
+                "phonetic": "/pjuː/",
+                "syllable": "pu"
+              },
+              {
+                "id": "wp-4-3",
+                "wordId": "w-4",
+                "sequence": 3,
+                "text": "ter",
+                "phonetic": "/tər/",
+                "syllable": "ter"
+              }
+            ]
+          }
+        },
+        {
+          "id": "sw-session-1791275839766-2vhk-4",
+          "sessionId": "session-1791275839766-2vhk",
+          "wordId": "w-5",
+          "sequence": 4,
+          "learnStatus": "LEARN_PENDING",
+          "writeStatus": "WRITE_PENDING",
+          "completed": false,
+          "isCorrect": null,
+          "userInput": null,
+          "createdAt": "2026-10-06T08:37:19.766Z",
+          "word": {
+            "id": "w-5",
+            "text": "beautiful",
+            "phoneticUk": "/ˈbjuːtɪfl/",
+            "phoneticUs": "/ˈbjuːt̬ɪfəl/",
+            "pos": "adj.",
+            "difficulty": 2,
+            "meanings": [
+              {
+                "id": "wm-5",
+                "wordId": "w-5",
+                "pos": "adj.",
+                "definitionCn": "美丽的；漂亮的；优美的",
+                "definitionEn": "pleasing the senses or mind aesthetically",
+                "exampleEn": "The sunrise this morning was truly beautiful.",
+                "exampleCn": "今晨的日出非常美丽。"
+              }
+            ],
+            "phonics": [
+              {
+                "id": "wp-5-1",
+                "wordId": "w-5",
+                "sequence": 1,
+                "text": "beau",
+                "phonetic": "/bjuː/",
+                "syllable": "beau"
+              },
+              {
+                "id": "wp-5-2",
+                "wordId": "w-5",
+                "sequence": 2,
+                "text": "ti",
+                "phonetic": "/tɪ/",
+                "syllable": "ti"
+              },
+              {
+                "id": "wp-5-3",
+                "wordId": "w-5",
+                "sequence": 3,
+                "text": "ful",
+                "phonetic": "/fəl/",
+                "syllable": "ful"
+              }
+            ]
+          }
+        },
+        {
+          "id": "sw-session-1791275839766-2vhk-5",
+          "sessionId": "session-1791275839766-2vhk",
+          "wordId": "w-6",
+          "sequence": 5,
+          "learnStatus": "LEARN_PENDING",
+          "writeStatus": "WRITE_PENDING",
+          "completed": false,
+          "isCorrect": null,
+          "userInput": null,
+          "createdAt": "2026-10-06T08:37:19.766Z",
+          "word": {
+            "id": "w-6",
+            "text": "important",
+            "phoneticUk": "/ɪmˈpɔːtnt/",
+            "phoneticUs": "/ɪmˈpɔːrtnt/",
+            "pos": "adj.",
+            "difficulty": 2,
+            "meanings": [
+              {
+                "id": "wm-6",
+                "wordId": "w-6",
+                "pos": "adj.",
+                "definitionCn": "重要的；重大的",
+                "definitionEn": "of great significance or value",
+                "exampleEn": "Health is the most important thing in life.",
+                "exampleCn": "健康是人生中最重要的东西。"
+              }
+            ],
+            "phonics": [
+              {
+                "id": "wp-6-1",
+                "wordId": "w-6",
+                "sequence": 1,
+                "text": "im",
+                "phonetic": "/ɪm/",
+                "syllable": "im"
+              },
+              {
+                "id": "wp-6-2",
+                "wordId": "w-6",
+                "sequence": 2,
+                "text": "por",
+                "phonetic": "/pɔːr/",
+                "syllable": "por"
+              },
+              {
+                "id": "wp-6-3",
+                "wordId": "w-6",
+                "sequence": 3,
+                "text": "tant",
+                "phonetic": "/tnt/",
+                "syllable": "tant"
+              }
+            ]
+          }
+        },
+        {
+          "id": "sw-session-1791275839766-2vhk-6",
+          "sessionId": "session-1791275839766-2vhk",
+          "wordId": "w-22",
+          "sequence": 6,
+          "learnStatus": "LEARN_PENDING",
+          "writeStatus": "WRITE_PENDING",
+          "completed": false,
+          "isCorrect": null,
+          "userInput": null,
+          "createdAt": "2026-10-06T08:37:19.766Z",
+          "word": {
+            "id": "w-22",
+            "text": "practice",
+            "phoneticUk": "/ˈpræktɪs/",
+            "phoneticUs": "/ˈpræktɪs/",
+            "pos": "n./v.",
+            "difficulty": 2,
+            "meanings": [
+              {
+                "id": "wm-22",
+                "wordId": "w-22",
+                "pos": "v.",
+                "definitionCn": "练习；实习",
+                "definitionEn": "perform an activity repeatedly to improve skill",
+                "exampleEn": "Practice makes perfect.",
+                "exampleCn": "熟能生巧。"
+              }
+            ],
+            "phonics": [
+              {
+                "id": "wp-22-1",
+                "wordId": "w-22",
+                "sequence": 1,
+                "text": "prac",
+                "phonetic": "/præk/",
+                "syllable": "prac"
+              },
+              {
+                "id": "wp-22-2",
+                "wordId": "w-22",
+                "sequence": 2,
+                "text": "tice",
+                "phonetic": "/tɪs/",
+                "syllable": "tice"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "session-1791277221989-iyc0",
+      "userId": "u-default",
+      "mode": "WRITE_ONLY",
+      "dictionaryId": "dict-custom-selection",
+      "totalCount": 3,
+      "completedCount": 3,
+      "excludeMastered": true,
+      "sortMode": "RANDOM",
+      "status": "COMPLETED",
+      "currentWordIndex": 2,
+      "startedAt": "2026-10-06T09:00:21.988Z",
+      "createdAt": "2026-10-06T09:00:21.988Z",
+      "updatedAt": "2026-10-06T09:00:22.190Z",
+      "words": [
+        {
+          "id": "sw-session-1791277221989-iyc0-1",
+          "sessionId": "session-1791277221989-iyc0",
+          "wordId": "w-4",
+          "sequence": 1,
+          "learnStatus": "LEARNED",
+          "writeStatus": "WRITTEN",
+          "completed": true,
+          "isCorrect": true,
+          "userInput": "computer",
+          "createdAt": "2026-10-06T09:00:21.988Z",
+          "word": {
+            "id": "w-4",
+            "text": "computer",
+            "phoneticUk": "/kəmˈpjuːtə(r)/",
+            "phoneticUs": "/kəmˈpjuːtər/",
+            "pos": "n.",
+            "difficulty": 2,
+            "meanings": [
+              {
+                "id": "wm-4",
+                "wordId": "w-4",
+                "pos": "n.",
+                "definitionCn": "计算机；电脑",
+                "definitionEn": "an electronic device for storing and processing data",
+                "exampleEn": "I use my computer for online research.",
+                "exampleCn": "我用电脑做在线调研。"
+              }
+            ],
+            "phonics": [
+              {
+                "id": "wp-4-1",
+                "wordId": "w-4",
+                "sequence": 1,
+                "text": "com",
+                "phonetic": "/kəm/",
+                "syllable": "com"
+              },
+              {
+                "id": "wp-4-2",
+                "wordId": "w-4",
+                "sequence": 2,
+                "text": "pu",
+                "phonetic": "/pjuː/",
+                "syllable": "pu"
+              },
+              {
+                "id": "wp-4-3",
+                "wordId": "w-4",
+                "sequence": 3,
+                "text": "ter",
+                "phonetic": "/tər/",
+                "syllable": "ter"
+              }
+            ]
+          },
+          "writtenAt": "2026-10-06T09:00:22.055Z"
+        },
+        {
+          "id": "sw-session-1791277221989-iyc0-2",
+          "sessionId": "session-1791277221989-iyc0",
+          "wordId": "w-5",
+          "sequence": 2,
+          "learnStatus": "LEARNED",
+          "writeStatus": "WRITTEN",
+          "completed": true,
+          "isCorrect": true,
+          "userInput": "beautiful",
+          "createdAt": "2026-10-06T09:00:21.988Z",
+          "word": {
+            "id": "w-5",
+            "text": "beautiful",
+            "phoneticUk": "/ˈbjuːtɪfl/",
+            "phoneticUs": "/ˈbjuːt̬ɪfəl/",
+            "pos": "adj.",
+            "difficulty": 2,
+            "meanings": [
+              {
+                "id": "wm-5",
+                "wordId": "w-5",
+                "pos": "adj.",
+                "definitionCn": "美丽的；漂亮的；优美的",
+                "definitionEn": "pleasing the senses or mind aesthetically",
+                "exampleEn": "The sunrise this morning was truly beautiful.",
+                "exampleCn": "今晨的日出非常美丽。"
+              }
+            ],
+            "phonics": [
+              {
+                "id": "wp-5-1",
+                "wordId": "w-5",
+                "sequence": 1,
+                "text": "beau",
+                "phonetic": "/bjuː/",
+                "syllable": "beau"
+              },
+              {
+                "id": "wp-5-2",
+                "wordId": "w-5",
+                "sequence": 2,
+                "text": "ti",
+                "phonetic": "/tɪ/",
+                "syllable": "ti"
+              },
+              {
+                "id": "wp-5-3",
+                "wordId": "w-5",
+                "sequence": 3,
+                "text": "ful",
+                "phonetic": "/fəl/",
+                "syllable": "ful"
+              }
+            ]
+          },
+          "writtenAt": "2026-10-06T09:00:22.097Z"
+        },
+        {
+          "id": "sw-session-1791277221989-iyc0-3",
+          "sessionId": "session-1791277221989-iyc0",
+          "wordId": "w-6",
+          "sequence": 3,
+          "learnStatus": "LEARNED",
+          "writeStatus": "WRITTEN",
+          "completed": true,
+          "isCorrect": true,
+          "userInput": "important",
+          "createdAt": "2026-10-06T09:00:21.988Z",
+          "word": {
+            "id": "w-6",
+            "text": "important",
+            "phoneticUk": "/ɪmˈpɔːtnt/",
+            "phoneticUs": "/ɪmˈpɔːrtnt/",
+            "pos": "adj.",
+            "difficulty": 2,
+            "meanings": [
+              {
+                "id": "wm-6",
+                "wordId": "w-6",
+                "pos": "adj.",
+                "definitionCn": "重要的；重大的",
+                "definitionEn": "of great significance or value",
+                "exampleEn": "Health is the most important thing in life.",
+                "exampleCn": "健康是人生中最重要的东西。"
+              }
+            ],
+            "phonics": [
+              {
+                "id": "wp-6-1",
+                "wordId": "w-6",
+                "sequence": 1,
+                "text": "im",
+                "phonetic": "/ɪm/",
+                "syllable": "im"
+              },
+              {
+                "id": "wp-6-2",
+                "wordId": "w-6",
+                "sequence": 2,
+                "text": "por",
+                "phonetic": "/pɔːr/",
+                "syllable": "por"
+              },
+              {
+                "id": "wp-6-3",
+                "wordId": "w-6",
+                "sequence": 3,
+                "text": "tant",
+                "phonetic": "/tnt/",
+                "syllable": "tant"
+              }
+            ]
+          },
+          "writtenAt": "2026-10-06T09:00:22.171Z"
+        }
+      ],
+      "completedAt": "2026-10-06T09:00:22.171Z"
+    },
+    {
+      "id": "session-1791277222200-blq6",
+      "userId": "u-default",
+      "mode": "LEARN_AND_WRITE",
+      "dictionaryId": "dict-custom-selection",
+      "totalCount": 2,
+      "completedCount": 1,
+      "excludeMastered": true,
+      "sortMode": "RANDOM",
+      "status": "IN_PROGRESS",
+      "currentWordIndex": 0,
+      "startedAt": "2026-10-06T09:00:22.200Z",
+      "createdAt": "2026-10-06T09:00:22.200Z",
+      "updatedAt": "2026-10-06T09:00:22.269Z",
+      "words": [
+        {
+          "id": "sw-session-1791277222200-blq6-1",
+          "sessionId": "session-1791277222200-blq6",
+          "wordId": "w-1",
+          "sequence": 1,
+          "learnStatus": "LEARNED",
+          "writeStatus": "WRITTEN",
+          "completed": true,
+          "isCorrect": true,
+          "userInput": "holiday",
+          "createdAt": "2026-10-06T09:00:22.200Z",
+          "word": {
+            "id": "w-1",
+            "text": "holiday",
+            "phoneticUk": "/ˈhɒlədeɪ/",
+            "phoneticUs": "/ˈhɑːlədeɪ/",
+            "pos": "n.",
+            "difficulty": 1,
+            "meanings": [
+              {
+                "id": "wm-1",
+                "wordId": "w-1",
+                "pos": "n.",
+                "definitionCn": "假期；假日；节日",
+                "definitionEn": "a time of rest from work, school etc.",
+                "exampleEn": "Where did you go during the holiday?",
+                "exampleCn": "假期你去了哪里？"
+              }
+            ],
+            "phonics": [
+              {
+                "id": "wp-1-1",
+                "wordId": "w-1",
+                "sequence": 1,
+                "text": "hol",
+                "phonetic": "/hɒl/",
+                "syllable": "hol"
+              },
+              {
+                "id": "wp-1-2",
+                "wordId": "w-1",
+                "sequence": 2,
+                "text": "i",
+                "phonetic": "/ə/",
+                "syllable": "i"
+              },
+              {
+                "id": "wp-1-3",
+                "wordId": "w-1",
+                "sequence": 3,
+                "text": "day",
+                "phonetic": "/deɪ/",
+                "syllable": "day"
+              }
+            ]
+          },
+          "learnedAt": "2026-10-06T09:00:22.208Z",
+          "writtenAt": "2026-10-06T09:00:22.250Z"
+        },
+        {
+          "id": "sw-session-1791277222200-blq6-2",
+          "sessionId": "session-1791277222200-blq6",
+          "wordId": "w-2",
+          "sequence": 2,
+          "learnStatus": "LEARN_PENDING",
+          "writeStatus": "WRITE_PENDING",
+          "completed": false,
+          "isCorrect": null,
+          "userInput": null,
+          "createdAt": "2026-10-06T09:00:22.200Z",
+          "word": {
+            "id": "w-2",
+            "text": "where",
+            "phoneticUk": "/weə(r)/",
+            "phoneticUs": "/wer/",
+            "pos": "adv.",
+            "difficulty": 1,
+            "meanings": [
+              {
+                "id": "wm-2",
+                "wordId": "w-2",
+                "pos": "adv.",
+                "definitionCn": "在哪里；向哪里",
+                "definitionEn": "at, in, or to what place or position",
+                "exampleEn": "Where is the nearest bus stop?",
+                "exampleCn": "最近的公交站在哪里？"
+              }
+            ],
+            "phonics": [
+              {
+                "id": "wp-2-1",
+                "wordId": "w-2",
+                "sequence": 1,
+                "text": "wh",
+                "phonetic": "/w/",
+                "syllable": "wh"
+              },
+              {
+                "id": "wp-2-2",
+                "wordId": "w-2",
+                "sequence": 2,
+                "text": "ere",
+                "phonetic": "/eə(r)/",
+                "syllable": "ere"
               }
             ]
           }
@@ -8731,11 +10769,1297 @@
       "wordId": "w-5",
       "sequence": 2,
       "learnStatus": "LEARNED",
+      "writeStatus": "WRITTEN",
+      "completed": true,
+      "isCorrect": true,
+      "userInput": "beautiful",
+      "createdAt": "2026-10-06T08:26:40.065Z",
+      "word": {
+        "id": "w-5",
+        "text": "beautiful",
+        "phoneticUk": "/ˈbjuːtɪfl/",
+        "phoneticUs": "/ˈbjuːt̬ɪfəl/",
+        "pos": "adj.",
+        "difficulty": 2,
+        "meanings": [
+          {
+            "id": "wm-5",
+            "wordId": "w-5",
+            "pos": "adj.",
+            "definitionCn": "美丽的；漂亮的；优美的",
+            "definitionEn": "pleasing the senses or mind aesthetically",
+            "exampleEn": "The sunrise this morning was truly beautiful.",
+            "exampleCn": "今晨的日出非常美丽。"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-5-1",
+            "wordId": "w-5",
+            "sequence": 1,
+            "text": "beau",
+            "phonetic": "/bjuː/",
+            "syllable": "beau"
+          },
+          {
+            "id": "wp-5-2",
+            "wordId": "w-5",
+            "sequence": 2,
+            "text": "ti",
+            "phonetic": "/tɪ/",
+            "syllable": "ti"
+          },
+          {
+            "id": "wp-5-3",
+            "wordId": "w-5",
+            "sequence": 3,
+            "text": "ful",
+            "phonetic": "/fəl/",
+            "syllable": "ful"
+          }
+        ]
+      },
+      "writtenAt": "2026-10-06T08:34:21.906Z"
+    },
+    {
+      "id": "sw-session-1791275200066-g3ir-3",
+      "sessionId": "session-1791275200066-g3ir",
+      "wordId": "w-6",
+      "sequence": 3,
+      "learnStatus": "LEARNED",
+      "writeStatus": "WRITTEN",
+      "completed": true,
+      "isCorrect": true,
+      "userInput": "important",
+      "createdAt": "2026-10-06T08:26:40.065Z",
+      "word": {
+        "id": "w-6",
+        "text": "important",
+        "phoneticUk": "/ɪmˈpɔːtnt/",
+        "phoneticUs": "/ɪmˈpɔːrtnt/",
+        "pos": "adj.",
+        "difficulty": 2,
+        "meanings": [
+          {
+            "id": "wm-6",
+            "wordId": "w-6",
+            "pos": "adj.",
+            "definitionCn": "重要的；重大的",
+            "definitionEn": "of great significance or value",
+            "exampleEn": "Health is the most important thing in life.",
+            "exampleCn": "健康是人生中最重要的东西。"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-6-1",
+            "wordId": "w-6",
+            "sequence": 1,
+            "text": "im",
+            "phonetic": "/ɪm/",
+            "syllable": "im"
+          },
+          {
+            "id": "wp-6-2",
+            "wordId": "w-6",
+            "sequence": 2,
+            "text": "por",
+            "phonetic": "/pɔːr/",
+            "syllable": "por"
+          },
+          {
+            "id": "wp-6-3",
+            "wordId": "w-6",
+            "sequence": 3,
+            "text": "tant",
+            "phonetic": "/tnt/",
+            "syllable": "tant"
+          }
+        ]
+      },
+      "writtenAt": "2026-10-06T08:34:31.846Z"
+    },
+    {
+      "id": "sw-session-1791275682156-hi53-1",
+      "sessionId": "session-1791275682156-hi53",
+      "wordId": "w-7",
+      "sequence": 1,
+      "learnStatus": "LEARNED",
+      "writeStatus": "WRITTEN",
+      "completed": true,
+      "isCorrect": true,
+      "userInput": "school",
+      "createdAt": "2026-10-06T08:34:42.156Z",
+      "word": {
+        "id": "w-7",
+        "text": "school",
+        "phoneticUk": "/skuːl/",
+        "phoneticUs": "/skuːl/",
+        "pos": "n.",
+        "difficulty": 1,
+        "meanings": [
+          {
+            "id": "wm-7",
+            "wordId": "w-7",
+            "pos": "n.",
+            "definitionCn": "学校；上学",
+            "definitionEn": "an institution for educating children",
+            "exampleEn": "He walks to school every weekday morning.",
+            "exampleCn": "他每个工作日早晨都走路去上学。"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-7-1",
+            "wordId": "w-7",
+            "sequence": 1,
+            "text": "sch",
+            "phonetic": "/sk/",
+            "syllable": "sch"
+          },
+          {
+            "id": "wp-7-2",
+            "wordId": "w-7",
+            "sequence": 2,
+            "text": "ool",
+            "phonetic": "/uːl/",
+            "syllable": "ool"
+          }
+        ]
+      },
+      "learnedAt": "2026-10-06T08:34:44.905Z",
+      "writtenAt": "2026-10-06T08:34:48.551Z"
+    },
+    {
+      "id": "sw-session-1791275682156-hi53-2",
+      "sessionId": "session-1791275682156-hi53",
+      "wordId": "w-47",
+      "sequence": 2,
+      "learnStatus": "LEARNED",
+      "writeStatus": "WRITTEN",
+      "completed": true,
+      "isCorrect": true,
+      "userInput": "spring",
+      "createdAt": "2026-10-06T08:34:42.156Z",
+      "word": {
+        "id": "w-47",
+        "text": "spring",
+        "phoneticUk": "/sprɪŋ/",
+        "phoneticUs": "/sprɪŋ/",
+        "pos": "n.",
+        "difficulty": 1,
+        "meanings": [
+          {
+            "id": "wm-47",
+            "wordId": "w-47",
+            "pos": "n.",
+            "definitionCn": "春天；春季；泉水",
+            "definitionEn": "the season after winter and before summer",
+            "exampleEn": "Flowers begin to bloom in early spring.",
+            "exampleCn": "早春时节鲜花盛开。"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-47-1",
+            "wordId": "w-47",
+            "sequence": 1,
+            "text": "spr",
+            "phonetic": "/spr/",
+            "syllable": "spr"
+          },
+          {
+            "id": "wp-47-2",
+            "wordId": "w-47",
+            "sequence": 2,
+            "text": "ing",
+            "phonetic": "/ɪŋ/",
+            "syllable": "ing"
+          }
+        ]
+      },
+      "learnedAt": "2026-10-06T08:35:22.242Z",
+      "writtenAt": "2026-10-06T08:35:24.927Z"
+    },
+    {
+      "id": "sw-session-1791275682156-hi53-3",
+      "sessionId": "session-1791275682156-hi53",
+      "wordId": "w-3",
+      "sequence": 3,
+      "learnStatus": "LEARNED",
+      "writeStatus": "WRITTEN",
+      "completed": true,
+      "isCorrect": true,
+      "userInput": "during",
+      "createdAt": "2026-10-06T08:34:42.156Z",
+      "word": {
+        "id": "w-3",
+        "text": "during",
+        "phoneticUk": "/ˈdjʊərɪŋ/",
+        "phoneticUs": "/ˈdʊrɪŋ/",
+        "pos": "prep.",
+        "difficulty": 2,
+        "meanings": [
+          {
+            "id": "wm-3",
+            "wordId": "w-3",
+            "pos": "prep.",
+            "definitionCn": "在……期间",
+            "definitionEn": "throughout the entire time of an event or period",
+            "exampleEn": "She remained silent during the meeting.",
+            "exampleCn": "会议期间她保持沉默。"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-3-1",
+            "wordId": "w-3",
+            "sequence": 1,
+            "text": "dur",
+            "phonetic": "/djʊər/",
+            "syllable": "dur"
+          },
+          {
+            "id": "wp-3-2",
+            "wordId": "w-3",
+            "sequence": 2,
+            "text": "ing",
+            "phonetic": "/ɪŋ/",
+            "syllable": "ing"
+          }
+        ]
+      },
+      "learnedAt": "2026-10-06T08:35:36.495Z",
+      "writtenAt": "2026-10-06T08:35:49.016Z"
+    },
+    {
+      "id": "sw-session-1791275682156-hi53-4",
+      "sessionId": "session-1791275682156-hi53",
+      "wordId": "w-19",
+      "sequence": 4,
+      "learnStatus": "LEARN_PENDING",
       "writeStatus": "WRITE_PENDING",
       "completed": false,
       "isCorrect": null,
       "userInput": null,
-      "createdAt": "2026-10-06T08:26:40.065Z",
+      "createdAt": "2026-10-06T08:34:42.156Z",
+      "word": {
+        "id": "w-19",
+        "text": "city",
+        "phoneticUk": "/ˈsɪti/",
+        "phoneticUs": "/ˈsɪt̬i/",
+        "pos": "n.",
+        "difficulty": 1,
+        "meanings": [
+          {
+            "id": "wm-19",
+            "wordId": "w-19",
+            "pos": "n.",
+            "definitionCn": "城市；都市",
+            "definitionEn": "a large town",
+            "exampleEn": "Shanghai is a bustling modern city.",
+            "exampleCn": "上海是一座繁华的现代大都市。"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-19-1",
+            "wordId": "w-19",
+            "sequence": 1,
+            "text": "ci",
+            "phonetic": "/sɪ/",
+            "syllable": "ci"
+          },
+          {
+            "id": "wp-19-2",
+            "wordId": "w-19",
+            "sequence": 2,
+            "text": "ty",
+            "phonetic": "/ti/",
+            "syllable": "ty"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sw-session-1791275682156-hi53-5",
+      "sessionId": "session-1791275682156-hi53",
+      "wordId": "w-11",
+      "sequence": 5,
+      "learnStatus": "LEARNED",
+      "writeStatus": "WRITTEN",
+      "completed": true,
+      "isCorrect": true,
+      "userInput": "friend",
+      "createdAt": "2026-10-06T08:34:42.156Z",
+      "word": {
+        "id": "w-11",
+        "text": "friend",
+        "phoneticUk": "/frend/",
+        "phoneticUs": "/frend/",
+        "pos": "n.",
+        "difficulty": 1,
+        "meanings": [
+          {
+            "id": "wm-11",
+            "wordId": "w-11",
+            "pos": "n.",
+            "definitionCn": "朋友；同伴",
+            "definitionEn": "a person whom one knows and with whom one has a bond of mutual affection",
+            "exampleEn": "A true friend is always by your side.",
+            "exampleCn": "真正的朋友总是在你身边。"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-11-1",
+            "wordId": "w-11",
+            "sequence": 1,
+            "text": "fr",
+            "phonetic": "/fr/",
+            "syllable": "fr"
+          },
+          {
+            "id": "wp-11-2",
+            "wordId": "w-11",
+            "sequence": 2,
+            "text": "iend",
+            "phonetic": "/end/",
+            "syllable": "iend"
+          }
+        ]
+      },
+      "learnedAt": "2026-10-06T08:35:56.809Z",
+      "writtenAt": "2026-10-06T08:35:59.665Z"
+    },
+    {
+      "id": "sw-session-1791275682156-hi53-6",
+      "sessionId": "session-1791275682156-hi53",
+      "wordId": "w-1",
+      "sequence": 6,
+      "learnStatus": "LEARN_PENDING",
+      "writeStatus": "WRITE_PENDING",
+      "completed": false,
+      "isCorrect": null,
+      "userInput": null,
+      "createdAt": "2026-10-06T08:34:42.156Z",
+      "word": {
+        "id": "w-1",
+        "text": "holiday",
+        "phoneticUk": "/ˈhɒlədeɪ/",
+        "phoneticUs": "/ˈhɑːlədeɪ/",
+        "pos": "n.",
+        "difficulty": 1,
+        "meanings": [
+          {
+            "id": "wm-1",
+            "wordId": "w-1",
+            "pos": "n.",
+            "definitionCn": "假期；假日；节日",
+            "definitionEn": "a time of rest from work, school etc.",
+            "exampleEn": "Where did you go during the holiday?",
+            "exampleCn": "假期你去了哪里？"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-1-1",
+            "wordId": "w-1",
+            "sequence": 1,
+            "text": "hol",
+            "phonetic": "/hɒl/",
+            "syllable": "hol"
+          },
+          {
+            "id": "wp-1-2",
+            "wordId": "w-1",
+            "sequence": 2,
+            "text": "i",
+            "phonetic": "/ə/",
+            "syllable": "i"
+          },
+          {
+            "id": "wp-1-3",
+            "wordId": "w-1",
+            "sequence": 3,
+            "text": "day",
+            "phonetic": "/deɪ/",
+            "syllable": "day"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sw-session-1791275682156-hi53-7",
+      "sessionId": "session-1791275682156-hi53",
+      "wordId": "w-45",
+      "sequence": 7,
+      "learnStatus": "LEARN_PENDING",
+      "writeStatus": "WRITE_PENDING",
+      "completed": false,
+      "isCorrect": null,
+      "userInput": null,
+      "createdAt": "2026-10-06T08:34:42.156Z",
+      "word": {
+        "id": "w-45",
+        "text": "simple",
+        "phoneticUk": "/ˈsɪmpl/",
+        "phoneticUs": "/ˈsɪmpl/",
+        "pos": "adj.",
+        "difficulty": 1,
+        "meanings": [
+          {
+            "id": "wm-45",
+            "wordId": "w-45",
+            "pos": "adj.",
+            "definitionCn": "简单的；单纯的",
+            "definitionEn": "easily understood or done; presenting no difficulty",
+            "exampleEn": "Keep your sentences simple and clear.",
+            "exampleCn": "保持句子简单清晰。"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-45-1",
+            "wordId": "w-45",
+            "sequence": 1,
+            "text": "sim",
+            "phonetic": "/sɪm/",
+            "syllable": "sim"
+          },
+          {
+            "id": "wp-45-2",
+            "wordId": "w-45",
+            "sequence": 2,
+            "text": "ple",
+            "phonetic": "/pl/",
+            "syllable": "ple"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sw-session-1791275682156-hi53-8",
+      "sessionId": "session-1791275682156-hi53",
+      "wordId": "w-2",
+      "sequence": 8,
+      "learnStatus": "LEARN_PENDING",
+      "writeStatus": "WRITE_PENDING",
+      "completed": false,
+      "isCorrect": null,
+      "userInput": null,
+      "createdAt": "2026-10-06T08:34:42.156Z",
+      "word": {
+        "id": "w-2",
+        "text": "where",
+        "phoneticUk": "/weə(r)/",
+        "phoneticUs": "/wer/",
+        "pos": "adv.",
+        "difficulty": 1,
+        "meanings": [
+          {
+            "id": "wm-2",
+            "wordId": "w-2",
+            "pos": "adv.",
+            "definitionCn": "在哪里；向哪里",
+            "definitionEn": "at, in, or to what place or position",
+            "exampleEn": "Where is the nearest bus stop?",
+            "exampleCn": "最近的公交站在哪里？"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-2-1",
+            "wordId": "w-2",
+            "sequence": 1,
+            "text": "wh",
+            "phonetic": "/w/",
+            "syllable": "wh"
+          },
+          {
+            "id": "wp-2-2",
+            "wordId": "w-2",
+            "sequence": 2,
+            "text": "ere",
+            "phonetic": "/eə(r)/",
+            "syllable": "ere"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sw-session-1791275682156-hi53-9",
+      "sessionId": "session-1791275682156-hi53",
+      "wordId": "w-15",
+      "sequence": 9,
+      "learnStatus": "LEARN_PENDING",
+      "writeStatus": "WRITE_PENDING",
+      "completed": false,
+      "isCorrect": null,
+      "userInput": null,
+      "createdAt": "2026-10-06T08:34:42.156Z",
+      "word": {
+        "id": "w-15",
+        "text": "summer",
+        "phoneticUk": "/ˈsʌmə(r)/",
+        "phoneticUs": "/ˈsʌmər/",
+        "pos": "n.",
+        "difficulty": 1,
+        "meanings": [
+          {
+            "id": "wm-15",
+            "wordId": "w-15",
+            "pos": "n.",
+            "definitionCn": "夏天；夏季",
+            "definitionEn": "the warmest season of the year",
+            "exampleEn": "Summer is the best season for swimming.",
+            "exampleCn": "夏天是游泳的最佳季节。"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-15-1",
+            "wordId": "w-15",
+            "sequence": 1,
+            "text": "sum",
+            "phonetic": "/sʌm/",
+            "syllable": "sum"
+          },
+          {
+            "id": "wp-15-2",
+            "wordId": "w-15",
+            "sequence": 2,
+            "text": "mer",
+            "phonetic": "/ər/",
+            "syllable": "mer"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sw-session-1791275682156-hi53-10",
+      "sessionId": "session-1791275682156-hi53",
+      "wordId": "w-16",
+      "sequence": 10,
+      "learnStatus": "LEARN_PENDING",
+      "writeStatus": "WRITE_PENDING",
+      "completed": false,
+      "isCorrect": null,
+      "userInput": null,
+      "createdAt": "2026-10-06T08:34:42.156Z",
+      "word": {
+        "id": "w-16",
+        "text": "winter",
+        "phoneticUk": "/ˈwɪntə(r)/",
+        "phoneticUs": "/ˈwɪntər/",
+        "pos": "n.",
+        "difficulty": 1,
+        "meanings": [
+          {
+            "id": "wm-16",
+            "wordId": "w-16",
+            "pos": "n.",
+            "definitionCn": "冬天；冬季",
+            "definitionEn": "the coldest season of the year",
+            "exampleEn": "Snow covered the mountain in winter.",
+            "exampleCn": "冬天的积雪覆盖了山峰。"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-16-1",
+            "wordId": "w-16",
+            "sequence": 1,
+            "text": "win",
+            "phonetic": "/wɪn/",
+            "syllable": "win"
+          },
+          {
+            "id": "wp-16-2",
+            "wordId": "w-16",
+            "sequence": 2,
+            "text": "ter",
+            "phonetic": "/tər/",
+            "syllable": "ter"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sw-session-1791275682156-hi53-11",
+      "sessionId": "session-1791275682156-hi53",
+      "wordId": "w-10",
+      "sequence": 11,
+      "learnStatus": "LEARN_PENDING",
+      "writeStatus": "WRITE_PENDING",
+      "completed": false,
+      "isCorrect": null,
+      "userInput": null,
+      "createdAt": "2026-10-06T08:34:42.156Z",
+      "word": {
+        "id": "w-10",
+        "text": "family",
+        "phoneticUk": "/ˈfæməli/",
+        "phoneticUs": "/ˈfæməli/",
+        "pos": "n.",
+        "difficulty": 1,
+        "meanings": [
+          {
+            "id": "wm-10",
+            "wordId": "w-10",
+            "pos": "n.",
+            "definitionCn": "家庭；家人",
+            "definitionEn": "a group of one or more parents and their children living together",
+            "exampleEn": "Family dinner is our weekend tradition.",
+            "exampleCn": "全家共进晚餐是我们的周末传统。"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-10-1",
+            "wordId": "w-10",
+            "sequence": 1,
+            "text": "fam",
+            "phonetic": "/fæm/",
+            "syllable": "fam"
+          },
+          {
+            "id": "wp-10-2",
+            "wordId": "w-10",
+            "sequence": 2,
+            "text": "i",
+            "phonetic": "/ə/",
+            "syllable": "i"
+          },
+          {
+            "id": "wp-10-3",
+            "wordId": "w-10",
+            "sequence": 3,
+            "text": "ly",
+            "phonetic": "/li/",
+            "syllable": "ly"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sw-session-1791275682156-hi53-12",
+      "sessionId": "session-1791275682156-hi53",
+      "wordId": "w-48",
+      "sequence": 12,
+      "learnStatus": "LEARN_PENDING",
+      "writeStatus": "WRITE_PENDING",
+      "completed": false,
+      "isCorrect": null,
+      "userInput": null,
+      "createdAt": "2026-10-06T08:34:42.156Z",
+      "word": {
+        "id": "w-48",
+        "text": "autumn",
+        "phoneticUk": "/ˈɔːtəm/",
+        "phoneticUs": "/ˈɑːtəm/",
+        "pos": "n.",
+        "difficulty": 2,
+        "meanings": [
+          {
+            "id": "wm-48",
+            "wordId": "w-48",
+            "pos": "n.",
+            "definitionCn": "秋天；秋季",
+            "definitionEn": "the season between summer and winter",
+            "exampleEn": "Golden leaves fall gently in autumn.",
+            "exampleCn": "秋天金黄的树叶轻轻飘落。"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-48-1",
+            "wordId": "w-48",
+            "sequence": 1,
+            "text": "au",
+            "phonetic": "/ɔː/",
+            "syllable": "au"
+          },
+          {
+            "id": "wp-48-2",
+            "wordId": "w-48",
+            "sequence": 2,
+            "text": "tumn",
+            "phonetic": "/təm/",
+            "syllable": "tumn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sw-session-1791275682156-hi53-13",
+      "sessionId": "session-1791275682156-hi53",
+      "wordId": "w-21",
+      "sequence": 13,
+      "learnStatus": "LEARN_PENDING",
+      "writeStatus": "WRITE_PENDING",
+      "completed": false,
+      "isCorrect": null,
+      "userInput": null,
+      "createdAt": "2026-10-06T08:34:42.156Z",
+      "word": {
+        "id": "w-21",
+        "text": "weather",
+        "phoneticUk": "/ˈweðə(r)/",
+        "phoneticUs": "/ˈweðər/",
+        "pos": "n.",
+        "difficulty": 1,
+        "meanings": [
+          {
+            "id": "wm-21",
+            "wordId": "w-21",
+            "pos": "n.",
+            "definitionCn": "天气；气候",
+            "definitionEn": "the state of the atmosphere at a place and time",
+            "exampleEn": "The weather is warm and sunny today.",
+            "exampleCn": "今天天气温暖晴朗。"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-21-1",
+            "wordId": "w-21",
+            "sequence": 1,
+            "text": "weath",
+            "phonetic": "/weð/",
+            "syllable": "weath"
+          },
+          {
+            "id": "wp-21-2",
+            "wordId": "w-21",
+            "sequence": 2,
+            "text": "er",
+            "phonetic": "/ər/",
+            "syllable": "er"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sw-session-1791275682156-hi53-14",
+      "sessionId": "session-1791275682156-hi53",
+      "wordId": "w-12",
+      "sequence": 14,
+      "learnStatus": "LEARN_PENDING",
+      "writeStatus": "WRITE_PENDING",
+      "completed": false,
+      "isCorrect": null,
+      "userInput": null,
+      "createdAt": "2026-10-06T08:34:42.156Z",
+      "word": {
+        "id": "w-12",
+        "text": "morning",
+        "phoneticUk": "/ˈmɔːnɪŋ/",
+        "phoneticUs": "/ˈmɔːrnɪŋ/",
+        "pos": "n.",
+        "difficulty": 1,
+        "meanings": [
+          {
+            "id": "wm-12",
+            "wordId": "w-12",
+            "pos": "n.",
+            "definitionCn": "早晨；上午",
+            "definitionEn": "the period of time between sunrise and noon",
+            "exampleEn": "I like reading English in the early morning.",
+            "exampleCn": "我喜欢在清晨读英语。"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-12-1",
+            "wordId": "w-12",
+            "sequence": 1,
+            "text": "morn",
+            "phonetic": "/mɔːrn/",
+            "syllable": "morn"
+          },
+          {
+            "id": "wp-12-2",
+            "wordId": "w-12",
+            "sequence": 2,
+            "text": "ing",
+            "phonetic": "/ɪŋ/",
+            "syllable": "ing"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sw-session-1791275682156-hi53-15",
+      "sessionId": "session-1791275682156-hi53",
+      "wordId": "w-13",
+      "sequence": 15,
+      "learnStatus": "LEARN_PENDING",
+      "writeStatus": "WRITE_PENDING",
+      "completed": false,
+      "isCorrect": null,
+      "userInput": null,
+      "createdAt": "2026-10-06T08:34:42.156Z",
+      "word": {
+        "id": "w-13",
+        "text": "afternoon",
+        "phoneticUk": "/ˌɑːftəˈnuːn/",
+        "phoneticUs": "/ˌæftərˈnuːn/",
+        "pos": "n.",
+        "difficulty": 1,
+        "meanings": [
+          {
+            "id": "wm-13",
+            "wordId": "w-13",
+            "pos": "n.",
+            "definitionCn": "下午；午后",
+            "definitionEn": "the time between midday and the evening",
+            "exampleEn": "Let us have a cup of tea this afternoon.",
+            "exampleCn": "今天下午我们喝杯茶吧。"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-13-1",
+            "wordId": "w-13",
+            "sequence": 1,
+            "text": "af",
+            "phonetic": "/æf/",
+            "syllable": "af"
+          },
+          {
+            "id": "wp-13-2",
+            "wordId": "w-13",
+            "sequence": 2,
+            "text": "ter",
+            "phonetic": "/tər/",
+            "syllable": "ter"
+          },
+          {
+            "id": "wp-13-3",
+            "wordId": "w-13",
+            "sequence": 3,
+            "text": "noon",
+            "phonetic": "/nuːn/",
+            "syllable": "noon"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sw-session-1791275682156-hi53-16",
+      "sessionId": "session-1791275682156-hi53",
+      "wordId": "w-18",
+      "sequence": 16,
+      "learnStatus": "LEARN_PENDING",
+      "writeStatus": "WRITE_PENDING",
+      "completed": false,
+      "isCorrect": null,
+      "userInput": null,
+      "createdAt": "2026-10-06T08:34:42.156Z",
+      "word": {
+        "id": "w-18",
+        "text": "country",
+        "phoneticUk": "/ˈkʌntri/",
+        "phoneticUs": "/ˈkʌntri/",
+        "pos": "n.",
+        "difficulty": 1,
+        "meanings": [
+          {
+            "id": "wm-18",
+            "wordId": "w-18",
+            "pos": "n.",
+            "definitionCn": "国家；乡村",
+            "definitionEn": "a nation with its own government, occupying a particular territory",
+            "exampleEn": "China is a country with rich history.",
+            "exampleCn": "中国是一个历史悠久的国家。"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-18-1",
+            "wordId": "w-18",
+            "sequence": 1,
+            "text": "coun",
+            "phonetic": "/kʌn/",
+            "syllable": "coun"
+          },
+          {
+            "id": "wp-18-2",
+            "wordId": "w-18",
+            "sequence": 2,
+            "text": "try",
+            "phonetic": "/tri/",
+            "syllable": "try"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sw-session-1791275682156-hi53-17",
+      "sessionId": "session-1791275682156-hi53",
+      "wordId": "w-9",
+      "sequence": 17,
+      "learnStatus": "LEARN_PENDING",
+      "writeStatus": "WRITE_PENDING",
+      "completed": false,
+      "isCorrect": null,
+      "userInput": null,
+      "createdAt": "2026-10-06T08:34:42.156Z",
+      "word": {
+        "id": "w-9",
+        "text": "student",
+        "phoneticUk": "/ˈstjuːdnt/",
+        "phoneticUs": "/ˈstuːdnt/",
+        "pos": "n.",
+        "difficulty": 1,
+        "meanings": [
+          {
+            "id": "wm-9",
+            "wordId": "w-9",
+            "pos": "n.",
+            "definitionCn": "学生；学者",
+            "definitionEn": "a person who is studying at a school or college",
+            "exampleEn": "Every student in the class passed the exam.",
+            "exampleCn": "班里每个学生都通过了考试。"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-9-1",
+            "wordId": "w-9",
+            "sequence": 1,
+            "text": "stu",
+            "phonetic": "/stjuː/",
+            "syllable": "stu"
+          },
+          {
+            "id": "wp-9-2",
+            "wordId": "w-9",
+            "sequence": 2,
+            "text": "dent",
+            "phonetic": "/dnt/",
+            "syllable": "dent"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sw-session-1791275682156-hi53-18",
+      "sessionId": "session-1791275682156-hi53",
+      "wordId": "w-50",
+      "sequence": 18,
+      "learnStatus": "LEARN_PENDING",
+      "writeStatus": "WRITE_PENDING",
+      "completed": false,
+      "isCorrect": null,
+      "userInput": null,
+      "createdAt": "2026-10-06T08:34:42.156Z",
+      "word": {
+        "id": "w-50",
+        "text": "season",
+        "phoneticUk": "/ˈsiːzn/",
+        "phoneticUs": "/ˈsiːzn/",
+        "pos": "n.",
+        "difficulty": 1,
+        "meanings": [
+          {
+            "id": "wm-50",
+            "wordId": "w-50",
+            "pos": "n.",
+            "definitionCn": "季节；节期",
+            "definitionEn": "each of the four divisions of the year",
+            "exampleEn": "Which season do you like best?",
+            "exampleCn": "你最喜欢哪个季节？"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-50-1",
+            "wordId": "w-50",
+            "sequence": 1,
+            "text": "sea",
+            "phonetic": "/siː/",
+            "syllable": "sea"
+          },
+          {
+            "id": "wp-50-2",
+            "wordId": "w-50",
+            "sequence": 2,
+            "text": "son",
+            "phonetic": "/zn/",
+            "syllable": "son"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sw-session-1791275682156-hi53-19",
+      "sessionId": "session-1791275682156-hi53",
+      "wordId": "w-14",
+      "sequence": 19,
+      "learnStatus": "LEARN_PENDING",
+      "writeStatus": "WRITE_PENDING",
+      "completed": false,
+      "isCorrect": null,
+      "userInput": null,
+      "createdAt": "2026-10-06T08:34:42.156Z",
+      "word": {
+        "id": "w-14",
+        "text": "evening",
+        "phoneticUk": "/ˈiːvnɪŋ/",
+        "phoneticUs": "/ˈiːvnɪŋ/",
+        "pos": "n.",
+        "difficulty": 1,
+        "meanings": [
+          {
+            "id": "wm-14",
+            "wordId": "w-14",
+            "pos": "n.",
+            "definitionCn": "傍晚；晚上",
+            "definitionEn": "the period of time at the end of the day",
+            "exampleEn": "We took a quiet walk in the evening.",
+            "exampleCn": "我们在傍晚安静地散了步。"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-14-1",
+            "wordId": "w-14",
+            "sequence": 1,
+            "text": "eve",
+            "phonetic": "/iːv/",
+            "syllable": "eve"
+          },
+          {
+            "id": "wp-14-2",
+            "wordId": "w-14",
+            "sequence": 2,
+            "text": "ning",
+            "phonetic": "/nɪŋ/",
+            "syllable": "ning"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sw-session-1791275682156-hi53-20",
+      "sessionId": "session-1791275682156-hi53",
+      "wordId": "w-8",
+      "sequence": 20,
+      "learnStatus": "LEARN_PENDING",
+      "writeStatus": "WRITE_PENDING",
+      "completed": false,
+      "isCorrect": null,
+      "userInput": null,
+      "createdAt": "2026-10-06T08:34:42.156Z",
+      "word": {
+        "id": "w-8",
+        "text": "teacher",
+        "phoneticUk": "/ˈtiːtʃə(r)/",
+        "phoneticUs": "/ˈtiːtʃər/",
+        "pos": "n.",
+        "difficulty": 1,
+        "meanings": [
+          {
+            "id": "wm-8",
+            "wordId": "w-8",
+            "pos": "n.",
+            "definitionCn": "教师；老师",
+            "definitionEn": "a person who teaches, especially in a school",
+            "exampleEn": "Our teacher explains grammar clearly.",
+            "exampleCn": "我们的老师把语法讲得很透彻。"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-8-1",
+            "wordId": "w-8",
+            "sequence": 1,
+            "text": "teach",
+            "phonetic": "/tiːtʃ/",
+            "syllable": "teach"
+          },
+          {
+            "id": "wp-8-2",
+            "wordId": "w-8",
+            "sequence": 2,
+            "text": "er",
+            "phonetic": "/ər/",
+            "syllable": "er"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sw-session-1791275778748-z8ne-1",
+      "sessionId": "session-1791275778748-z8ne",
+      "wordId": "w-2",
+      "sequence": 1,
+      "learnStatus": "LEARNED",
+      "writeStatus": "WRITTEN",
+      "completed": true,
+      "isCorrect": true,
+      "userInput": "where",
+      "createdAt": "2026-10-06T08:36:18.748Z",
+      "word": {
+        "id": "w-2",
+        "text": "where",
+        "phoneticUk": "/weə(r)/",
+        "phoneticUs": "/wer/",
+        "pos": "adv.",
+        "difficulty": 1,
+        "meanings": [
+          {
+            "id": "wm-2",
+            "wordId": "w-2",
+            "pos": "adv.",
+            "definitionCn": "在哪里；向哪里",
+            "definitionEn": "at, in, or to what place or position",
+            "exampleEn": "Where is the nearest bus stop?",
+            "exampleCn": "最近的公交站在哪里？"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-2-1",
+            "wordId": "w-2",
+            "sequence": 1,
+            "text": "wh",
+            "phonetic": "/w/",
+            "syllable": "wh"
+          },
+          {
+            "id": "wp-2-2",
+            "wordId": "w-2",
+            "sequence": 2,
+            "text": "ere",
+            "phonetic": "/eə(r)/",
+            "syllable": "ere"
+          }
+        ]
+      },
+      "writtenAt": "2026-10-06T08:36:22.068Z"
+    },
+    {
+      "id": "sw-session-1791275778748-z8ne-2",
+      "sessionId": "session-1791275778748-z8ne",
+      "wordId": "w-3",
+      "sequence": 2,
+      "learnStatus": "LEARNED",
+      "writeStatus": "WRITTEN",
+      "completed": true,
+      "isCorrect": true,
+      "userInput": "during",
+      "createdAt": "2026-10-06T08:36:18.748Z",
+      "word": {
+        "id": "w-3",
+        "text": "during",
+        "phoneticUk": "/ˈdjʊərɪŋ/",
+        "phoneticUs": "/ˈdʊrɪŋ/",
+        "pos": "prep.",
+        "difficulty": 2,
+        "meanings": [
+          {
+            "id": "wm-3",
+            "wordId": "w-3",
+            "pos": "prep.",
+            "definitionCn": "在……期间",
+            "definitionEn": "throughout the entire time of an event or period",
+            "exampleEn": "She remained silent during the meeting.",
+            "exampleCn": "会议期间她保持沉默。"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-3-1",
+            "wordId": "w-3",
+            "sequence": 1,
+            "text": "dur",
+            "phonetic": "/djʊər/",
+            "syllable": "dur"
+          },
+          {
+            "id": "wp-3-2",
+            "wordId": "w-3",
+            "sequence": 2,
+            "text": "ing",
+            "phonetic": "/ɪŋ/",
+            "syllable": "ing"
+          }
+        ]
+      },
+      "writtenAt": "2026-10-06T08:36:30.785Z"
+    },
+    {
+      "id": "sw-session-1791275778748-z8ne-3",
+      "sessionId": "session-1791275778748-z8ne",
+      "wordId": "w-4",
+      "sequence": 3,
+      "learnStatus": "LEARNED",
+      "writeStatus": "WRITTEN",
+      "completed": true,
+      "isCorrect": true,
+      "userInput": "computer",
+      "createdAt": "2026-10-06T08:36:18.748Z",
+      "word": {
+        "id": "w-4",
+        "text": "computer",
+        "phoneticUk": "/kəmˈpjuːtə(r)/",
+        "phoneticUs": "/kəmˈpjuːtər/",
+        "pos": "n.",
+        "difficulty": 2,
+        "meanings": [
+          {
+            "id": "wm-4",
+            "wordId": "w-4",
+            "pos": "n.",
+            "definitionCn": "计算机；电脑",
+            "definitionEn": "an electronic device for storing and processing data",
+            "exampleEn": "I use my computer for online research.",
+            "exampleCn": "我用电脑做在线调研。"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-4-1",
+            "wordId": "w-4",
+            "sequence": 1,
+            "text": "com",
+            "phonetic": "/kəm/",
+            "syllable": "com"
+          },
+          {
+            "id": "wp-4-2",
+            "wordId": "w-4",
+            "sequence": 2,
+            "text": "pu",
+            "phonetic": "/pjuː/",
+            "syllable": "pu"
+          },
+          {
+            "id": "wp-4-3",
+            "wordId": "w-4",
+            "sequence": 3,
+            "text": "ter",
+            "phonetic": "/tər/",
+            "syllable": "ter"
+          }
+        ]
+      },
+      "writtenAt": "2026-10-06T08:36:42.460Z"
+    },
+    {
+      "id": "sw-session-1791275778748-z8ne-4",
+      "sessionId": "session-1791275778748-z8ne",
+      "wordId": "w-5",
+      "sequence": 4,
+      "learnStatus": "LEARNED",
+      "writeStatus": "WRITE_PENDING",
+      "completed": false,
+      "isCorrect": null,
+      "userInput": null,
+      "createdAt": "2026-10-06T08:36:18.748Z",
       "word": {
         "id": "w-5",
         "text": "beautiful",
@@ -8783,16 +12107,16 @@
       }
     },
     {
-      "id": "sw-session-1791275200066-g3ir-3",
-      "sessionId": "session-1791275200066-g3ir",
+      "id": "sw-session-1791275778748-z8ne-5",
+      "sessionId": "session-1791275778748-z8ne",
       "wordId": "w-6",
-      "sequence": 3,
+      "sequence": 5,
       "learnStatus": "LEARNED",
       "writeStatus": "WRITE_PENDING",
       "completed": false,
       "isCorrect": null,
       "userInput": null,
-      "createdAt": "2026-10-06T08:26:40.065Z",
+      "createdAt": "2026-10-06T08:36:18.748Z",
       "word": {
         "id": "w-6",
         "text": "important",
@@ -8835,6 +12159,657 @@
             "text": "tant",
             "phonetic": "/tnt/",
             "syllable": "tant"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sw-session-1791275778748-z8ne-6",
+      "sessionId": "session-1791275778748-z8ne",
+      "wordId": "w-22",
+      "sequence": 6,
+      "learnStatus": "LEARNED",
+      "writeStatus": "WRITE_PENDING",
+      "completed": false,
+      "isCorrect": null,
+      "userInput": null,
+      "createdAt": "2026-10-06T08:36:18.748Z",
+      "word": {
+        "id": "w-22",
+        "text": "practice",
+        "phoneticUk": "/ˈpræktɪs/",
+        "phoneticUs": "/ˈpræktɪs/",
+        "pos": "n./v.",
+        "difficulty": 2,
+        "meanings": [
+          {
+            "id": "wm-22",
+            "wordId": "w-22",
+            "pos": "v.",
+            "definitionCn": "练习；实习",
+            "definitionEn": "perform an activity repeatedly to improve skill",
+            "exampleEn": "Practice makes perfect.",
+            "exampleCn": "熟能生巧。"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-22-1",
+            "wordId": "w-22",
+            "sequence": 1,
+            "text": "prac",
+            "phonetic": "/præk/",
+            "syllable": "prac"
+          },
+          {
+            "id": "wp-22-2",
+            "wordId": "w-22",
+            "sequence": 2,
+            "text": "tice",
+            "phonetic": "/tɪs/",
+            "syllable": "tice"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sw-session-1791275839766-2vhk-1",
+      "sessionId": "session-1791275839766-2vhk",
+      "wordId": "w-2",
+      "sequence": 1,
+      "learnStatus": "LEARNED",
+      "writeStatus": "WRITTEN",
+      "completed": true,
+      "isCorrect": true,
+      "userInput": "where",
+      "createdAt": "2026-10-06T08:37:19.766Z",
+      "word": {
+        "id": "w-2",
+        "text": "where",
+        "phoneticUk": "/weə(r)/",
+        "phoneticUs": "/wer/",
+        "pos": "adv.",
+        "difficulty": 1,
+        "meanings": [
+          {
+            "id": "wm-2",
+            "wordId": "w-2",
+            "pos": "adv.",
+            "definitionCn": "在哪里；向哪里",
+            "definitionEn": "at, in, or to what place or position",
+            "exampleEn": "Where is the nearest bus stop?",
+            "exampleCn": "最近的公交站在哪里？"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-2-1",
+            "wordId": "w-2",
+            "sequence": 1,
+            "text": "wh",
+            "phonetic": "/w/",
+            "syllable": "wh"
+          },
+          {
+            "id": "wp-2-2",
+            "wordId": "w-2",
+            "sequence": 2,
+            "text": "ere",
+            "phonetic": "/eə(r)/",
+            "syllable": "ere"
+          }
+        ]
+      },
+      "learnedAt": "2026-10-06T08:37:23.130Z",
+      "writtenAt": "2026-10-06T08:37:25.229Z"
+    },
+    {
+      "id": "sw-session-1791275839766-2vhk-2",
+      "sessionId": "session-1791275839766-2vhk",
+      "wordId": "w-3",
+      "sequence": 2,
+      "learnStatus": "LEARN_PENDING",
+      "writeStatus": "WRITE_PENDING",
+      "completed": false,
+      "isCorrect": null,
+      "userInput": null,
+      "createdAt": "2026-10-06T08:37:19.766Z",
+      "word": {
+        "id": "w-3",
+        "text": "during",
+        "phoneticUk": "/ˈdjʊərɪŋ/",
+        "phoneticUs": "/ˈdʊrɪŋ/",
+        "pos": "prep.",
+        "difficulty": 2,
+        "meanings": [
+          {
+            "id": "wm-3",
+            "wordId": "w-3",
+            "pos": "prep.",
+            "definitionCn": "在……期间",
+            "definitionEn": "throughout the entire time of an event or period",
+            "exampleEn": "She remained silent during the meeting.",
+            "exampleCn": "会议期间她保持沉默。"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-3-1",
+            "wordId": "w-3",
+            "sequence": 1,
+            "text": "dur",
+            "phonetic": "/djʊər/",
+            "syllable": "dur"
+          },
+          {
+            "id": "wp-3-2",
+            "wordId": "w-3",
+            "sequence": 2,
+            "text": "ing",
+            "phonetic": "/ɪŋ/",
+            "syllable": "ing"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sw-session-1791275839766-2vhk-3",
+      "sessionId": "session-1791275839766-2vhk",
+      "wordId": "w-4",
+      "sequence": 3,
+      "learnStatus": "LEARN_PENDING",
+      "writeStatus": "WRITE_PENDING",
+      "completed": false,
+      "isCorrect": null,
+      "userInput": null,
+      "createdAt": "2026-10-06T08:37:19.766Z",
+      "word": {
+        "id": "w-4",
+        "text": "computer",
+        "phoneticUk": "/kəmˈpjuːtə(r)/",
+        "phoneticUs": "/kəmˈpjuːtər/",
+        "pos": "n.",
+        "difficulty": 2,
+        "meanings": [
+          {
+            "id": "wm-4",
+            "wordId": "w-4",
+            "pos": "n.",
+            "definitionCn": "计算机；电脑",
+            "definitionEn": "an electronic device for storing and processing data",
+            "exampleEn": "I use my computer for online research.",
+            "exampleCn": "我用电脑做在线调研。"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-4-1",
+            "wordId": "w-4",
+            "sequence": 1,
+            "text": "com",
+            "phonetic": "/kəm/",
+            "syllable": "com"
+          },
+          {
+            "id": "wp-4-2",
+            "wordId": "w-4",
+            "sequence": 2,
+            "text": "pu",
+            "phonetic": "/pjuː/",
+            "syllable": "pu"
+          },
+          {
+            "id": "wp-4-3",
+            "wordId": "w-4",
+            "sequence": 3,
+            "text": "ter",
+            "phonetic": "/tər/",
+            "syllable": "ter"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sw-session-1791275839766-2vhk-4",
+      "sessionId": "session-1791275839766-2vhk",
+      "wordId": "w-5",
+      "sequence": 4,
+      "learnStatus": "LEARN_PENDING",
+      "writeStatus": "WRITE_PENDING",
+      "completed": false,
+      "isCorrect": null,
+      "userInput": null,
+      "createdAt": "2026-10-06T08:37:19.766Z",
+      "word": {
+        "id": "w-5",
+        "text": "beautiful",
+        "phoneticUk": "/ˈbjuːtɪfl/",
+        "phoneticUs": "/ˈbjuːt̬ɪfəl/",
+        "pos": "adj.",
+        "difficulty": 2,
+        "meanings": [
+          {
+            "id": "wm-5",
+            "wordId": "w-5",
+            "pos": "adj.",
+            "definitionCn": "美丽的；漂亮的；优美的",
+            "definitionEn": "pleasing the senses or mind aesthetically",
+            "exampleEn": "The sunrise this morning was truly beautiful.",
+            "exampleCn": "今晨的日出非常美丽。"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-5-1",
+            "wordId": "w-5",
+            "sequence": 1,
+            "text": "beau",
+            "phonetic": "/bjuː/",
+            "syllable": "beau"
+          },
+          {
+            "id": "wp-5-2",
+            "wordId": "w-5",
+            "sequence": 2,
+            "text": "ti",
+            "phonetic": "/tɪ/",
+            "syllable": "ti"
+          },
+          {
+            "id": "wp-5-3",
+            "wordId": "w-5",
+            "sequence": 3,
+            "text": "ful",
+            "phonetic": "/fəl/",
+            "syllable": "ful"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sw-session-1791275839766-2vhk-5",
+      "sessionId": "session-1791275839766-2vhk",
+      "wordId": "w-6",
+      "sequence": 5,
+      "learnStatus": "LEARN_PENDING",
+      "writeStatus": "WRITE_PENDING",
+      "completed": false,
+      "isCorrect": null,
+      "userInput": null,
+      "createdAt": "2026-10-06T08:37:19.766Z",
+      "word": {
+        "id": "w-6",
+        "text": "important",
+        "phoneticUk": "/ɪmˈpɔːtnt/",
+        "phoneticUs": "/ɪmˈpɔːrtnt/",
+        "pos": "adj.",
+        "difficulty": 2,
+        "meanings": [
+          {
+            "id": "wm-6",
+            "wordId": "w-6",
+            "pos": "adj.",
+            "definitionCn": "重要的；重大的",
+            "definitionEn": "of great significance or value",
+            "exampleEn": "Health is the most important thing in life.",
+            "exampleCn": "健康是人生中最重要的东西。"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-6-1",
+            "wordId": "w-6",
+            "sequence": 1,
+            "text": "im",
+            "phonetic": "/ɪm/",
+            "syllable": "im"
+          },
+          {
+            "id": "wp-6-2",
+            "wordId": "w-6",
+            "sequence": 2,
+            "text": "por",
+            "phonetic": "/pɔːr/",
+            "syllable": "por"
+          },
+          {
+            "id": "wp-6-3",
+            "wordId": "w-6",
+            "sequence": 3,
+            "text": "tant",
+            "phonetic": "/tnt/",
+            "syllable": "tant"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sw-session-1791275839766-2vhk-6",
+      "sessionId": "session-1791275839766-2vhk",
+      "wordId": "w-22",
+      "sequence": 6,
+      "learnStatus": "LEARN_PENDING",
+      "writeStatus": "WRITE_PENDING",
+      "completed": false,
+      "isCorrect": null,
+      "userInput": null,
+      "createdAt": "2026-10-06T08:37:19.766Z",
+      "word": {
+        "id": "w-22",
+        "text": "practice",
+        "phoneticUk": "/ˈpræktɪs/",
+        "phoneticUs": "/ˈpræktɪs/",
+        "pos": "n./v.",
+        "difficulty": 2,
+        "meanings": [
+          {
+            "id": "wm-22",
+            "wordId": "w-22",
+            "pos": "v.",
+            "definitionCn": "练习；实习",
+            "definitionEn": "perform an activity repeatedly to improve skill",
+            "exampleEn": "Practice makes perfect.",
+            "exampleCn": "熟能生巧。"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-22-1",
+            "wordId": "w-22",
+            "sequence": 1,
+            "text": "prac",
+            "phonetic": "/præk/",
+            "syllable": "prac"
+          },
+          {
+            "id": "wp-22-2",
+            "wordId": "w-22",
+            "sequence": 2,
+            "text": "tice",
+            "phonetic": "/tɪs/",
+            "syllable": "tice"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sw-session-1791277221989-iyc0-1",
+      "sessionId": "session-1791277221989-iyc0",
+      "wordId": "w-4",
+      "sequence": 1,
+      "learnStatus": "LEARNED",
+      "writeStatus": "WRITTEN",
+      "completed": true,
+      "isCorrect": true,
+      "userInput": "computer",
+      "createdAt": "2026-10-06T09:00:21.988Z",
+      "word": {
+        "id": "w-4",
+        "text": "computer",
+        "phoneticUk": "/kəmˈpjuːtə(r)/",
+        "phoneticUs": "/kəmˈpjuːtər/",
+        "pos": "n.",
+        "difficulty": 2,
+        "meanings": [
+          {
+            "id": "wm-4",
+            "wordId": "w-4",
+            "pos": "n.",
+            "definitionCn": "计算机；电脑",
+            "definitionEn": "an electronic device for storing and processing data",
+            "exampleEn": "I use my computer for online research.",
+            "exampleCn": "我用电脑做在线调研。"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-4-1",
+            "wordId": "w-4",
+            "sequence": 1,
+            "text": "com",
+            "phonetic": "/kəm/",
+            "syllable": "com"
+          },
+          {
+            "id": "wp-4-2",
+            "wordId": "w-4",
+            "sequence": 2,
+            "text": "pu",
+            "phonetic": "/pjuː/",
+            "syllable": "pu"
+          },
+          {
+            "id": "wp-4-3",
+            "wordId": "w-4",
+            "sequence": 3,
+            "text": "ter",
+            "phonetic": "/tər/",
+            "syllable": "ter"
+          }
+        ]
+      },
+      "writtenAt": "2026-10-06T09:00:22.055Z"
+    },
+    {
+      "id": "sw-session-1791277221989-iyc0-2",
+      "sessionId": "session-1791277221989-iyc0",
+      "wordId": "w-5",
+      "sequence": 2,
+      "learnStatus": "LEARNED",
+      "writeStatus": "WRITTEN",
+      "completed": true,
+      "isCorrect": true,
+      "userInput": "beautiful",
+      "createdAt": "2026-10-06T09:00:21.988Z",
+      "word": {
+        "id": "w-5",
+        "text": "beautiful",
+        "phoneticUk": "/ˈbjuːtɪfl/",
+        "phoneticUs": "/ˈbjuːt̬ɪfəl/",
+        "pos": "adj.",
+        "difficulty": 2,
+        "meanings": [
+          {
+            "id": "wm-5",
+            "wordId": "w-5",
+            "pos": "adj.",
+            "definitionCn": "美丽的；漂亮的；优美的",
+            "definitionEn": "pleasing the senses or mind aesthetically",
+            "exampleEn": "The sunrise this morning was truly beautiful.",
+            "exampleCn": "今晨的日出非常美丽。"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-5-1",
+            "wordId": "w-5",
+            "sequence": 1,
+            "text": "beau",
+            "phonetic": "/bjuː/",
+            "syllable": "beau"
+          },
+          {
+            "id": "wp-5-2",
+            "wordId": "w-5",
+            "sequence": 2,
+            "text": "ti",
+            "phonetic": "/tɪ/",
+            "syllable": "ti"
+          },
+          {
+            "id": "wp-5-3",
+            "wordId": "w-5",
+            "sequence": 3,
+            "text": "ful",
+            "phonetic": "/fəl/",
+            "syllable": "ful"
+          }
+        ]
+      },
+      "writtenAt": "2026-10-06T09:00:22.097Z"
+    },
+    {
+      "id": "sw-session-1791277221989-iyc0-3",
+      "sessionId": "session-1791277221989-iyc0",
+      "wordId": "w-6",
+      "sequence": 3,
+      "learnStatus": "LEARNED",
+      "writeStatus": "WRITTEN",
+      "completed": true,
+      "isCorrect": true,
+      "userInput": "important",
+      "createdAt": "2026-10-06T09:00:21.988Z",
+      "word": {
+        "id": "w-6",
+        "text": "important",
+        "phoneticUk": "/ɪmˈpɔːtnt/",
+        "phoneticUs": "/ɪmˈpɔːrtnt/",
+        "pos": "adj.",
+        "difficulty": 2,
+        "meanings": [
+          {
+            "id": "wm-6",
+            "wordId": "w-6",
+            "pos": "adj.",
+            "definitionCn": "重要的；重大的",
+            "definitionEn": "of great significance or value",
+            "exampleEn": "Health is the most important thing in life.",
+            "exampleCn": "健康是人生中最重要的东西。"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-6-1",
+            "wordId": "w-6",
+            "sequence": 1,
+            "text": "im",
+            "phonetic": "/ɪm/",
+            "syllable": "im"
+          },
+          {
+            "id": "wp-6-2",
+            "wordId": "w-6",
+            "sequence": 2,
+            "text": "por",
+            "phonetic": "/pɔːr/",
+            "syllable": "por"
+          },
+          {
+            "id": "wp-6-3",
+            "wordId": "w-6",
+            "sequence": 3,
+            "text": "tant",
+            "phonetic": "/tnt/",
+            "syllable": "tant"
+          }
+        ]
+      },
+      "writtenAt": "2026-10-06T09:00:22.171Z"
+    },
+    {
+      "id": "sw-session-1791277222200-blq6-1",
+      "sessionId": "session-1791277222200-blq6",
+      "wordId": "w-1",
+      "sequence": 1,
+      "learnStatus": "LEARNED",
+      "writeStatus": "WRITTEN",
+      "completed": true,
+      "isCorrect": true,
+      "userInput": "holiday",
+      "createdAt": "2026-10-06T09:00:22.200Z",
+      "word": {
+        "id": "w-1",
+        "text": "holiday",
+        "phoneticUk": "/ˈhɒlədeɪ/",
+        "phoneticUs": "/ˈhɑːlədeɪ/",
+        "pos": "n.",
+        "difficulty": 1,
+        "meanings": [
+          {
+            "id": "wm-1",
+            "wordId": "w-1",
+            "pos": "n.",
+            "definitionCn": "假期；假日；节日",
+            "definitionEn": "a time of rest from work, school etc.",
+            "exampleEn": "Where did you go during the holiday?",
+            "exampleCn": "假期你去了哪里？"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-1-1",
+            "wordId": "w-1",
+            "sequence": 1,
+            "text": "hol",
+            "phonetic": "/hɒl/",
+            "syllable": "hol"
+          },
+          {
+            "id": "wp-1-2",
+            "wordId": "w-1",
+            "sequence": 2,
+            "text": "i",
+            "phonetic": "/ə/",
+            "syllable": "i"
+          },
+          {
+            "id": "wp-1-3",
+            "wordId": "w-1",
+            "sequence": 3,
+            "text": "day",
+            "phonetic": "/deɪ/",
+            "syllable": "day"
+          }
+        ]
+      },
+      "learnedAt": "2026-10-06T09:00:22.208Z",
+      "writtenAt": "2026-10-06T09:00:22.250Z"
+    },
+    {
+      "id": "sw-session-1791277222200-blq6-2",
+      "sessionId": "session-1791277222200-blq6",
+      "wordId": "w-2",
+      "sequence": 2,
+      "learnStatus": "LEARN_PENDING",
+      "writeStatus": "WRITE_PENDING",
+      "completed": false,
+      "isCorrect": null,
+      "userInput": null,
+      "createdAt": "2026-10-06T09:00:22.200Z",
+      "word": {
+        "id": "w-2",
+        "text": "where",
+        "phoneticUk": "/weə(r)/",
+        "phoneticUs": "/wer/",
+        "pos": "adv.",
+        "difficulty": 1,
+        "meanings": [
+          {
+            "id": "wm-2",
+            "wordId": "w-2",
+            "pos": "adv.",
+            "definitionCn": "在哪里；向哪里",
+            "definitionEn": "at, in, or to what place or position",
+            "exampleEn": "Where is the nearest bus stop?",
+            "exampleCn": "最近的公交站在哪里？"
+          }
+        ],
+        "phonics": [
+          {
+            "id": "wp-2-1",
+            "wordId": "w-2",
+            "sequence": 1,
+            "text": "wh",
+            "phonetic": "/w/",
+            "syllable": "wh"
+          },
+          {
+            "id": "wp-2-2",
+            "wordId": "w-2",
+            "sequence": 2,
+            "text": "ere",
+            "phonetic": "/eə(r)/",
+            "syllable": "ere"
           }
         ]
       }
@@ -9414,10 +13389,381 @@
       "userId": "u-default",
       "difficulty": "A1",
       "totalCount": 3,
-      "currentSentenceIndex": 0,
-      "status": "IN_PROGRESS",
+      "currentSentenceIndex": 2,
+      "status": "COMPLETED",
       "createdAt": "2026-10-06T08:26:51.986Z",
-      "updatedAt": "2026-10-06T08:26:51.986Z"
+      "updatedAt": "2026-10-06T08:33:55.062Z",
+      "items": [
+        {
+          "id": "spi-sps-1791275211986-gkih-1",
+          "sessionId": "sps-1791275211986-gkih",
+          "sentenceId": "s-1",
+          "sequence": 1,
+          "currentPhase": "COMPLETED",
+          "currentPhraseIndex": 4,
+          "completed": true,
+          "createdAt": "2026-10-06T08:26:51.986Z",
+          "updatedAt": "2026-10-06T08:32:24.876Z",
+          "sentence": {
+            "id": "s-1",
+            "content": "Where did you go during the holiday?",
+            "translation": "你在假期去了哪里？",
+            "level": "A1",
+            "difficulty": 1,
+            "steps": [
+              {
+                "id": "ss-1-1",
+                "sentenceId": "s-1",
+                "stepNumber": 1,
+                "content": "Where",
+                "translation": "哪里",
+                "phonetic": "/weə(r)/",
+                "type": "WORD"
+              },
+              {
+                "id": "ss-1-2",
+                "sentenceId": "s-1",
+                "stepNumber": 2,
+                "content": "Where did",
+                "translation": "你在哪里（助动词引导疑问）",
+                "phonetic": "/wer dɪd/",
+                "type": "STRUCTURE"
+              },
+              {
+                "id": "ss-1-3",
+                "sentenceId": "s-1",
+                "stepNumber": 3,
+                "content": "Where did you",
+                "translation": "你在哪里（询问对象）",
+                "phonetic": "/wer dɪd juː/",
+                "type": "STRUCTURE"
+              },
+              {
+                "id": "ss-1-4",
+                "sentenceId": "s-1",
+                "stepNumber": 4,
+                "content": "Where did you go",
+                "translation": "你去了哪里",
+                "phonetic": "/wer dɪd juː ɡəʊ/",
+                "type": "PHRASE"
+              },
+              {
+                "id": "ss-1-5",
+                "sentenceId": "s-1",
+                "stepNumber": 5,
+                "content": "during the holiday",
+                "translation": "在假期期间",
+                "phonetic": "/ˈdjʊərɪŋ ðə ˈhɒlədeɪ/",
+                "type": "PHRASE"
+              },
+              {
+                "id": "ss-1-6",
+                "sentenceId": "s-1",
+                "stepNumber": 6,
+                "content": "Where did you go during the holiday?",
+                "translation": "你在假期去了哪里？",
+                "phonetic": "/wer dɪd juː ɡəʊ ˈdjʊərɪŋ ðə ˈhɒlədeɪ/",
+                "type": "SENTENCE"
+              }
+            ],
+            "analyses": [
+              {
+                "id": "sa-1-1",
+                "sentenceId": "s-1",
+                "text": "Where",
+                "startPosition": 0,
+                "endPosition": 5,
+                "type": "疑问词",
+                "explanation": "特殊疑问代词，询问具体地点"
+              },
+              {
+                "id": "sa-1-2",
+                "sentenceId": "s-1",
+                "text": "did",
+                "startPosition": 6,
+                "endPosition": 9,
+                "type": "助动词",
+                "explanation": "一般过去时助动词，协助构成疑问句"
+              },
+              {
+                "id": "sa-1-3",
+                "sentenceId": "s-1",
+                "text": "you",
+                "startPosition": 10,
+                "endPosition": 13,
+                "type": "主语",
+                "explanation": "第二人称代词，动作的执行者"
+              },
+              {
+                "id": "sa-1-4",
+                "sentenceId": "s-1",
+                "text": "go",
+                "startPosition": 14,
+                "endPosition": 16,
+                "type": "动词原形",
+                "explanation": "主要谓语动词，因有 did 助动词故使用原形"
+              },
+              {
+                "id": "sa-1-5",
+                "sentenceId": "s-1",
+                "text": "during the holiday",
+                "startPosition": 17,
+                "endPosition": 35,
+                "type": "时间状语",
+                "explanation": "介词短语修饰整句，交代动作发生的时间段"
+              }
+            ]
+          },
+          "phrases": [
+            {
+              "id": "ss-1-1",
+              "sentenceId": "s-1",
+              "sequence": 1,
+              "english": "Where",
+              "chinese": "哪里",
+              "phonetic": "/weə(r)/",
+              "type": "WORD"
+            },
+            {
+              "id": "ss-1-2",
+              "sentenceId": "s-1",
+              "sequence": 2,
+              "english": "Where did",
+              "chinese": "你在哪里（助动词引导疑问）",
+              "phonetic": "/wer dɪd/",
+              "type": "STRUCTURE"
+            },
+            {
+              "id": "ss-1-3",
+              "sentenceId": "s-1",
+              "sequence": 3,
+              "english": "Where did you",
+              "chinese": "你在哪里（询问对象）",
+              "phonetic": "/wer dɪd juː/",
+              "type": "STRUCTURE"
+            },
+            {
+              "id": "ss-1-4",
+              "sentenceId": "s-1",
+              "sequence": 4,
+              "english": "Where did you go",
+              "chinese": "你去了哪里",
+              "phonetic": "/wer dɪd juː ɡəʊ/",
+              "type": "PHRASE"
+            },
+            {
+              "id": "ss-1-5",
+              "sentenceId": "s-1",
+              "sequence": 5,
+              "english": "during the holiday",
+              "chinese": "在假期期间",
+              "phonetic": "/ˈdjʊərɪŋ ðə ˈhɒlədeɪ/",
+              "type": "PHRASE"
+            }
+          ]
+        },
+        {
+          "id": "spi-sps-1791275211986-gkih-2",
+          "sessionId": "sps-1791275211986-gkih",
+          "sentenceId": "s-4",
+          "sequence": 2,
+          "currentPhase": "COMPLETED",
+          "currentPhraseIndex": 1,
+          "completed": true,
+          "createdAt": "2026-10-06T08:26:51.986Z",
+          "updatedAt": "2026-10-06T08:33:01.965Z",
+          "sentence": {
+            "id": "s-4",
+            "content": "I went to school in the morning.",
+            "translation": "我早晨去上学了。",
+            "level": "A1",
+            "difficulty": 1,
+            "steps": [
+              {
+                "id": "ss-4-1",
+                "sentenceId": "s-4",
+                "stepNumber": 1,
+                "content": "I went to school",
+                "translation": "我去上学",
+                "phonetic": "/aɪ went tuː skuːl/",
+                "type": "PHRASE"
+              },
+              {
+                "id": "ss-4-2",
+                "sentenceId": "s-4",
+                "stepNumber": 2,
+                "content": "in the morning",
+                "translation": "在早晨",
+                "phonetic": "/ɪn ðə ˈmɔːnɪŋ/",
+                "type": "PHRASE"
+              },
+              {
+                "id": "ss-4-3",
+                "sentenceId": "s-4",
+                "stepNumber": 3,
+                "content": "I went to school in the morning.",
+                "translation": "我早晨去上学了。",
+                "phonetic": "/aɪ went tuː skuːl ɪn ðə ˈmɔːnɪŋ/",
+                "type": "SENTENCE"
+              }
+            ],
+            "analyses": [
+              {
+                "id": "sa-4-1",
+                "sentenceId": "s-4",
+                "text": "I went to school",
+                "startPosition": 0,
+                "endPosition": 16,
+                "type": "主干结构",
+                "explanation": "主谓宾/介词短语习惯表达"
+              },
+              {
+                "id": "sa-4-2",
+                "sentenceId": "s-4",
+                "text": "in the morning",
+                "startPosition": 17,
+                "endPosition": 31,
+                "type": "时间状语",
+                "explanation": "固定介词短语"
+              }
+            ]
+          },
+          "phrases": [
+            {
+              "id": "ss-4-1",
+              "sentenceId": "s-4",
+              "sequence": 1,
+              "english": "I went to school",
+              "chinese": "我去上学",
+              "phonetic": "/aɪ went tuː skuːl/",
+              "type": "PHRASE"
+            },
+            {
+              "id": "ss-4-2",
+              "sentenceId": "s-4",
+              "sequence": 2,
+              "english": "in the morning",
+              "chinese": "在早晨",
+              "phonetic": "/ɪn ðə ˈmɔːnɪŋ/",
+              "type": "PHRASE"
+            }
+          ]
+        },
+        {
+          "id": "spi-sps-1791275211986-gkih-3",
+          "sessionId": "sps-1791275211986-gkih",
+          "sentenceId": "s-9",
+          "sequence": 3,
+          "currentPhase": "COMPLETED",
+          "currentPhraseIndex": 2,
+          "completed": true,
+          "createdAt": "2026-10-06T08:26:51.986Z",
+          "updatedAt": "2026-10-06T08:33:39.471Z",
+          "sentence": {
+            "id": "s-9",
+            "content": "The teacher asked an important question.",
+            "translation": "老师问了一个重要的问题。",
+            "level": "A1",
+            "difficulty": 1,
+            "steps": [
+              {
+                "id": "ss-9-1",
+                "sentenceId": "s-9",
+                "stepNumber": 1,
+                "content": "The teacher",
+                "translation": "老师",
+                "phonetic": "/ðə ˈtiːtʃə(r)/",
+                "type": "WORD"
+              },
+              {
+                "id": "ss-9-2",
+                "sentenceId": "s-9",
+                "stepNumber": 2,
+                "content": "asked",
+                "translation": "提出了/询问了",
+                "phonetic": "/ɑːskt/",
+                "type": "WORD"
+              },
+              {
+                "id": "ss-9-3",
+                "sentenceId": "s-9",
+                "stepNumber": 3,
+                "content": "an important question",
+                "translation": "一个重要的问题",
+                "phonetic": "/ən ɪmˈpɔːtnt ˈkwestʃən/",
+                "type": "PHRASE"
+              },
+              {
+                "id": "ss-9-4",
+                "sentenceId": "s-9",
+                "stepNumber": 4,
+                "content": "The teacher asked an important question.",
+                "translation": "老师问了一个重要的问题。",
+                "phonetic": "/ðə ˈtiːtʃər ɑːskt ən ɪmˈpɔːtnt ˈkwestʃən/",
+                "type": "SENTENCE"
+              }
+            ],
+            "analyses": [
+              {
+                "id": "sa-9-1",
+                "sentenceId": "s-9",
+                "text": "The teacher",
+                "startPosition": 0,
+                "endPosition": 11,
+                "type": "主语",
+                "explanation": "名词词组"
+              },
+              {
+                "id": "sa-9-2",
+                "sentenceId": "s-9",
+                "text": "asked",
+                "startPosition": 12,
+                "endPosition": 17,
+                "type": "谓语动词",
+                "explanation": "ask 的一般过去式"
+              },
+              {
+                "id": "sa-9-3",
+                "sentenceId": "s-9",
+                "text": "an important question",
+                "startPosition": 18,
+                "endPosition": 39,
+                "type": "直接宾语",
+                "explanation": "不定冠词 an + 形容词 + 名词"
+              }
+            ]
+          },
+          "phrases": [
+            {
+              "id": "ss-9-1",
+              "sentenceId": "s-9",
+              "sequence": 1,
+              "english": "The teacher",
+              "chinese": "老师",
+              "phonetic": "/ðə ˈtiːtʃə(r)/",
+              "type": "WORD"
+            },
+            {
+              "id": "ss-9-2",
+              "sentenceId": "s-9",
+              "sequence": 2,
+              "english": "asked",
+              "chinese": "提出了/询问了",
+              "phonetic": "/ɑːskt/",
+              "type": "WORD"
+            },
+            {
+              "id": "ss-9-3",
+              "sentenceId": "s-9",
+              "sequence": 3,
+              "english": "an important question",
+              "chinese": "一个重要的问题",
+              "phonetic": "/ən ɪmˈpɔːtnt ˈkwestʃən/",
+              "type": "PHRASE"
+            }
+          ]
+        }
+      ]
     }
   ],
   "sentencePracticeItems": [
@@ -10071,11 +14417,11 @@
       "sessionId": "sps-1791275211986-gkih",
       "sentenceId": "s-1",
       "sequence": 1,
-      "currentPhase": "PHRASE",
-      "currentPhraseIndex": 1,
-      "completed": false,
+      "currentPhase": "COMPLETED",
+      "currentPhraseIndex": 4,
+      "completed": true,
       "createdAt": "2026-10-06T08:26:51.986Z",
-      "updatedAt": "2026-10-06T08:27:09.290Z",
+      "updatedAt": "2026-10-06T08:32:24.876Z",
       "sentence": {
         "id": "s-1",
         "content": "Where did you go during the holiday?",
@@ -10239,22 +14585,201 @@
       "sessionId": "sps-1791275211986-gkih",
       "sentenceId": "s-4",
       "sequence": 2,
-      "currentPhase": "PHRASE",
-      "currentPhraseIndex": 0,
-      "completed": false,
+      "currentPhase": "COMPLETED",
+      "currentPhraseIndex": 1,
+      "completed": true,
       "createdAt": "2026-10-06T08:26:51.986Z",
-      "updatedAt": "2026-10-06T08:26:51.986Z"
+      "updatedAt": "2026-10-06T08:33:01.965Z",
+      "sentence": {
+        "id": "s-4",
+        "content": "I went to school in the morning.",
+        "translation": "我早晨去上学了。",
+        "level": "A1",
+        "difficulty": 1,
+        "steps": [
+          {
+            "id": "ss-4-1",
+            "sentenceId": "s-4",
+            "stepNumber": 1,
+            "content": "I went to school",
+            "translation": "我去上学",
+            "phonetic": "/aɪ went tuː skuːl/",
+            "type": "PHRASE"
+          },
+          {
+            "id": "ss-4-2",
+            "sentenceId": "s-4",
+            "stepNumber": 2,
+            "content": "in the morning",
+            "translation": "在早晨",
+            "phonetic": "/ɪn ðə ˈmɔːnɪŋ/",
+            "type": "PHRASE"
+          },
+          {
+            "id": "ss-4-3",
+            "sentenceId": "s-4",
+            "stepNumber": 3,
+            "content": "I went to school in the morning.",
+            "translation": "我早晨去上学了。",
+            "phonetic": "/aɪ went tuː skuːl ɪn ðə ˈmɔːnɪŋ/",
+            "type": "SENTENCE"
+          }
+        ],
+        "analyses": [
+          {
+            "id": "sa-4-1",
+            "sentenceId": "s-4",
+            "text": "I went to school",
+            "startPosition": 0,
+            "endPosition": 16,
+            "type": "主干结构",
+            "explanation": "主谓宾/介词短语习惯表达"
+          },
+          {
+            "id": "sa-4-2",
+            "sentenceId": "s-4",
+            "text": "in the morning",
+            "startPosition": 17,
+            "endPosition": 31,
+            "type": "时间状语",
+            "explanation": "固定介词短语"
+          }
+        ]
+      },
+      "phrases": [
+        {
+          "id": "ss-4-1",
+          "sentenceId": "s-4",
+          "sequence": 1,
+          "english": "I went to school",
+          "chinese": "我去上学",
+          "phonetic": "/aɪ went tuː skuːl/",
+          "type": "PHRASE"
+        },
+        {
+          "id": "ss-4-2",
+          "sentenceId": "s-4",
+          "sequence": 2,
+          "english": "in the morning",
+          "chinese": "在早晨",
+          "phonetic": "/ɪn ðə ˈmɔːnɪŋ/",
+          "type": "PHRASE"
+        }
+      ]
     },
     {
       "id": "spi-sps-1791275211986-gkih-3",
       "sessionId": "sps-1791275211986-gkih",
       "sentenceId": "s-9",
       "sequence": 3,
-      "currentPhase": "PHRASE",
-      "currentPhraseIndex": 0,
-      "completed": false,
+      "currentPhase": "COMPLETED",
+      "currentPhraseIndex": 2,
+      "completed": true,
       "createdAt": "2026-10-06T08:26:51.986Z",
-      "updatedAt": "2026-10-06T08:26:51.986Z"
+      "updatedAt": "2026-10-06T08:33:55.049Z",
+      "sentence": {
+        "id": "s-9",
+        "content": "The teacher asked an important question.",
+        "translation": "老师问了一个重要的问题。",
+        "level": "A1",
+        "difficulty": 1,
+        "steps": [
+          {
+            "id": "ss-9-1",
+            "sentenceId": "s-9",
+            "stepNumber": 1,
+            "content": "The teacher",
+            "translation": "老师",
+            "phonetic": "/ðə ˈtiːtʃə(r)/",
+            "type": "WORD"
+          },
+          {
+            "id": "ss-9-2",
+            "sentenceId": "s-9",
+            "stepNumber": 2,
+            "content": "asked",
+            "translation": "提出了/询问了",
+            "phonetic": "/ɑːskt/",
+            "type": "WORD"
+          },
+          {
+            "id": "ss-9-3",
+            "sentenceId": "s-9",
+            "stepNumber": 3,
+            "content": "an important question",
+            "translation": "一个重要的问题",
+            "phonetic": "/ən ɪmˈpɔːtnt ˈkwestʃən/",
+            "type": "PHRASE"
+          },
+          {
+            "id": "ss-9-4",
+            "sentenceId": "s-9",
+            "stepNumber": 4,
+            "content": "The teacher asked an important question.",
+            "translation": "老师问了一个重要的问题。",
+            "phonetic": "/ðə ˈtiːtʃər ɑːskt ən ɪmˈpɔːtnt ˈkwestʃən/",
+            "type": "SENTENCE"
+          }
+        ],
+        "analyses": [
+          {
+            "id": "sa-9-1",
+            "sentenceId": "s-9",
+            "text": "The teacher",
+            "startPosition": 0,
+            "endPosition": 11,
+            "type": "主语",
+            "explanation": "名词词组"
+          },
+          {
+            "id": "sa-9-2",
+            "sentenceId": "s-9",
+            "text": "asked",
+            "startPosition": 12,
+            "endPosition": 17,
+            "type": "谓语动词",
+            "explanation": "ask 的一般过去式"
+          },
+          {
+            "id": "sa-9-3",
+            "sentenceId": "s-9",
+            "text": "an important question",
+            "startPosition": 18,
+            "endPosition": 39,
+            "type": "直接宾语",
+            "explanation": "不定冠词 an + 形容词 + 名词"
+          }
+        ]
+      },
+      "phrases": [
+        {
+          "id": "ss-9-1",
+          "sentenceId": "s-9",
+          "sequence": 1,
+          "english": "The teacher",
+          "chinese": "老师",
+          "phonetic": "/ðə ˈtiːtʃə(r)/",
+          "type": "WORD"
+        },
+        {
+          "id": "ss-9-2",
+          "sentenceId": "s-9",
+          "sequence": 2,
+          "english": "asked",
+          "chinese": "提出了/询问了",
+          "phonetic": "/ɑːskt/",
+          "type": "WORD"
+        },
+        {
+          "id": "ss-9-3",
+          "sentenceId": "s-9",
+          "sequence": 3,
+          "english": "an important question",
+          "chinese": "一个重要的问题",
+          "phonetic": "/ən ɪmˈpɔːtnt ˈkwestʃən/",
+          "type": "PHRASE"
+        }
+      ]
     }
   ],
   "configs": [
@@ -10276,51 +14801,51 @@
       "userId": "u-default",
       "wordId": "w-1",
       "status": "REVIEW",
-      "learnCount": 5,
-      "reviewCount": 3,
-      "correctCount": 4,
-      "wrongCount": 0,
-      "streak": 4,
-      "mastery": 85,
-      "lastLearnAt": "2026-10-06T05:18:02.087Z",
-      "lastReviewAt": "2026-10-06T05:18:07.781Z",
-      "nextReviewAt": "2026-10-13T05:18:07.781Z",
+      "learnCount": 6,
+      "reviewCount": 5,
+      "correctCount": 5,
+      "wrongCount": 1,
+      "streak": 1,
+      "mastery": 80,
+      "lastLearnAt": "2026-10-06T09:00:22.208Z",
+      "lastReviewAt": "2026-10-06T09:00:22.255Z",
+      "nextReviewAt": "2026-10-06T09:10:22.255Z",
       "createdAt": "2026-10-06T04:53:02.664Z",
-      "updatedAt": "2026-10-06T05:18:07.781Z"
+      "updatedAt": "2026-10-06T09:00:22.255Z"
     },
     {
       "id": "p-2",
       "userId": "u-default",
       "wordId": "w-2",
       "status": "REVIEW",
-      "learnCount": 6,
-      "reviewCount": 6,
-      "correctCount": 6,
+      "learnCount": 7,
+      "reviewCount": 8,
+      "correctCount": 8,
       "wrongCount": 1,
-      "streak": 1,
-      "mastery": 95,
-      "lastLearnAt": "2026-10-06T05:20:24.776Z",
-      "lastReviewAt": "2026-10-06T05:20:28.790Z",
-      "nextReviewAt": "2026-10-06T05:30:28.790Z",
+      "streak": 3,
+      "mastery": 100,
+      "lastLearnAt": "2026-10-06T08:37:23.130Z",
+      "lastReviewAt": "2026-10-06T08:37:25.234Z",
+      "nextReviewAt": "2026-10-09T08:37:25.234Z",
       "createdAt": "2026-10-06T04:53:02.664Z",
-      "updatedAt": "2026-10-06T05:20:28.790Z"
+      "updatedAt": "2026-10-06T08:37:25.234Z"
     },
     {
       "id": "p-1791262458686",
       "userId": "u-default",
       "wordId": "w-3",
       "status": "REVIEW",
-      "learnCount": 1,
-      "reviewCount": 1,
-      "correctCount": 1,
-      "wrongCount": 0,
-      "streak": 1,
-      "mastery": 40,
-      "lastLearnAt": "2026-10-06T04:54:18.686Z",
-      "nextReviewAt": "2026-10-06T05:05:52.557Z",
+      "learnCount": 2,
+      "reviewCount": 4,
+      "correctCount": 3,
+      "wrongCount": 1,
+      "streak": 2,
+      "mastery": 50,
+      "lastLearnAt": "2026-10-06T08:35:36.495Z",
+      "nextReviewAt": "2026-10-07T08:36:30.790Z",
       "createdAt": "2026-10-06T04:54:18.686Z",
-      "updatedAt": "2026-10-06T04:55:52.557Z",
-      "lastReviewAt": "2026-10-06T04:55:52.557Z"
+      "updatedAt": "2026-10-06T08:36:30.790Z",
+      "lastReviewAt": "2026-10-06T08:36:30.790Z"
     },
     {
       "id": "p-1791262459979",
@@ -10328,33 +14853,33 @@
       "wordId": "w-4",
       "status": "REVIEW",
       "learnCount": 1,
-      "reviewCount": 3,
-      "correctCount": 1,
-      "wrongCount": 2,
+      "reviewCount": 6,
+      "correctCount": 3,
+      "wrongCount": 3,
       "streak": 1,
-      "mastery": 15,
+      "mastery": 25,
       "lastLearnAt": "2026-10-06T04:54:19.979Z",
-      "nextReviewAt": "2026-10-06T08:36:40.112Z",
+      "nextReviewAt": "2026-10-06T09:10:22.061Z",
       "createdAt": "2026-10-06T04:54:19.979Z",
-      "updatedAt": "2026-10-06T08:26:40.112Z",
-      "lastReviewAt": "2026-10-06T08:26:40.112Z"
+      "updatedAt": "2026-10-06T09:00:22.061Z",
+      "lastReviewAt": "2026-10-06T09:00:22.061Z"
     },
     {
       "id": "p-1791262461790",
       "userId": "u-default",
       "wordId": "w-5",
-      "status": "LEARNING",
+      "status": "REVIEW",
       "learnCount": 1,
-      "reviewCount": 1,
-      "correctCount": 0,
-      "wrongCount": 1,
-      "streak": 0,
-      "mastery": 10,
+      "reviewCount": 4,
+      "correctCount": 2,
+      "wrongCount": 2,
+      "streak": 2,
+      "mastery": 30,
       "lastLearnAt": "2026-10-06T04:54:21.790Z",
-      "nextReviewAt": "2026-10-06T05:06:06.549Z",
+      "nextReviewAt": "2026-10-07T09:00:22.102Z",
       "createdAt": "2026-10-06T04:54:21.790Z",
-      "updatedAt": "2026-10-06T04:56:06.549Z",
-      "lastReviewAt": "2026-10-06T04:56:06.549Z"
+      "updatedAt": "2026-10-06T09:00:22.102Z",
+      "lastReviewAt": "2026-10-06T09:00:22.102Z"
     },
     {
       "id": "p-1791265945261",
@@ -10377,18 +14902,18 @@
       "id": "p-1791265961300",
       "userId": "u-default",
       "wordId": "w-6",
-      "status": "LEARNING",
+      "status": "REVIEW",
       "learnCount": 1,
-      "reviewCount": 2,
-      "correctCount": 0,
-      "wrongCount": 2,
-      "streak": 0,
-      "mastery": 0,
+      "reviewCount": 5,
+      "correctCount": 2,
+      "wrongCount": 3,
+      "streak": 1,
+      "mastery": 15,
       "lastLearnAt": "2026-10-06T05:52:41.297Z",
-      "nextReviewAt": "2026-10-06T06:22:59.900Z",
+      "nextReviewAt": "2026-10-06T09:10:22.176Z",
       "createdAt": "2026-10-06T05:52:41.297Z",
-      "updatedAt": "2026-10-06T06:12:59.900Z",
-      "lastReviewAt": "2026-10-06T06:12:59.900Z"
+      "updatedAt": "2026-10-06T09:00:22.176Z",
+      "lastReviewAt": "2026-10-06T09:00:22.176Z"
     },
     {
       "id": "p-1791267323655",
@@ -10508,18 +15033,69 @@
       "createdAt": "2026-10-06T07:47:44.626Z",
       "updatedAt": "2026-10-06T07:50:32.564Z",
       "lastReviewAt": "2026-10-06T07:50:32.564Z"
+    },
+    {
+      "id": "p-1791275684911",
+      "userId": "u-default",
+      "wordId": "w-7",
+      "status": "REVIEW",
+      "learnCount": 1,
+      "reviewCount": 1,
+      "correctCount": 1,
+      "wrongCount": 0,
+      "streak": 1,
+      "mastery": 35,
+      "lastLearnAt": "2026-10-06T08:34:44.905Z",
+      "nextReviewAt": "2026-10-06T08:44:48.556Z",
+      "createdAt": "2026-10-06T08:34:44.905Z",
+      "updatedAt": "2026-10-06T08:34:48.556Z",
+      "lastReviewAt": "2026-10-06T08:34:48.556Z"
+    },
+    {
+      "id": "p-1791275722246",
+      "userId": "u-default",
+      "wordId": "w-47",
+      "status": "REVIEW",
+      "learnCount": 1,
+      "reviewCount": 1,
+      "correctCount": 1,
+      "wrongCount": 0,
+      "streak": 1,
+      "mastery": 35,
+      "lastLearnAt": "2026-10-06T08:35:22.242Z",
+      "nextReviewAt": "2026-10-06T08:45:24.933Z",
+      "createdAt": "2026-10-06T08:35:22.242Z",
+      "updatedAt": "2026-10-06T08:35:24.933Z",
+      "lastReviewAt": "2026-10-06T08:35:24.933Z"
+    },
+    {
+      "id": "p-1791275756814",
+      "userId": "u-default",
+      "wordId": "w-11",
+      "status": "REVIEW",
+      "learnCount": 1,
+      "reviewCount": 1,
+      "correctCount": 1,
+      "wrongCount": 0,
+      "streak": 1,
+      "mastery": 35,
+      "lastLearnAt": "2026-10-06T08:35:56.809Z",
+      "nextReviewAt": "2026-10-06T08:45:59.669Z",
+      "createdAt": "2026-10-06T08:35:56.809Z",
+      "updatedAt": "2026-10-06T08:35:59.669Z",
+      "lastReviewAt": "2026-10-06T08:35:59.669Z"
     }
   ],
   "sentenceProgresses": [
     {
-      "id": "sp-u-default-s-1",
+      "id": "usp-u-default-s-1",
       "userId": "u-default",
       "sentenceId": "s-1",
       "status": "COMPLETED",
       "currentStep": 6,
-      "completedAt": "2026-10-06T05:21:37.669Z",
-      "createdAt": "2026-10-06T05:21:37.669Z",
-      "updatedAt": "2026-10-06T05:21:37.669Z"
+      "completedAt": "2026-10-06T08:32:24.881Z",
+      "createdAt": "2026-10-06T08:32:24.881Z",
+      "updatedAt": "2026-10-06T08:32:24.881Z"
     },
     {
       "id": "sp-u-default-s-2",
@@ -10547,9 +15123,9 @@
       "sentenceId": "s-9",
       "status": "COMPLETED",
       "currentStep": 4,
-      "completedAt": "2026-10-06T07:13:02.832Z",
-      "createdAt": "2026-10-06T07:13:02.832Z",
-      "updatedAt": "2026-10-06T07:13:02.832Z"
+      "completedAt": "2026-10-06T08:33:55.054Z",
+      "createdAt": "2026-10-06T08:33:55.054Z",
+      "updatedAt": "2026-10-06T08:33:55.054Z"
     },
     {
       "id": "usp-u-default-s-4",
@@ -10557,9 +15133,9 @@
       "sentenceId": "s-4",
       "status": "COMPLETED",
       "currentStep": 3,
-      "completedAt": "2026-10-06T07:45:58.858Z",
-      "createdAt": "2026-10-06T07:45:58.858Z",
-      "updatedAt": "2026-10-06T07:45:58.858Z"
+      "completedAt": "2026-10-06T08:33:01.969Z",
+      "createdAt": "2026-10-06T08:33:01.969Z",
+      "updatedAt": "2026-10-06T08:33:01.969Z"
     }
   ],
   "learningRecords": [
@@ -10997,6 +15573,248 @@
       "inputText": "computer",
       "timeSpentSec": 5,
       "createdAt": "2026-10-06T08:26:40.108Z"
+    },
+    {
+      "id": "lr-1791275544886-9rdp",
+      "userId": "u-default",
+      "itemType": "SENTENCE",
+      "itemId": "s-1",
+      "action": "STEP_COMPLETE",
+      "isCorrect": true,
+      "inputText": "Where did you go during the holiday",
+      "timeSpentSec": 8,
+      "createdAt": "2026-10-06T08:32:24.886Z"
+    },
+    {
+      "id": "lr-1791275581973-ep82",
+      "userId": "u-default",
+      "itemType": "SENTENCE",
+      "itemId": "s-4",
+      "action": "STEP_COMPLETE",
+      "isCorrect": true,
+      "inputText": "I went to school in the morning",
+      "timeSpentSec": 8,
+      "createdAt": "2026-10-06T08:33:01.973Z"
+    },
+    {
+      "id": "lr-1791275635058-gqwb",
+      "userId": "u-default",
+      "itemType": "SENTENCE",
+      "itemId": "s-9",
+      "action": "STEP_COMPLETE",
+      "isCorrect": true,
+      "inputText": "The teacher asked an important question",
+      "timeSpentSec": 8,
+      "createdAt": "2026-10-06T08:33:55.058Z"
+    },
+    {
+      "id": "lr-1791275648707",
+      "userId": "u-default",
+      "itemType": "WORD",
+      "itemId": "w-5",
+      "action": "MEMORIZE",
+      "isCorrect": false,
+      "inputText": "beatiful",
+      "timeSpentSec": 5,
+      "createdAt": "2026-10-06T08:34:08.695Z"
+    },
+    {
+      "id": "lr-1791275661919",
+      "userId": "u-default",
+      "itemType": "WORD",
+      "itemId": "w-5",
+      "action": "MEMORIZE",
+      "isCorrect": true,
+      "inputText": "beautiful",
+      "timeSpentSec": 5,
+      "createdAt": "2026-10-06T08:34:21.906Z"
+    },
+    {
+      "id": "lr-1791275671857",
+      "userId": "u-default",
+      "itemType": "WORD",
+      "itemId": "w-6",
+      "action": "MEMORIZE",
+      "isCorrect": true,
+      "inputText": "important",
+      "timeSpentSec": 5,
+      "createdAt": "2026-10-06T08:34:31.846Z"
+    },
+    {
+      "id": "lr-1791275688564",
+      "userId": "u-default",
+      "itemType": "WORD",
+      "itemId": "w-7",
+      "action": "MEMORIZE",
+      "isCorrect": true,
+      "inputText": "school",
+      "timeSpentSec": 5,
+      "createdAt": "2026-10-06T08:34:48.551Z"
+    },
+    {
+      "id": "lr-1791275724943",
+      "userId": "u-default",
+      "itemType": "WORD",
+      "itemId": "w-47",
+      "action": "MEMORIZE",
+      "isCorrect": true,
+      "inputText": "spring",
+      "timeSpentSec": 5,
+      "createdAt": "2026-10-06T08:35:24.927Z"
+    },
+    {
+      "id": "lr-1791275741863",
+      "userId": "u-default",
+      "itemType": "WORD",
+      "itemId": "w-3",
+      "action": "MEMORIZE",
+      "isCorrect": false,
+      "inputText": "druring",
+      "timeSpentSec": 5,
+      "createdAt": "2026-10-06T08:35:41.849Z"
+    },
+    {
+      "id": "lr-1791275749033",
+      "userId": "u-default",
+      "itemType": "WORD",
+      "itemId": "w-3",
+      "action": "MEMORIZE",
+      "isCorrect": true,
+      "inputText": "during",
+      "timeSpentSec": 5,
+      "createdAt": "2026-10-06T08:35:49.016Z"
+    },
+    {
+      "id": "lr-1791275759678",
+      "userId": "u-default",
+      "itemType": "WORD",
+      "itemId": "w-11",
+      "action": "MEMORIZE",
+      "isCorrect": true,
+      "inputText": "friend",
+      "timeSpentSec": 5,
+      "createdAt": "2026-10-06T08:35:59.665Z"
+    },
+    {
+      "id": "lr-1791275782084",
+      "userId": "u-default",
+      "itemType": "WORD",
+      "itemId": "w-2",
+      "action": "MEMORIZE",
+      "isCorrect": true,
+      "inputText": "where",
+      "timeSpentSec": 5,
+      "createdAt": "2026-10-06T08:36:22.068Z"
+    },
+    {
+      "id": "lr-1791275790800",
+      "userId": "u-default",
+      "itemType": "WORD",
+      "itemId": "w-3",
+      "action": "MEMORIZE",
+      "isCorrect": true,
+      "inputText": "during",
+      "timeSpentSec": 5,
+      "createdAt": "2026-10-06T08:36:30.785Z"
+    },
+    {
+      "id": "lr-1791275802477",
+      "userId": "u-default",
+      "itemType": "WORD",
+      "itemId": "w-4",
+      "action": "MEMORIZE",
+      "isCorrect": true,
+      "inputText": "computer",
+      "timeSpentSec": 5,
+      "createdAt": "2026-10-06T08:36:42.460Z"
+    },
+    {
+      "id": "lr-1791275845244",
+      "userId": "u-default",
+      "itemType": "WORD",
+      "itemId": "w-2",
+      "action": "MEMORIZE",
+      "isCorrect": true,
+      "inputText": "where",
+      "timeSpentSec": 5,
+      "createdAt": "2026-10-06T08:37:25.229Z"
+    },
+    {
+      "id": "lr-1791277222024-s5xq",
+      "userId": "u-default",
+      "itemType": "WORD",
+      "itemId": "w-4",
+      "action": "MEMORIZE",
+      "isCorrect": false,
+      "inputText": "computor",
+      "timeSpentSec": 5,
+      "createdAt": "2026-10-06T09:00:22.007Z"
+    },
+    {
+      "id": "lr-1791277222072-xfwp",
+      "userId": "u-default",
+      "itemType": "WORD",
+      "itemId": "w-4",
+      "action": "MEMORIZE",
+      "isCorrect": true,
+      "inputText": "computer",
+      "timeSpentSec": 5,
+      "createdAt": "2026-10-06T09:00:22.055Z"
+    },
+    {
+      "id": "lr-1791277222113-smpj",
+      "userId": "u-default",
+      "itemType": "WORD",
+      "itemId": "w-5",
+      "action": "MEMORIZE",
+      "isCorrect": true,
+      "inputText": "beautiful",
+      "timeSpentSec": 5,
+      "createdAt": "2026-10-06T09:00:22.097Z"
+    },
+    {
+      "id": "lr-1791277222155-mlqy",
+      "userId": "u-default",
+      "itemType": "WORD",
+      "itemId": "w-6",
+      "action": "MEMORIZE",
+      "isCorrect": false,
+      "inputText": "importent",
+      "timeSpentSec": 5,
+      "createdAt": "2026-10-06T09:00:22.140Z"
+    },
+    {
+      "id": "lr-1791277222185-7ai9",
+      "userId": "u-default",
+      "itemType": "WORD",
+      "itemId": "w-6",
+      "action": "MEMORIZE",
+      "isCorrect": true,
+      "inputText": "important",
+      "timeSpentSec": 5,
+      "createdAt": "2026-10-06T09:00:22.171Z"
+    },
+    {
+      "id": "lr-1791277222236-mcnj",
+      "userId": "u-default",
+      "itemType": "WORD",
+      "itemId": "w-1",
+      "action": "MEMORIZE",
+      "isCorrect": false,
+      "inputText": "holidaay",
+      "timeSpentSec": 5,
+      "createdAt": "2026-10-06T09:00:22.222Z"
+    },
+    {
+      "id": "lr-1791277222265-840m",
+      "userId": "u-default",
+      "itemType": "WORD",
+      "itemId": "w-1",
+      "action": "MEMORIZE",
+      "isCorrect": true,
+      "inputText": "holiday",
+      "timeSpentSec": 5,
+      "createdAt": "2026-10-06T09:00:22.250Z"
     }
   ],
   "reviewRecords": [
@@ -11197,6 +16015,177 @@
       "nextReviewAt": "2026-10-06T08:36:40.112Z",
       "result": "SUCCESS",
       "createdAt": "2026-10-06T08:26:40.112Z"
+    },
+    {
+      "id": "rr-1791275648703",
+      "userId": "u-default",
+      "wordId": "w-5",
+      "intervalDays": 0.006944444444444444,
+      "nextReviewAt": "2026-10-06T08:44:08.699Z",
+      "result": "FAIL",
+      "createdAt": "2026-10-06T08:34:08.699Z"
+    },
+    {
+      "id": "rr-1791275661915",
+      "userId": "u-default",
+      "wordId": "w-5",
+      "intervalDays": 0.006944444444444444,
+      "nextReviewAt": "2026-10-06T08:44:21.910Z",
+      "result": "SUCCESS",
+      "createdAt": "2026-10-06T08:34:21.910Z"
+    },
+    {
+      "id": "rr-1791275671854",
+      "userId": "u-default",
+      "wordId": "w-6",
+      "intervalDays": 0.006944444444444444,
+      "nextReviewAt": "2026-10-06T08:44:31.850Z",
+      "result": "SUCCESS",
+      "createdAt": "2026-10-06T08:34:31.850Z"
+    },
+    {
+      "id": "rr-1791275688560",
+      "userId": "u-default",
+      "wordId": "w-7",
+      "intervalDays": 0.006944444444444444,
+      "nextReviewAt": "2026-10-06T08:44:48.556Z",
+      "result": "SUCCESS",
+      "createdAt": "2026-10-06T08:34:48.556Z"
+    },
+    {
+      "id": "rr-1791275724938",
+      "userId": "u-default",
+      "wordId": "w-47",
+      "intervalDays": 0.006944444444444444,
+      "nextReviewAt": "2026-10-06T08:45:24.933Z",
+      "result": "SUCCESS",
+      "createdAt": "2026-10-06T08:35:24.933Z"
+    },
+    {
+      "id": "rr-1791275741858",
+      "userId": "u-default",
+      "wordId": "w-3",
+      "intervalDays": 0.006944444444444444,
+      "nextReviewAt": "2026-10-06T08:45:41.854Z",
+      "result": "FAIL",
+      "createdAt": "2026-10-06T08:35:41.854Z"
+    },
+    {
+      "id": "rr-1791275749027",
+      "userId": "u-default",
+      "wordId": "w-3",
+      "intervalDays": 0.006944444444444444,
+      "nextReviewAt": "2026-10-06T08:45:49.022Z",
+      "result": "SUCCESS",
+      "createdAt": "2026-10-06T08:35:49.022Z"
+    },
+    {
+      "id": "rr-1791275759674",
+      "userId": "u-default",
+      "wordId": "w-11",
+      "intervalDays": 0.006944444444444444,
+      "nextReviewAt": "2026-10-06T08:45:59.669Z",
+      "result": "SUCCESS",
+      "createdAt": "2026-10-06T08:35:59.669Z"
+    },
+    {
+      "id": "rr-1791275782078",
+      "userId": "u-default",
+      "wordId": "w-2",
+      "intervalDays": 1,
+      "nextReviewAt": "2026-10-07T08:36:22.074Z",
+      "result": "SUCCESS",
+      "createdAt": "2026-10-06T08:36:22.074Z"
+    },
+    {
+      "id": "rr-1791275790795",
+      "userId": "u-default",
+      "wordId": "w-3",
+      "intervalDays": 1,
+      "nextReviewAt": "2026-10-07T08:36:30.790Z",
+      "result": "SUCCESS",
+      "createdAt": "2026-10-06T08:36:30.790Z"
+    },
+    {
+      "id": "rr-1791275802472",
+      "userId": "u-default",
+      "wordId": "w-4",
+      "intervalDays": 1,
+      "nextReviewAt": "2026-10-07T08:36:42.465Z",
+      "result": "SUCCESS",
+      "createdAt": "2026-10-06T08:36:42.465Z"
+    },
+    {
+      "id": "rr-1791275845240",
+      "userId": "u-default",
+      "wordId": "w-2",
+      "intervalDays": 3,
+      "nextReviewAt": "2026-10-09T08:37:25.234Z",
+      "result": "SUCCESS",
+      "createdAt": "2026-10-06T08:37:25.234Z"
+    },
+    {
+      "id": "rr-1791277222019",
+      "userId": "u-default",
+      "wordId": "w-4",
+      "intervalDays": 0.006944444444444444,
+      "nextReviewAt": "2026-10-06T09:10:22.013Z",
+      "result": "FAIL",
+      "createdAt": "2026-10-06T09:00:22.013Z"
+    },
+    {
+      "id": "rr-1791277222067",
+      "userId": "u-default",
+      "wordId": "w-4",
+      "intervalDays": 0.006944444444444444,
+      "nextReviewAt": "2026-10-06T09:10:22.061Z",
+      "result": "SUCCESS",
+      "createdAt": "2026-10-06T09:00:22.061Z"
+    },
+    {
+      "id": "rr-1791277222107",
+      "userId": "u-default",
+      "wordId": "w-5",
+      "intervalDays": 1,
+      "nextReviewAt": "2026-10-07T09:00:22.102Z",
+      "result": "SUCCESS",
+      "createdAt": "2026-10-06T09:00:22.102Z"
+    },
+    {
+      "id": "rr-1791277222150",
+      "userId": "u-default",
+      "wordId": "w-6",
+      "intervalDays": 0.006944444444444444,
+      "nextReviewAt": "2026-10-06T09:10:22.146Z",
+      "result": "FAIL",
+      "createdAt": "2026-10-06T09:00:22.146Z"
+    },
+    {
+      "id": "rr-1791277222180",
+      "userId": "u-default",
+      "wordId": "w-6",
+      "intervalDays": 0.006944444444444444,
+      "nextReviewAt": "2026-10-06T09:10:22.176Z",
+      "result": "SUCCESS",
+      "createdAt": "2026-10-06T09:00:22.176Z"
+    },
+    {
+      "id": "rr-1791277222231",
+      "userId": "u-default",
+      "wordId": "w-1",
+      "intervalDays": 0.006944444444444444,
+      "nextReviewAt": "2026-10-06T09:10:22.226Z",
+      "result": "FAIL",
+      "createdAt": "2026-10-06T09:00:22.226Z"
+    },
+    {
+      "id": "rr-1791277222259",
+      "userId": "u-default",
+      "wordId": "w-1",
+      "intervalDays": 0.006944444444444444,
+      "nextReviewAt": "2026-10-06T09:10:22.255Z",
+      "result": "SUCCESS",
+      "createdAt": "2026-10-06T09:00:22.255Z"
     }
   ]
 }

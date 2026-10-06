@@ -48,6 +48,7 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
   // Write stage states
   const [userInput, setUserInput] = useState('');
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [showCompletionScreen, setShowCompletionScreen] = useState(false);
   const [writeResult, setWriteResult] = useState<{
     isCorrect: boolean;
     correctAnswer: string;
@@ -65,6 +66,10 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
       setLoading(true);
       const data = await api.getStudySessionById(sessionId);
       setSession(data);
+
+      if (data.status === 'COMPLETED' && data.completedCount >= data.totalCount) {
+        setShowCompletionScreen(true);
+      }
 
       // Determine initial wordStep based on session mode and current word's progress
       if (data.mode === 'WRITE_ONLY') {
@@ -172,7 +177,7 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
 
   // Move to next word in the session
   const handleNextWord = async () => {
-    if (!session) return;
+    if (!session || !writeResult?.isCorrect) return;
 
     if (session.currentWordIndex < session.totalCount - 1) {
       try {
@@ -185,6 +190,7 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
       }
     } else {
       // Completed all words in this study session!
+      setShowCompletionScreen(true);
       const updated = await api.getStudySessionById(session.id);
       setSession(updated);
     }
@@ -215,11 +221,13 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
     );
   }
 
-  // Session Completed Summary Screen
-  const isSessionFullyCompleted = session.status === 'COMPLETED' || session.completedCount >= session.totalCount;
+  // Session Completed Summary Screen: shown when explicitly reached end or when opening an already completed session
+  const isSessionFullyCompleted =
+    showCompletionScreen ||
+    (session.status === 'COMPLETED' && (!hasSubmitted || !writeResult));
 
   if (isSessionFullyCompleted) {
-    const correctWords = session.words.filter(w => w.isCorrect).length;
+    const correctWords = session.words.filter(w => w.completed && w.isCorrect).length;
     const wrongWords = session.words.filter(w => w.isCorrect === false).length;
     const accuracy = session.totalCount > 0 ? Math.round((correctWords / session.totalCount) * 100) : 100;
 
