@@ -4,7 +4,6 @@ import { HomeView } from './views/HomeView.tsx';
 import { StudySessionView } from './views/StudySessionView.tsx';
 import { StudySetupModal } from './views/StudySetupModal.tsx';
 import { SentencePracticeView } from './views/SentencePracticeView.tsx';
-import { SentencePracticeSetupModal } from './views/SentencePracticeSetupModal.tsx';
 import { DictionariesView } from './views/DictionariesView.tsx';
 import { AdminDictionariesView } from './views/AdminDictionariesView.tsx';
 import { SentenceListView } from './views/SentenceListView.tsx';
@@ -28,7 +27,6 @@ export default function App() {
   const [isStudySetupOpen, setIsStudySetupOpen] = useState(false);
   const [setupInitialDictId, setSetupInitialDictId] = useState<string | undefined>(undefined);
   const [setupInitialMode, setSetupInitialMode] = useState<SessionMode>('LEARN_AND_WRITE');
-  const [isSentenceSetupOpen, setIsSentenceSetupOpen] = useState(false);
 
   const [config, setConfig] = useState<DictionaryConfig>({
     id: 'cfg-default',
@@ -112,8 +110,17 @@ export default function App() {
     navigate(`/study/${sessionId}`);
   };
 
-  const handleSentencePracticeStarted = (sessionId: string) => {
-    navigate(`/sentence-practice/${sessionId}`);
+  const handleStartSentencePractice = async () => {
+    try {
+      const session = await api.createSentencePracticeSession({
+        dictionaryId: config.defaultDictionaryId
+      });
+      if (session?.id) {
+        navigate(`/sentence-practice/${session.id}`);
+      }
+    } catch (e: any) {
+      alert('开始句子练习失败：' + (e?.message || '未知错误'));
+    }
   };
 
   // Route parser for dynamic and nested routes
@@ -123,7 +130,7 @@ export default function App() {
         <HomeView
           navigate={navigate}
           onOpenStudySetup={handleOpenStudySetup}
-          onOpenSentencePracticeSetup={() => setIsSentenceSetupOpen(true)}
+          onStartSentencePractice={handleStartSentencePractice}
         />
       );
     }
@@ -284,13 +291,6 @@ export default function App() {
           config={config}
         />
 
-        <SentencePracticeSetupModal
-          isOpen={isSentenceSetupOpen}
-          onClose={() => setIsSentenceSetupOpen(false)}
-          onSessionStarted={handleSentencePracticeStarted}
-          config={config}
-        />
-
         <AuthModal
           isOpen={isAuthOpen}
           onClose={() => setIsAuthOpen(false)}
@@ -337,13 +337,6 @@ export default function App() {
       />
 
       {/* Sentence Practice Configuration Modal */}
-      <SentencePracticeSetupModal
-        isOpen={isSentenceSetupOpen}
-        onClose={() => setIsSentenceSetupOpen(false)}
-        onSessionStarted={handleSentencePracticeStarted}
-        config={config}
-      />
-
       {/* Authentication Modal */}
       <AuthModal
         isOpen={isAuthOpen}
