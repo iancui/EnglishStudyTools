@@ -537,6 +537,7 @@ class Storage {
         id: `cfg-${Date.now()}`,
         userId,
         defaultDictionaryId: 'dict-primary-6',
+        sentenceDictionaryId: 'dict-primary-6',
         englishDict: 'Oxford',
         ecDict: 'Oxford',
         phoneticType: 'UK',
