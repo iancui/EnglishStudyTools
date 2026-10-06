@@ -316,24 +316,22 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
 
   const handleNext = async () => {
     if (!session) return;
+
+    // 后端 submitRebuildAnswer 已在 handleCheck 成功时推进了 currentSentenceIndex
+    // （或对最后一句设置 status='COMPLETED'），这里直接使用最新 session 状态
+    const nextIdx = session.currentSentenceIndex;
+
+    // 已是完成状态：JSX 会渲染完成页，这里直接返回
+    if (session.status === 'COMPLETED' || nextIdx >= session.totalCount) {
+      return;
+    }
+
     setAllCorrect(false);
     autoCheckedRef.current = false;
     setWordStates([]);
 
-    const nextIdx = currentSentenceIndex + 1;
-    if (nextIdx >= session.totalCount) {
-      const fresh = await api.getSentencePracticeSessionById(session.id);
-      if (fresh) setSession(fresh);
-      return;
-    }
-
     const nextItem = session.items[nextIdx];
     if (nextItem) {
-      setSession(prev => prev ? {
-        ...prev,
-        currentSentenceIndex: nextIdx,
-        status: nextItem.completed ? 'COMPLETED' : 'IN_PROGRESS',
-      } : prev);
       const s = nextItem.sentence?.content || '';
       currentSentenceRef.current = s;
       const tokens = splitIntoWords(s);
@@ -345,6 +343,7 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
         errorPos: -1,
       })));
     } else {
+      // 防御性兜底：理论上不会进入，items[nextIdx] 不存在时重新拉取
       const fresh = await api.getSentencePracticeSessionById(session.id);
       if (fresh) {
         setSession(fresh);
