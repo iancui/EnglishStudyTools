@@ -488,40 +488,6 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
     );
   }
 
-  if (practiceCompleted || session.status === 'COMPLETED') {
-    return (
-      <div className="min-h-screen bg-[#F7FAFF] flex flex-col">
-        <ImmersionHeader
-          title="学语句完成"
-          currentIndex={session.totalCount}
-          totalCount={session.totalCount}
-          onExit={() => navigate('/')}
-        />
-        <main className="flex-1 max-w-xl mx-auto px-4 py-16 text-center space-y-8 animate-fadeIn flex flex-col justify-center">
-          <div className="w-20 h-20 bg-[#EBF2FE] text-[#4F7DF3] rounded-3xl mx-auto flex items-center justify-center shadow-xs">
-            <Sparkles className="w-10 h-10" />
-          </div>
-          <div className="space-y-2">
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-[#29466F]">
-              学语句练习完成！
-            </h1>
-            <p className="text-sm text-[#8BA0BD] max-w-sm mx-auto">
-              你已顺利完成本次 {session.totalCount} 个句子的逐词输入练习。
-            </p>
-          </div>
-          <button
-            onClick={() => navigate('/')}
-            className="py-3.5 px-8 bg-[#4F7DF3] hover:bg-[#3D6CE5] text-white font-bold rounded-2xl shadow-xs text-sm transition-all mx-auto"
-          >
-            返回学习中心
-          </button>
-        </main>
-      </div>
-    );
-  }
-
-  const allWordsCorrect = wordStates.length > 0 && wordStates.every(w => w.correct);
-
   // 答题成功后直接显示独立结果页，避免结果内容和输入界面同时存在。
   if (allCorrect && sentence?.content) {
     return (
@@ -562,24 +528,25 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
                     <div className="text-sm sm:text-base font-semibold text-[#8BA0BD] mt-2 min-h-[1.5rem]">
                       {info?.meaning || ' '}
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => playAudio(correctWord)}
-                      className="mt-3 mx-auto w-8 h-8 rounded-full bg-white text-[#4F7DF3] hover:bg-[#4F7DF3] hover:text-white flex items-center justify-center transition-colors shadow-xs"
-                      title="再来一遍"
-                    >
-                      <RotateCcw className="w-4 h-4" />
-                    </button>
+
                   </div>
                 );
               })}
             </div>
 
-            <div className="mt-12 flex justify-center">
+            <div className="mt-12 flex items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => playAudio(sentence?.content)}
+                className="px-7 py-3.5 bg-white border border-[#DCE6F5] hover:bg-[#EBF2FE] text-[#4F7DF3] font-bold rounded-2xl transition-all shadow-xs text-base flex items-center gap-2"
+              >
+                <RotateCcw className="w-4 h-4" />
+                <span>再来一遍</span>
+              </button>
               <button
                 type="button"
                 onClick={handleNext}
-                className="min-w-[220px] px-10 py-4 bg-[#4F7DF3] hover:bg-[#3D6CE5] active:scale-95 text-white font-bold rounded-2xl transition-all shadow-xs text-base"
+                className="min-w-[180px] px-8 py-3.5 bg-[#4F7DF3] hover:bg-[#3D6CE5] active:scale-95 text-white font-bold rounded-2xl transition-all shadow-xs text-base"
               >
                 {currentSentenceIndex + 1 >= session.totalCount ? '完成' : '继续'}
               </button>
@@ -589,6 +556,40 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
       </div>
     );
   }
+  if (practiceCompleted || session.status === 'COMPLETED') {
+    return (
+      <div className="min-h-screen bg-[#F7FAFF] flex flex-col">
+        <ImmersionHeader
+          title="学语句完成"
+          currentIndex={session.totalCount}
+          totalCount={session.totalCount}
+          onExit={() => navigate('/')}
+        />
+        <main className="flex-1 max-w-xl mx-auto px-4 py-16 text-center space-y-8 animate-fadeIn flex flex-col justify-center">
+          <div className="w-20 h-20 bg-[#EBF2FE] text-[#4F7DF3] rounded-3xl mx-auto flex items-center justify-center shadow-xs">
+            <Sparkles className="w-10 h-10" />
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-[#29466F]">
+              学语句练习完成！
+            </h1>
+            <p className="text-sm text-[#8BA0BD] max-w-sm mx-auto">
+              你已顺利完成本次 {session.totalCount} 个句子的逐词输入练习。
+            </p>
+          </div>
+          <button
+            onClick={() => navigate('/')}
+            className="py-3.5 px-8 bg-[#4F7DF3] hover:bg-[#3D6CE5] text-white font-bold rounded-2xl shadow-xs text-sm transition-all mx-auto"
+          >
+            返回学习中心
+          </button>
+        </main>
+      </div>
+    );
+  }
+
+  const allWordsCorrect = wordStates.length > 0 && wordStates.every(w => w.correct);
+
 
   return (
     <div className="min-h-screen bg-[#F7FAFF] flex flex-col text-[#29466F]">
@@ -644,7 +645,7 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
         {/* INPUT STATE */}
         {!allCorrect && (
           <div className="w-full max-w-3xl">
-            <div className="flex flex-wrap justify-start items-end gap-x-2 gap-y-6 py-8">
+            <div className="flex flex-wrap justify-center items-end gap-x-2 gap-y-6 py-8">
               {wordTokens.map((tok, i) => {
                 const ws = wordStates[i] || { correctWord: tok.word, userInput: '', submitted: false, correct: false, errorPos: -1 };
                 const isBad = ws.submitted && !ws.correct;
