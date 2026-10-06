@@ -199,13 +199,22 @@ export const AdminDictionariesView: React.FC<AdminDictionariesViewProps> = ({
           </p>
         </div>
 
-        <button
-          onClick={handleOpenCreate}
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <button
+            onClick={() => navigate('/admin/sentence-ai')}
+            className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-semibold transition-all shadow-sm flex items-center gap-2"
+          >
+            <Sparkles className="w-4 h-4" />
+            <span>Gemini 句子工具</span>
+          </button>
+          <button
+            onClick={handleOpenCreate}
           className="px-5 py-2.5 bg-stone-900 hover:bg-stone-800 text-white rounded-xl text-sm font-semibold transition-all shadow-sm flex items-center gap-2 self-start sm:self-auto"
         >
           <Plus className="w-4 h-4" />
           <span>新增系统辞书</span>
-        </button>
+          </button>
+        </div>
       </div>
 
       {loading ? (
