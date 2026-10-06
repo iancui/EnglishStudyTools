@@ -41,6 +41,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   const json: ApiResponse<T> = await response.json();
 
   if (!response.ok || json.code >= 400) {
+    if (response.status === 401 || json.code === 401) authStorage.clearToken();
     throw new Error(json.message || '请求失败');
   }
 
