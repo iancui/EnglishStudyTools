@@ -32,7 +32,9 @@ export class AuthController {
     }
   }
 
-  static captcha(_req: AuthenticatedRequest, res: Response) { res.json({ code: 200, message: 'success', data: CaptchaService.create() }); }\n\n  static getCurrentUser(req: AuthenticatedRequest, res: Response) {
+  static captcha(_req: AuthenticatedRequest, res: Response) { res.json({ code: 200, message: 'success', data: CaptchaService.create() }); }
+
+  static getCurrentUser(req: AuthenticatedRequest, res: Response) {
     res.json({
       code: 200,
       message: 'success',
