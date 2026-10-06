@@ -239,7 +239,7 @@ export const api = {
     }),
 
   // Sentence Practice Sessions (Phase 2 core)
-  previewSentencePractice: (difficulty = 'ALL', count = 5, dictionaryId?: string) =>
+  previewSentencePractice: (count = 5, dictionaryId?: string) =>
     request<{
       difficulty: string;
       dictionaryId?: string;
@@ -248,8 +248,8 @@ export const api = {
       matchingCount: number;
       requestedCount: number;
       effectiveCount: number;
-    }>(`/api/sentence-practice/preview?difficulty=${encodeURIComponent(difficulty)}&count=${count}${dictionaryId ? `&dictionaryId=${encodeURIComponent(dictionaryId)}` : ''}`),
-  createSentencePracticeSession: (data: { difficulty?: string; count?: number; dictionaryId?: string }) =>
+    }>(`/api/sentence-practice/preview?count=${count}${dictionaryId ? `&dictionaryId=${encodeURIComponent(dictionaryId)}` : ''}`),
+  createSentencePracticeSession: (data: { count?: number; dictionaryId?: string }) =>
     request<any>('/api/sentence-practice', {
       method: 'POST',
       body: JSON.stringify(data)
