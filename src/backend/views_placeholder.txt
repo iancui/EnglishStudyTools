@@ -1,1 +1,0 @@
-This file intentionally left empty; the AI sentence tool UI is implemented in src/views/AdminSentenceAIToolView.tsx.
