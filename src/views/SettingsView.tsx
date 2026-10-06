@@ -276,7 +276,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <div className="space-y-3 pt-6 border-t border-stone-100">
               <div>
                 <label className="text-base font-bold text-stone-900 block">
-                  2. 音标显示偏好
+                  3. 音标显示偏好
                 </label>
                 <p className="text-xs text-stone-500 mt-0.5">
                   设定学单词、背写与学语句中的首选国际音标体系。
@@ -327,7 +327,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               <div className="flex items-center justify-between">
                 <div>
                   <label className="text-base font-bold text-stone-900 block">
-                    3. 发音语音偏好
+                    4. 发音语音偏好
                   </label>
                   <p className="text-xs text-stone-500 mt-0.5">
                     采用 Web Speech API 原生母语者语音合成引擎。
@@ -388,7 +388,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               <div className="space-y-0.5">
                 <label className="text-base font-bold text-stone-900 block flex items-center gap-2">
                   <Split className="w-4 h-4 text-stone-700" />
-                  <span>4. 启用自然拼读音节拆分</span>
+                  <span>5. 启用自然拼读音节拆分</span>
                 </label>
                 <p className="text-xs text-stone-500">
                   开启后，在单词学习页面将提供可点击的音节卡片（如 hol-i-day），支持音素分步跟读。
