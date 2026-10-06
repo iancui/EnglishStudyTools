@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, Lock, Mail, User } from 'lucide-react';
 import { api, authStorage } from '../api/client.ts';
 
@@ -15,6 +15,24 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [captchaId, setCaptchaId] = useState('');
+  const [captchaImage, setCaptchaImage] = useState('');
+  const [captchaCode, setCaptchaCode] = useState('');
+
+  const loadCaptcha = async () => {
+    try {
+      const data = await api.getCaptcha();
+      setCaptchaId(data.captchaId);
+      setCaptchaImage(data.image);
+      setCaptchaCode('');
+    } catch (e) {
+      setErrorMsg('验证码加载失败，请重试');
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) loadCaptcha();
+  }, [isOpen, mode]);
 
   if (!isOpen) return null;
 
@@ -25,13 +43,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
 
     try {
       if (mode === 'login') {
-        const res = await api.login({ identifier: email || username, password });
+        const res = await api.login({ identifier: email || username, password, captchaId, captchaCode });
         authStorage.setToken(res.token);
         authStorage.setUser(res.user);
         onSuccess(res.user);
         onClose();
       } else {
-        const res = await api.register({ username, email, password });
+        const res = await api.register({ username, email, password, captchaId, captchaCode });
         authStorage.setToken(res.token);
         authStorage.setUser(res.user);
         onSuccess(res.user);
@@ -116,6 +134,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                 placeholder="******"
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-stone-200 text-sm focus:border-stone-900 outline-none"
               />
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-stone-700">图形验证码</label>
+            <div className="flex gap-2">
+              <input type="text" required value={captchaCode} onChange={e => setCaptchaCode(e.target.value.toUpperCase())} placeholder="输入验证码" maxLength={5} className="flex-1 px-4 py-2.5 rounded-xl border border-stone-200 text-sm focus:border-stone-900 outline-none" />
+              <button type="button" onClick={loadCaptcha} className="w-[150px] h-[44px] rounded-xl overflow-hidden border border-stone-200 bg-stone-50 shrink-0" title="点击刷新验证码">
+                {captchaImage ? <img src={captchaImage} alt="图形验证码" className="w-full h-full" /> : <span className="text-xs text-stone-400">加载中</span>}
+              </button>
             </div>
           </div>
 
