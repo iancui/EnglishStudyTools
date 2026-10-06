@@ -64,6 +64,7 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
   const isPendingRef = useRef(false);
   const handleCheckRef = useRef<() => void>(() => {});
   const autoCheckedRef = useRef(false);
+  const pendingNextSessionRef = useRef<SentencePracticeSession | null>(null);
 
   const currentSentenceIndex = session?.currentSentenceIndex ?? 0;
   const currentItem: SentencePracticeItem | undefined = session?.items?.[currentSentenceIndex];
@@ -279,16 +280,20 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
           res.sessionCompleted || res.session?.status === 'COMPLETED'
         );
 
-        if (res.session) {
-          setSession(res.session);
-        }
-
         if (completed) {
+          if (res.session) {
+            setSession(res.session);
+          }
+          pendingNextSessionRef.current = null;
           setAllCorrect(false);
           setPracticeCompleted(true);
           return;
         }
 
+        // 保留当前句子显示答题结果，下一句等点击“继续下一句”再切换。
+        if (res.session) {
+          pendingNextSessionRef.current = res.session;
+        }
         setAllCorrect(true);
         playAudio(sentence?.content);
       } else {
@@ -332,8 +337,26 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
   const handleNext = async () => {
     if (!session) return;
 
-    // 后端 submitRebuildAnswer 已在 handleCheck 成功时推进了 currentSentenceIndex
-    // （或对最后一句设置 status='COMPLETED'），这里直接使用最新 session 状态
+    const pendingSession = pendingNextSessionRef.current;
+    if (pendingSession) {
+      pendingNextSessionRef.current = null;
+      setSession(pendingSession);
+      setAllCorrect(false);
+      autoCheckedRef.current = false;
+      const nextItem = pendingSession.items[pendingSession.currentSentenceIndex];
+      const s = nextItem?.sentence?.content || '';
+      currentSentenceRef.current = s;
+      const tokens = splitIntoWords(s);
+      setWordStates(tokens.map(t => ({
+        correctWord: t.word,
+        userInput: '',
+        submitted: false,
+        correct: false,
+        errorPos: -1,
+      })));
+      return;
+    }
+
     const nextIdx = session.currentSentenceIndex;
 
     // 已是完成状态：JSX 会渲染完成页，这里直接返回
@@ -539,7 +562,7 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
                     onMouseEnter={() => setHoveredWordIdx(i)}
                     onMouseLeave={() => setHoveredWordIdx(null)}
                   >
-                    <div className="text-3xl sm:text-4xl font-extrabold text-[#29466F] tracking-tight select-none">
+                    <div className="px-5 sm:px-7 py-3 sm:py-4 rounded-2xl bg-[#EBF2FE] border border-white shadow-sm text-3xl sm:text-4xl font-extrabold text-[#29466F] tracking-tight select-none">
                       {correctWord}{tok.punctAfter}
                     </div>
 
