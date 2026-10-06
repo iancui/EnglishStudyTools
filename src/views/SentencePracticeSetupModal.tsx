@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { X, Sparkles, MessageSquare, Loader2, AlertCircle, Compass } from 'lucide-react';
 import { api } from '../api/client.ts';
+import { DictionaryConfig, DictionaryItem } from '../types/index.ts';
 
 interface SentencePracticeSetupModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSessionStarted: (sessionId: string) => void;
+  config?: DictionaryConfig;
 }
 
 const DIFFICULTIES = [
@@ -21,8 +23,11 @@ const PRESET_COUNTS = [5, 10, 20];
 export const SentencePracticeSetupModal: React.FC<SentencePracticeSetupModalProps> = ({
   isOpen,
   onClose,
-  onSessionStarted
+  onSessionStarted,
+  config
 }) => {
+  const [dictionaries, setDictionaries] = useState<DictionaryItem[]>([]);
+  const [selectedDictionaryId, setSelectedDictionaryId] = useState<string>(config?.defaultDictionaryId || '');
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('ALL');
   const [selectedCount, setSelectedCount] = useState<number>(5);
   const [isCustomCount, setIsCustomCount] = useState<boolean>(false);
@@ -39,10 +44,21 @@ export const SentencePracticeSetupModal: React.FC<SentencePracticeSetupModalProp
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isOpen) {
-      loadPreview(selectedDifficulty, getEffectiveCount());
+    if (!isOpen) return;
+    loadDictionaries();
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (isOpen && config?.defaultDictionaryId) {
+      setSelectedDictionaryId(config.defaultDictionaryId);
     }
-  }, [isOpen, selectedDifficulty, selectedCount, isCustomCount, customCountInput]);
+  }, [isOpen, config?.defaultDictionaryId]);
+
+  useEffect(() => {
+    if (isOpen && selectedDictionaryId) {
+      loadPreview(selectedDifficulty, getEffectiveCount(), selectedDictionaryId);
+    }
+  }, [isOpen, selectedDictionaryId, selectedDifficulty, selectedCount, isCustomCount, customCountInput]);
 
   const getEffectiveCount = (): number => {
     if (isCustomCount) {
@@ -52,11 +68,23 @@ export const SentencePracticeSetupModal: React.FC<SentencePracticeSetupModalProp
     return selectedCount;
   };
 
-  const loadPreview = async (difficulty: string, count: number) => {
+  const loadDictionaries = async () => {
+    try {
+      const list = await api.getDictionaries();
+      setDictionaries(list || []);
+      if (!selectedDictionaryId) {
+        setSelectedDictionaryId(config?.defaultDictionaryId || list?.[0]?.id || '');
+      }
+    } catch (e) {
+      console.error('Load dictionaries error:', e);
+    }
+  };
+
+  const loadPreview = async (difficulty: string, count: number, dictionaryId: string) => {
     try {
       setLoadingPreview(true);
       setError(null);
-      const res = await api.previewSentencePractice(difficulty, count);
+      const res = await api.previewSentencePractice(difficulty, count, dictionaryId);
       setPreviewInfo({
         totalInDb: res.totalInDb,
         matchingCount: res.matchingCount,
@@ -76,7 +104,8 @@ export const SentencePracticeSetupModal: React.FC<SentencePracticeSetupModalProp
       const count = getEffectiveCount();
       const session = await api.createSentencePracticeSession({
         difficulty: selectedDifficulty,
-        count
+        count,
+        dictionaryId: selectedDictionaryId
       });
       if (session?.id) {
         onClose();
@@ -129,7 +158,29 @@ export const SentencePracticeSetupModal: React.FC<SentencePracticeSetupModalProp
           </div>
         )}
 
-        {/* 1. 难度筛选 */}
+        {/* 1. 词库 */}
+        <div className="space-y-3">
+          <label className="text-xs font-bold text-stone-700 uppercase tracking-wider block">
+            练习词库
+          </label>
+          <select
+            value={selectedDictionaryId}
+            onChange={e => setSelectedDictionaryId(e.target.value)}
+            className="w-full px-4 py-3 rounded-2xl border border-stone-200 bg-white text-sm font-semibold text-stone-800 focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
+          >
+            {dictionaries.length === 0 && <option value="">正在加载词库...</option>}
+            {dictionaries.map(dict => (
+              <option key={dict.id} value={dict.id}>
+                {dict.name}{typeof dict.wordCount === 'number' ? `（${dict.wordCount}词）` : ''}
+              </option>
+            ))}
+          </select>
+          <p className="text-[11px] text-stone-400">
+            只练习包含所选词库核心词汇的句子。
+          </p>
+        </div>
+
+        {/* 2. 难度筛选 */
         <div className="space-y-3">
           <label className="text-xs font-bold text-stone-700 uppercase tracking-wider block">
             练习难度
@@ -156,7 +207,7 @@ export const SentencePracticeSetupModal: React.FC<SentencePracticeSetupModalProp
           </div>
         </div>
 
-        {/* 2. 练习数量 */}
+        {/* 3. 练习数量 */}
         <div className="space-y-3">
           <label className="text-xs font-bold text-stone-700 uppercase tracking-wider block">
             本次句子数量
@@ -212,7 +263,7 @@ export const SentencePracticeSetupModal: React.FC<SentencePracticeSetupModalProp
           )}
         </div>
 
-        {/* 3. 数量提示与短缺说明 */}
+        {/* 4. 数量提示与短缺说明 */}
         <div className="bg-stone-50 border border-stone-200 rounded-2xl p-4 text-xs space-y-1.5">
           <div className="flex items-center justify-between text-stone-700 font-medium">
             <span>匹配句子情况：</span>
@@ -220,7 +271,7 @@ export const SentencePracticeSetupModal: React.FC<SentencePracticeSetupModalProp
               <span className="text-stone-400">正在检查...</span>
             ) : (
               <span className="font-bold text-stone-900">
-                可练习 {previewInfo?.effectiveCount ?? count} 句 (库中符合共 {previewInfo?.matchingCount ?? 0} 句)
+                可练习 {previewInfo?.effectiveCount ?? count} 句（符合共 {previewInfo?.matchingCount ?? 0} 句）
               </span>
             )}
           </div>
