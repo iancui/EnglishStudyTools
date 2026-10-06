@@ -113,7 +113,7 @@ export default function App() {
   const handleStartSentencePractice = async () => {
     try {
       const session = await api.createSentencePracticeSession({
-        dictionaryId: config.defaultDictionaryId
+        dictionaryId: config.sentenceDictionaryId || config.defaultDictionaryId
       });
       if (session?.id) {
         navigate(`/sentence-practice/${session.id}`);
