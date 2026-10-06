@@ -33,7 +33,7 @@ export class AuthService {
     if (!username || !email || !password) throw new Error('用户名、邮箱和密码不能为空');
     if (username.length < 3 || username.length > 30) throw new Error('用户名长度应为 3-30 个字符');
     if (password.length < 6) throw new Error('密码至少需要 6 个字符');
-    if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) throw new Error('邮箱格式不正确');
+    if (!/^[^\s@]+@[^\s@]+\\.[^\s@]+$/.test(email)) throw new Error('邮箱格式不正确');
     if (db.findUserByEmail(email)) throw new Error('该邮箱已注册');
     if (db.findUserByUsername(username)) throw new Error('该用户名已存在');
 
