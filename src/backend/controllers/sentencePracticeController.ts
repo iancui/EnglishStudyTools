@@ -128,14 +128,14 @@ export class SentencePracticeController {
 
       let result;
       if (currentItem.currentPhase === 'PHRASE') {
-        result = SentencePracticeService.submitPhraseAnswer(
+        result = await SentencePracticeService.submitPhraseAnswer(
           id,
           userId,
           currentItem.currentPhraseIndex,
           answer || ''
         );
       } else if (currentItem.currentPhase === 'REBUILD') {
-        result = SentencePracticeService.submitRebuildAnswer(
+        result = await SentencePracticeService.submitRebuildAnswer(
           id,
           userId,
           answer || ''
