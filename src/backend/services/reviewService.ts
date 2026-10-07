@@ -104,7 +104,8 @@ export class ReviewService {
     const now = new Date();
 
     const dueWordIds = allProgress
-      .filter((p): p is UserWordProgress => Boolean(p) && !!p.nextReviewAt && new Date(p.nextReviewAt) <= now)
+      .filter((p): p is UserWordProgress => Boolean(p))
+      .filter(p => !!p.nextReviewAt && new Date(p.nextReviewAt) <= now)
       .map(p => p.wordId);
 
     return (await Promise.all(dueWordIds.map(id => db.findWordById(id)))).filter(Boolean);
