@@ -16,6 +16,7 @@ import { SettingsView } from './views/SettingsView.tsx';
 import { AuthModal } from './views/AuthModal.tsx';
 import { AdminSentenceAIToolView } from './views/AdminSentenceAIToolView.tsx';
 import { AdminExcelImportView } from './views/AdminExcelImportView.tsx';
+import { AdminRbacView } from './views/AdminRbacView.tsx';
 import { api, authStorage } from './api/client.ts';
 import { DictionaryConfig, SessionMode } from './types/index.ts';
 
@@ -232,6 +233,10 @@ export default function App() {
           onDefaultDictChanged={id => setConfig(prev => ({ ...prev, defaultDictionaryId: id }))}
         />
       );
+    }
+
+    if (currentRoute === '/admin/rbac') {
+      return <AdminRbacView navigate={navigate} user={user} />;
     }
 
     if (currentRoute === '/admin/sentence-ai') {
