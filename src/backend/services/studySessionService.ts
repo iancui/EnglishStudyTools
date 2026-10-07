@@ -119,9 +119,10 @@ export class StudySessionService {
       }
 
       // Filter candidates
-      let candidates = await Promise.all(dictWords
-        .map(async dw => ({ ...dw, word: dw.word || await db.findWordById(dw.wordId) })))
-        .filter((dw): dw is typeof dw & { word: Word } => Boolean(dw.word));
+      let candidates = (await Promise.all(dictWords.map(async dw => ({
+        ...dw,
+        word: dw.word || await db.findWordById(dw.wordId)
+      })))).filter((dw): dw is typeof dw & { word: Word } => Boolean(dw.word));
 
       if (excludeMastered) {
         const nonMastered = [] as typeof candidates;
