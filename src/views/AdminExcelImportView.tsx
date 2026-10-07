@@ -5,7 +5,7 @@ import { api } from '../api/client.ts';
 
 type RawSheet = { name: string; rows: any[][] };
 
-const normalize = (value: any) => String(value ?? '').trim().replace(/\\s+/g, '').toLowerCase();
+const normalize = (value: any) => String(value ?? '').trim().replace(/\s+/g, '').toLowerCase();
 
 const findHeaderIndex = (headers: string[], aliases: string[]) => {
   const normalized = headers.map(normalize);
@@ -238,6 +238,50 @@ export const AdminExcelImportView: React.FC<{ navigate: (route: string) => void;
                 <select className={selectClass} value={sentenceSheetName} onChange={e => { setSentenceSheetName(e.target.value); const s=sheets.find(x=>x.name===e.target.value); setSentenceMapping(s ? applyAutoMapping((s.rows[0]||[]).map(v=>String(v??'')), 'sentence') : {}); }}>
                   {sheets.map(s => <option key={s.name} value={s.name}>{s.name}（{Math.max(0,s.rows.length-1)} 行）</option>)}
                 </select>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="border border-stone-200 rounded-2xl p-4 space-y-3">
+                <div className="font-bold text-sm text-stone-800">单词列映射（文件格式变化时可手动调整）</div>
+                {[
+                  ['text', '单词', true],
+                  ['phonetic', '音标', false],
+                  ['pos', '词性', false],
+                  ['meaningCn', '中文释义', true]
+                ].map(([field, label, required]) => (
+                  <div key={String(field)} className="grid grid-cols-[72px_1fr] items-center gap-2">
+                    <span className="text-xs text-stone-600">{label}{required ? ' *' : ''}</span>
+                    <select
+                      className={selectClass}
+                      value={String(currentWordMapping[String(field)] ?? -1)}
+                      onChange={e => setWordMapping(prev => ({ ...prev, [String(field)]: Number(e.target.value) }))}
+                    >
+                      <option value="-1">不使用</option>
+                      {mappingOptions(wordHeaders).map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                    </select>
+                  </div>
+                ))}
+              </div>
+
+              <div className="border border-stone-200 rounded-2xl p-4 space-y-3">
+                <div className="font-bold text-sm text-stone-800">句子列映射（文件格式变化时可手动调整）</div>
+                {[
+                  ['content', '英文句子', true],
+                  ['translation', '中文翻译', true]
+                ].map(([field, label, required]) => (
+                  <div key={String(field)} className="grid grid-cols-[72px_1fr] items-center gap-2">
+                    <span className="text-xs text-stone-600">{label}{required ? ' *' : ''}</span>
+                    <select
+                      className={selectClass}
+                      value={String(currentSentenceMapping[String(field)] ?? -1)}
+                      onChange={e => setSentenceMapping(prev => ({ ...prev, [String(field)]: Number(e.target.value) }))}
+                    >
+                      <option value="-1">不使用</option>
+                      {mappingOptions(sentenceHeaders).map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                    </select>
+                  </div>
+                ))}
               </div>
             </div>
 
