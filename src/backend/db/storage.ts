@@ -22,6 +22,8 @@ const pool = mysql.createPool({
 });
 
 const iso = (v: any) => v ? new Date(v).toISOString() : undefined;
+// MySQL 5.7 DATETIME does not accept ISO-8601 strings containing T/Z.
+const mysqlDate = (v: any) => v ? new Date(v).toISOString().slice(0, 19).replace('T', ' ') : null;
 
 class MySQLStorage {
   async findUserByEmail(email: string): Promise<User | undefined> {
@@ -40,9 +42,9 @@ class MySQLStorage {
     const c: UserDictionaryConfig = { id:`cfg-${Date.now()}`, userId:user.id, defaultDictionaryId:'dict-primary-6', sentenceDictionaryId:'dict-primary-6', englishDict:'Oxford', ecDict:'Oxford', phoneticType:'UK', audioType:'UK', enablePhonics:true, sentencePracticeCount:5, createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() };
     const d: Dictionary = { id:`dict-user-${user.id}`, name:`${user.username}的生词本`, code:`vocab_${user.username}_${Date.now().toString(36)}`, description:'个人专属生词与高频复习词汇集', ownerType:'USER', ownerUserId:user.id, isSystem:false, isPublic:false, status:'ACTIVE', createdAt:c.createdAt, updatedAt:c.updatedAt };
     const conn=await pool.getConnection(); try { await conn.beginTransaction();
-      await conn.query('INSERT INTO users(id,username,email,password_hash,role,created_at,updated_at) VALUES(?,?,?,?,?,?,?)',[user.id,user.username,user.email,user.passwordHash,user.role,user.createdAt,user.updatedAt]);
-      await conn.query('INSERT INTO dictionary(id,name,code,description,owner_type,owner_user_id,is_system,is_public,status,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)',[d.id,d.name,d.code,d.description,d.ownerType,d.ownerUserId,d.isSystem,d.isPublic,d.status,d.createdAt,d.updatedAt]);
-      await conn.query('INSERT INTO user_dictionary_config(id,user_id,default_dictionary_id,sentence_dictionary_id,phonetic_type,audio_type,enable_phonics,sentence_practice_count,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?)',[c.id,c.userId,c.defaultDictionaryId,c.sentenceDictionaryId,c.phoneticType,c.audioType,c.enablePhonics,c.sentencePracticeCount,c.createdAt,c.updatedAt]);
+      await conn.query('INSERT INTO users(id,username,email,password_hash,role,created_at,updated_at) VALUES(?,?,?,?,?,?,?)',[user.id,user.username,user.email,user.passwordHash,user.role,mysqlDate(user.createdAt),mysqlDate(user.updatedAt)]);
+      await conn.query('INSERT INTO dictionary(id,name,code,description,owner_type,owner_user_id,is_system,is_public,status,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)',[d.id,d.name,d.code,d.description,d.ownerType,d.ownerUserId,d.isSystem,d.isPublic,d.status,mysqlDate(d.createdAt),mysqlDate(d.updatedAt)]);
+      await conn.query('INSERT INTO user_dictionary_config(id,user_id,default_dictionary_id,sentence_dictionary_id,phonetic_type,audio_type,enable_phonics,sentence_practice_count,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?)',[c.id,c.userId,c.defaultDictionaryId,c.sentenceDictionaryId,c.phoneticType,c.audioType,c.enablePhonics,c.sentencePracticeCount,mysqlDate(c.createdAt),mysqlDate(c.updatedAt)]);
       await conn.commit(); return user;
     } catch(e){await conn.rollback();throw e} finally{conn.release()}
   }
