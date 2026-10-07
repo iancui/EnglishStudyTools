@@ -289,6 +289,20 @@ export class StudySessionService {
     }
     await db.saveWordProgress(progress);
 
+    // Record the learning action immediately so "学习记录" reflects
+    // the Learn step even before the user finishes the spelling step.
+    await db.addLearningRecord({
+      id: `lr-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      userId,
+      itemType: 'WORD',
+      itemId: wordId,
+      action: 'LEARN',
+      isCorrect: true,
+      inputText: undefined,
+      timeSpentSec: 0,
+      createdAt: now
+    });
+
     return sw;
   }
 
