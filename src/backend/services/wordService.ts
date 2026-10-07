@@ -8,11 +8,11 @@ export class WordService {
     const word = await db.findWordById(id);
     if (!word) return null;
 
-    const config = DictionaryService.getConfig(userId);
+    const config = await DictionaryService.getConfig(userId);
     const progress = await db.getWordProgress(userId, id);
 
     return {
-      ...DictionaryService.applyWordDictionaryConfig(word, config),
+      ...await DictionaryService.applyWordDictionaryConfig(word, config),
       progress: progress || null
     };
   }
@@ -20,7 +20,7 @@ export class WordService {
   static async getTodayWords(userId: string, limit = 20) {
     const allWords = await db.getAllWords();
     const allProgress = await db.getAllWordProgresses(userId);
-    const config = DictionaryService.getConfig(userId);
+    const config = await DictionaryService.getConfig(userId);
 
     const progressMap = new Map<string, UserWordProgress>();
     for (const p of allProgress) {
@@ -44,7 +44,7 @@ export class WordService {
     return sorted.slice(0, limit).map(w => {
       const prog = progressMap.get(w.id);
       return {
-        ...DictionaryService.applyWordDictionaryConfig(w, config),
+        ...await DictionaryService.applyWordDictionaryConfig(w, config),
         progress: prog || null
       };
     });
@@ -121,7 +121,7 @@ export class WordService {
     const isCorrect = cleanInput === expected;
 
     // Call ReviewService to update spaced repetition schedule
-    const updatedProgress = ReviewService.processReview(userId, wordId, isCorrect);
+    const updatedProgress = await ReviewService.processReview(userId, wordId, isCorrect);
 
     // Save learning record
     const record: LearningRecord = {
@@ -201,14 +201,14 @@ export class WordService {
   static async getWrongWords(userId: string) {
     const allProgress = await db.getAllWordProgresses(userId);
     const wrongProgresses = allProgress.filter(p => p.wrongCount > 0);
-    const config = DictionaryService.getConfig(userId);
+    const config = await DictionaryService.getConfig(userId);
 
     return wrongProgresses
       .map(p => {
         const word = await db.findWordById(p.wordId);
         if (!word) return null;
         return {
-          ...DictionaryService.applyWordDictionaryConfig(word, config),
+          ...await DictionaryService.applyWordDictionaryConfig(word, config),
           progress: p
         };
       })
