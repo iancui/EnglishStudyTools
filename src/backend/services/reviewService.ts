@@ -35,7 +35,7 @@ export class ReviewService {
   /**
    * Process a review attempt for a word
    */
-  static async processReview(userId: string, wordId: string, isCorrect: boolean): UserWordProgress {
+  static async processReview(userId: string, wordId: string, isCorrect: boolean): Promise<UserWordProgress> {
     let progress = await db.getWordProgress(userId, wordId);
     const now = new Date().toISOString();
 
