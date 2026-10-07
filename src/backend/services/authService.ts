@@ -6,13 +6,13 @@ interface SessionToken { userId: string; expiresAt: number; }
 const sessions = new Map<string, SessionToken>();
 
 export class AuthService {
-  private static async hashPassword(password: string): string {
+  private static hashPassword(password: string): string {
     const salt = crypto.randomBytes(16).toString('hex');
     const hash = crypto.scryptSync(password, salt, 64).toString('hex');
     return `scrypt$${salt}$${hash}`;
   }
 
-  private static async verifyPassword(password: string, stored: string): boolean {
+  private static verifyPassword(password: string, stored: string): boolean {
     if (!stored?.startsWith('scrypt$')) return false;
     const [, salt, expected] = stored.split('$');
     if (!salt || !expected) return false;
@@ -20,13 +20,13 @@ export class AuthService {
     return crypto.timingSafeEqual(Buffer.from(actual, 'hex'), Buffer.from(expected, 'hex'));
   }
 
-  private static async createToken(userId: string): string {
+  private static createToken(userId: string): string {
     const token = crypto.randomBytes(32).toString('hex');
     sessions.set(token, { userId, expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000 });
     return token;
   }
 
-  static async register(username: string, email: string, password: string, captchaId: string, captchaCode: string): { user: Omit<User, 'passwordHash'>; token: string } {
+  static async register(username: string, email: string, password: string, captchaId: string, captchaCode: string): Promise<{ user: Omit<User, 'passwordHash'>; token: string }> {
     CaptchaService.verify(captchaId, captchaCode);
     username = String(username || '').trim();
     email = String(email || '').trim().toLowerCase();
@@ -57,7 +57,7 @@ export class AuthService {
     return { user: this.publicUser(user), token: this.createToken(user.id) };
   }
 
-  static async getUserFromToken(token: string): User | undefined {
+  static async getUserFromToken(token: string): Promise<User | undefined> {
     const session = sessions.get(token || '');
     if (!session) return undefined;
     if (session.expiresAt <= Date.now()) { sessions.delete(token); return undefined; }
@@ -66,7 +66,7 @@ export class AuthService {
 
   static async revokeToken(token: string) { if (token) sessions.delete(token); }
 
-  private static async publicUser(user: User): Omit<User, 'passwordHash'> {
+  private static publicUser(user: User): Omit<User, 'passwordHash'> {
     return { id: user.id, username: user.username, email: user.email, role: user.role || 'USER', createdAt: user.createdAt, updatedAt: user.updatedAt };
   }
 }
