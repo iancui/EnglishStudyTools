@@ -46,7 +46,7 @@ export class AuthService {
       createdAt: now, updatedAt: now
     };
     await db.createUser(newUser);
-    return { user: this.publicUser(newUser), token: this.createToken(newUser.id) };
+    return { user: await this.publicUser(newUser), token: this.createToken(newUser.id) };
   }
 
   static async login(username: string, password: string, captchaId: string, captchaCode: string): Promise<{ user: Omit<User, 'passwordHash'>; token: string }> {
@@ -54,7 +54,7 @@ export class AuthService {
     username = String(username || '').trim();
     const user = await db.findUserByUsername(username);
     if (!user || !this.verifyPassword(password || '', user.passwordHash)) throw new Error('账户名或密码错误');
-    return { user: this.publicUser(user), token: this.createToken(user.id) };
+    return { user: await this.publicUser(user), token: this.createToken(user.id) };
   }
 
   static async getUserFromToken(token: string): Promise<User | undefined> {
@@ -66,8 +66,18 @@ export class AuthService {
 
   static async revokeToken(token: string) { if (token) sessions.delete(token); }
 
-  private static publicUser(user: User): Omit<User, 'passwordHash'> {
-    return { id: user.id, username: user.username, email: user.email, role: user.role || 'USER', createdAt: user.createdAt, updatedAt: user.updatedAt };
+  private static async publicUser(user: User): Promise<Omit<User, 'passwordHash'>> {
+    const access = await db.getUserAccess(user.id);
+    return {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role || 'USER',
+      roles: access.roles.map((r:any) => r.id),
+      permissions: access.permissions,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt
+    };
   }
 }
 
