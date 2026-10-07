@@ -43,7 +43,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
 
     try {
       if (mode === 'login') {
-        const res = await api.login({ identifier: username, password, captchaId, captchaCode });
+        const res = await api.login({ username, password, captchaId, captchaCode });
         authStorage.setToken(res.token);
         authStorage.setUser(res.user);
         onSuccess(res.user);
