@@ -13,7 +13,7 @@ export class SentencePracticeService {
   static async previewPractice(userId: string, dictionaryId?: string) {
     const config = await db.getDictionaryConfig(userId);
     const count = Math.max(1, config.sentencePracticeCount || 5);
-    const all = await db.getAllSentences();
+    const all: Sentence[] = await db.getAllSentences();
     const dict = dictionaryId ? await db.findDictionaryById(dictionaryId) : undefined;
     const dictWordSet = new Set(
       dictionaryId
@@ -57,7 +57,7 @@ export class SentencePracticeService {
     const dictionaryId = params.dictionaryId;
     const dictWordSet = new Set(
       dictionaryId
-        ? await db.getDictionaryWords(dictionaryId)
+        ? (await db.getDictionaryWords(dictionaryId))
             .map(dw => dw.word?.text?.toLowerCase())
             .filter(Boolean) as string[]
         : []
