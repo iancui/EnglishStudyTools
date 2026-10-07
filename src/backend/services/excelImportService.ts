@@ -151,6 +151,7 @@ export class ExcelImportService {
           );
           await conn.query('DELETE FROM sentence_word WHERE sentence_id = ?', [sentenceId]);
           await conn.query('DELETE FROM sentence_step WHERE sentence_id = ?', [sentenceId]);
+          await conn.query('DELETE FROM sentence_analysis WHERE sentence_id = ?', [sentenceId]);
         } else {
           sentenceId = randomUUID();
           await conn.query(
@@ -208,7 +209,7 @@ export class ExcelImportService {
 
         await conn.query(
           'INSERT INTO sentence_step (id, sentence_id, step_number, content, translation, phonetic, type) VALUES (?, ?, ?, ?, ?, "", "SENTENCE")',
-          [randomUUID(), sentenceId, tokens.map(() => 1).length + 1, content, translation]
+          [randomUUID(), sentenceId, tokens.length + 1, content, translation]
         );
 
         await conn.query(
