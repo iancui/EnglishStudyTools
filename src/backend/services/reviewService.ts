@@ -15,7 +15,7 @@ export class ReviewService {
   /**
    * Calculates the next review date and updated streak
    */
-  static calculateNextReview(currentStreak: number, isCorrect: boolean): { intervalDays: number; nextReviewAt: Date; newStreak: number } {
+  static async calculateNextReview(currentStreak: number, isCorrect: boolean): { intervalDays: number; nextReviewAt: Date; newStreak: number } {
     let newStreak = currentStreak;
     let intervalDays = 0;
 
@@ -35,8 +35,8 @@ export class ReviewService {
   /**
    * Process a review attempt for a word
    */
-  static processReview(userId: string, wordId: string, isCorrect: boolean): UserWordProgress {
-    let progress = db.getWordProgress(userId, wordId);
+  static async processReview(userId: string, wordId: string, isCorrect: boolean): UserWordProgress {
+    let progress = await db.getWordProgress(userId, wordId);
     const now = new Date().toISOString();
 
     if (!progress) {
@@ -79,7 +79,7 @@ export class ReviewService {
     }
 
     // Save progress
-    db.saveWordProgress(progress);
+    await db.saveWordProgress(progress);
 
     // Save review record
     const record: ReviewRecord = {
@@ -91,7 +91,7 @@ export class ReviewService {
       result: isCorrect ? 'SUCCESS' : 'FAIL',
       createdAt: now
     };
-    db.addReviewRecord(record);
+    await db.addReviewRecord(record);
 
     return progress;
   }
@@ -99,8 +99,8 @@ export class ReviewService {
   /**
    * Get words scheduled for review today or overdue
    */
-  static getTodayReviewWords(userId: string) {
-    const allProgress = db.getAllWordProgresses(userId);
+  static async getTodayReviewWords(userId: string) {
+    const allProgress = await db.getAllWordProgresses(userId);
     const now = new Date();
 
     const dueWordIds = allProgress
@@ -110,6 +110,6 @@ export class ReviewService {
       })
       .map(p => p.wordId);
 
-    return dueWordIds.map(id => db.findWordById(id)).filter(Boolean);
+    return dueWordIds.map(id => await db.findWordById(id)).filter(Boolean);
   }
 }
