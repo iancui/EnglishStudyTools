@@ -4,12 +4,12 @@ import { DictionaryService } from './dictionaryService.ts';
 import { ReviewService } from './reviewService.ts';
 
 export class WordService {
-  static getWordById(id: string, userId: string) {
-    const word = db.findWordById(id);
+  static async getWordById(id: string, userId: string) {
+    const word = await db.findWordById(id);
     if (!word) return null;
 
     const config = DictionaryService.getConfig(userId);
-    const progress = db.getWordProgress(userId, id);
+    const progress = await db.getWordProgress(userId, id);
 
     return {
       ...DictionaryService.applyWordDictionaryConfig(word, config),
@@ -17,9 +17,9 @@ export class WordService {
     };
   }
 
-  static getTodayWords(userId: string, limit = 20) {
-    const allWords = db.getAllWords();
-    const allProgress = db.getAllWordProgresses(userId);
+  static async getTodayWords(userId: string, limit = 20) {
+    const allWords = await db.getAllWords();
+    const allProgress = await db.getAllWordProgresses(userId);
     const config = DictionaryService.getConfig(userId);
 
     const progressMap = new Map<string, UserWordProgress>();
@@ -50,13 +50,13 @@ export class WordService {
     });
   }
 
-  static getWordPhonics(wordId: string) {
-    const word = db.findWordById(wordId);
+  static async getWordPhonics(wordId: string) {
+    const word = await db.findWordById(wordId);
     return word ? word.phonics : [];
   }
 
-  static getWordMeanings(wordId: string) {
-    const word = db.findWordById(wordId);
+  static async getWordMeanings(wordId: string) {
+    const word = await db.findWordById(wordId);
     return word ? word.meanings : [];
   }
 
@@ -69,7 +69,7 @@ export class WordService {
     if (!text) return null;
 
     // 1) 本地词库
-    const word = db.findWordByText(text);
+    const word = await db.findWordByText(text);
     if (word) {
       return {
         text: word.text,
@@ -110,8 +110,8 @@ export class WordService {
    * Check user answer for word memorization (Section Seven & Eight)
    * Trims whitespace and compares lowercased input with word text
    */
-  static checkAnswer(userId: string, wordId: string, rawInput: string, timeSpentSec = 5) {
-    const word = db.findWordById(wordId);
+  static async checkAnswer(userId: string, wordId: string, rawInput: string, timeSpentSec = 5) {
+    const word = await db.findWordById(wordId);
     if (!word) {
       throw new Error('Word not found');
     }
@@ -135,7 +135,7 @@ export class WordService {
       timeSpentSec,
       createdAt: new Date().toISOString()
     };
-    db.addLearningRecord(record);
+    await db.addLearningRecord(record);
 
     return {
       isCorrect,
@@ -150,8 +150,8 @@ export class WordService {
   /**
    * Mark word as studied in Stage 1 (学)
    */
-  static markWordLearned(userId: string, wordId: string) {
-    let progress = db.getWordProgress(userId, wordId);
+  static async markWordLearned(userId: string, wordId: string) {
+    let progress = await db.getWordProgress(userId, wordId);
     const now = new Date().toISOString();
 
     if (!progress) {
@@ -179,9 +179,9 @@ export class WordService {
       }
     }
 
-    db.saveWordProgress(progress);
+    await db.saveWordProgress(progress);
 
-    db.addLearningRecord({
+    await db.addLearningRecord({
       id: `lr-${Date.now()}`,
       userId,
       itemType: 'WORD',
@@ -198,14 +198,14 @@ export class WordService {
   /**
    * Get list of troublesome / wrong words
    */
-  static getWrongWords(userId: string) {
-    const allProgress = db.getAllWordProgresses(userId);
+  static async getWrongWords(userId: string) {
+    const allProgress = await db.getAllWordProgresses(userId);
     const wrongProgresses = allProgress.filter(p => p.wrongCount > 0);
     const config = DictionaryService.getConfig(userId);
 
     return wrongProgresses
       .map(p => {
-        const word = db.findWordById(p.wordId);
+        const word = await db.findWordById(p.wordId);
         if (!word) return null;
         return {
           ...DictionaryService.applyWordDictionaryConfig(word, config),
