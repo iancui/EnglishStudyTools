@@ -3,10 +3,10 @@ import { AuthenticatedRequest } from '../middleware/authMiddleware.ts';
 import { AuthService, CaptchaService } from '../services/authService.ts';
 
 export class AuthController {
-  static register(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  static async register(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const { username, email, password, captchaId, captchaCode } = req.body;
-      const result = AuthService.register(username, email, password, captchaId, captchaCode);
+      const result = await AuthService.register(username, email, password, captchaId, captchaCode);
       res.json({
         code: 200,
         message: 'success',
@@ -17,11 +17,11 @@ export class AuthController {
     }
   }
 
-  static login(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  static async login(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const { identifier, username, email, password, captchaId, captchaCode } = req.body;
       const idOrEmail = identifier || username || email;
-      const result = AuthService.login(idOrEmail, password, captchaId, captchaCode);
+      const result = await AuthService.login(idOrEmail, password, captchaId, captchaCode);
       res.json({
         code: 200,
         message: 'success',
@@ -32,9 +32,9 @@ export class AuthController {
     }
   }
 
-  static captcha(_req: AuthenticatedRequest, res: Response) { res.json({ code: 200, message: 'success', data: CaptchaService.create() }); }
+  static async captcha(_req: AuthenticatedRequest, res: Response) { res.json({ code: 200, message: 'success', data: CaptchaService.create() }); }
 
-  static getCurrentUser(req: AuthenticatedRequest, res: Response) {
+  static async getCurrentUser(req: AuthenticatedRequest, res: Response) {
     res.json({
       code: 200,
       message: 'success',
