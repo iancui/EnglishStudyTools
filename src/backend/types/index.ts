@@ -1,6 +1,6 @@
 export type ProgressStatus = 'NEW' | 'LEARNING' | 'REVIEW' | 'MASTERED';
 export type StepType = 'WORD' | 'PHRASE' | 'STRUCTURE' | 'SENTENCE';
-export type UserRole = 'USER' | 'ADMIN';
+export type UserRole = 'USER' | 'ADMIN'; // legacy compatibility; authorization now uses RBAC roles
 
 export interface User {
   id: string;
@@ -10,6 +10,25 @@ export interface User {
   role: UserRole;
   createdAt: string;
   updatedAt: string;
+  roles?: string[];
+  permissions?: string[];
+}
+
+export interface RbacRole {
+  id: string;
+  displayName: string;
+  description?: string;
+  isSystem: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface RbacPermission {
+  id: string;
+  displayName: string;
+  resource: string;
+  action: string;
+  description?: string;
 }
 
 export type DictionaryOwnerType = 'SYSTEM' | 'USER';
