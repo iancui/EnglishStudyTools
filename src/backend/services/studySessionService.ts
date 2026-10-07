@@ -34,12 +34,14 @@ export class StudySessionService {
     let masteredCount = 0;
 
     if (excludeMastered) {
-      matchingWords = matchingWords.filter(dw => {
+      const filtered = [] as typeof matchingWords;
+      for (const dw of matchingWords) {
         const progress = await db.getWordProgress(userId, dw.wordId);
         const isMastered = WordProgressService.isMastered(progress);
         if (isMastered) masteredCount++;
-        return !isMastered;
-      });
+        if (!isMastered) filtered.push(dw);
+      }
+      matchingWords = filtered;
     }
 
     return {
@@ -87,12 +89,10 @@ export class StudySessionService {
       }
 
       const foundWords: { wordId: string; word: Word; sequence: number }[] = [];
-      uniqueWordIds.forEach((wid, idx) => {
+      for (const [idx, wid] of uniqueWordIds.entries()) {
         const w = await db.findWordById(wid);
-        if (w) {
-          foundWords.push({ wordId: wid, word: w, sequence: idx + 1 });
-        }
-      });
+        if (w) foundWords.push({ wordId: wid, word: w, sequence: idx + 1 });
+      }
 
       if (foundWords.length === 0) {
         throw new Error('所选单词均不存在');
@@ -124,10 +124,11 @@ export class StudySessionService {
         .filter((dw): dw is typeof dw & { word: Word } => Boolean(dw.word));
 
       if (excludeMastered) {
-        const nonMastered = candidates.filter(dw => {
+        const nonMastered = [] as typeof candidates;
+        for (const dw of candidates) {
           const progress = await db.getWordProgress(userId, dw.wordId);
-          return !WordProgressService.isMastered(progress);
-        });
+          if (!WordProgressService.isMastered(progress)) nonMastered.push(dw);
+        }
         // If all words are mastered, relax filter so user can still study
         if (nonMastered.length > 0) {
           candidates = nonMastered;
@@ -143,9 +144,11 @@ export class StudySessionService {
         }
       } else if (sortMode === 'REVIEW_FIRST') {
         const now = new Date().getTime();
+        const progressMap = new Map<string, Awaited<ReturnType<typeof db.getWordProgress>>>();
+        for (const c of candidates) progressMap.set(c.wordId, await db.getWordProgress(userId, c.wordId));
         candidates.sort((a, b) => {
-          const progA = await db.getWordProgress(userId, a.wordId);
-          const progB = await db.getWordProgress(userId, b.wordId);
+          const progA = progressMap.get(a.wordId);
+          const progB = progressMap.get(b.wordId);
 
           const aDue = progA?.nextReviewAt ? new Date(progA.nextReviewAt).getTime() <= now : false;
           const bDue = progB?.nextReviewAt ? new Date(progB.nextReviewAt).getTime() <= now : false;
@@ -218,14 +221,14 @@ export class StudySessionService {
     const config = await DictionaryService.getConfig(userId);
 
     // Decorate words with dictionary preferences
-    const decoratedWords = session.words.map(sw => {
+    const decoratedWords = await Promise.all(session.words.map(async sw => {
       const fullWord = sw.word || await db.findWordById(sw.wordId);
       const decorated = fullWord ? await DictionaryService.applyWordDictionaryConfig(fullWord, config) : null;
       return {
         ...sw,
         word: decorated
       };
-    });
+    }));
 
     return {
       ...session,
