@@ -4,10 +4,10 @@ import { ReviewService } from '../services/reviewService.ts';
 import { WordService } from '../services/wordService.ts';
 
 export class ReviewController {
-  static getTodayReview(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  static async getTodayReview(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id || 'u-default';
-      const words = ReviewService.getTodayReviewWords(userId);
+      const words = await ReviewService.getTodayReviewWords(userId);
       res.json({
         code: 200,
         message: 'success',
@@ -18,7 +18,7 @@ export class ReviewController {
     }
   }
 
-  static submitReview(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  static async submitReview(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id || 'u-default';
       const { id } = req.params;
@@ -26,7 +26,7 @@ export class ReviewController {
 
       if (answer !== undefined) {
         // If user submitted text answer
-        const result = WordService.checkAnswer(userId, id, answer);
+        const result = await WordService.checkAnswer(userId, id, answer);
         return res.json({
           code: 200,
           message: 'success',
@@ -36,7 +36,7 @@ export class ReviewController {
 
       // If user directly marked correct/incorrect
       const isCorrect = Boolean(directCorrect);
-      const progress = ReviewService.processReview(userId, id, isCorrect);
+      const progress = await ReviewService.processReview(userId, id, isCorrect);
       res.json({
         code: 200,
         message: 'success',
