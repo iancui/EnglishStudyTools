@@ -14,7 +14,7 @@ export class StudySessionService {
   /**
    * Preview matching words count for candidate session settings
    */
-  static previewSession(
+  static async previewSession(
     userId: string,
     params: {
       dictionaryId: string;
@@ -24,10 +24,10 @@ export class StudySessionService {
     }
   ) {
     const { dictionaryId, count = 20, excludeMastered = true } = params;
-    const dict = db.findDictionaryById(dictionaryId);
+    const dict = await db.findDictionaryById(dictionaryId);
     if (!dict) throw new Error('辞书不存在');
 
-    const dictWords = db.getDictionaryWords(dictionaryId);
+    const dictWords = await db.getDictionaryWords(dictionaryId);
     const totalInDict = dictWords.length;
 
     let matchingWords = dictWords.filter(dw => dw.word);
@@ -35,7 +35,7 @@ export class StudySessionService {
 
     if (excludeMastered) {
       matchingWords = matchingWords.filter(dw => {
-        const progress = db.getWordProgress(userId, dw.wordId);
+        const progress = await db.getWordProgress(userId, dw.wordId);
         const isMastered = WordProgressService.isMastered(progress);
         if (isMastered) masteredCount++;
         return !isMastered;
@@ -56,7 +56,7 @@ export class StudySessionService {
   /**
    * Create and initialize a study session with a fixed word set or custom wordIds
    */
-  static createSession(
+  static async createSession(
     userId: string,
     params: {
       dictionaryId?: string;
@@ -88,7 +88,7 @@ export class StudySessionService {
 
       const foundWords: { wordId: string; word: Word; sequence: number }[] = [];
       uniqueWordIds.forEach((wid, idx) => {
-        const w = db.findWordById(wid);
+        const w = await db.findWordById(wid);
         if (w) {
           foundWords.push({ wordId: wid, word: w, sequence: idx + 1 });
         }
@@ -110,22 +110,22 @@ export class StudySessionService {
         dictionaryId = config.defaultDictionaryId || 'dict-primary-6';
       }
 
-      const dict = db.findDictionaryById(dictionaryId);
+      const dict = await db.findDictionaryById(dictionaryId);
       if (!dict) throw new Error('所选辞书不存在');
 
-      const dictWords = db.getDictionaryWords(dictionaryId);
+      const dictWords = await db.getDictionaryWords(dictionaryId);
       if (dictWords.length === 0) {
         throw new Error('该辞书中暂无单词');
       }
 
       // Filter candidates
       let candidates = dictWords
-        .map(dw => ({ ...dw, word: dw.word || db.findWordById(dw.wordId) }))
+        .map(dw => ({ ...dw, word: dw.word || await db.findWordById(dw.wordId) }))
         .filter((dw): dw is typeof dw & { word: Word } => Boolean(dw.word));
 
       if (excludeMastered) {
         const nonMastered = candidates.filter(dw => {
-          const progress = db.getWordProgress(userId, dw.wordId);
+          const progress = await db.getWordProgress(userId, dw.wordId);
           return !WordProgressService.isMastered(progress);
         });
         // If all words are mastered, relax filter so user can still study
@@ -144,8 +144,8 @@ export class StudySessionService {
       } else if (sortMode === 'REVIEW_FIRST') {
         const now = new Date().getTime();
         candidates.sort((a, b) => {
-          const progA = db.getWordProgress(userId, a.wordId);
-          const progB = db.getWordProgress(userId, b.wordId);
+          const progA = await db.getWordProgress(userId, a.wordId);
+          const progB = await db.getWordProgress(userId, b.wordId);
 
           const aDue = progA?.nextReviewAt ? new Date(progA.nextReviewAt).getTime() <= now : false;
           const bDue = progB?.nextReviewAt ? new Date(progB.nextReviewAt).getTime() <= now : false;
@@ -200,7 +200,7 @@ export class StudySessionService {
       word: item.word
     }));
 
-    db.createStudySession(session, sessionWords);
+    await db.createStudySession(session, sessionWords);
 
     return this.getSessionById(sessionId, userId);
   }
@@ -208,8 +208,8 @@ export class StudySessionService {
   /**
    * Get session details with decorated words and dictionary info
    */
-  static getSessionById(sessionId: string, userId: string) {
-    const session = db.findStudySessionById(sessionId);
+  static async getSessionById(sessionId: string, userId: string) {
+    const session = await db.findStudySessionById(sessionId);
     if (!session) return null;
     if (session.userId !== userId) {
       throw new Error('无权访问该学习任务');
@@ -219,7 +219,7 @@ export class StudySessionService {
 
     // Decorate words with dictionary preferences
     const decoratedWords = session.words.map(sw => {
-      const fullWord = sw.word || db.findWordById(sw.wordId);
+      const fullWord = sw.word || await db.findWordById(sw.wordId);
       const decorated = fullWord ? DictionaryService.applyWordDictionaryConfig(fullWord, config) : null;
       return {
         ...sw,
@@ -236,8 +236,8 @@ export class StudySessionService {
   /**
    * Get active ongoing session for resumption
    */
-  static getActiveSession(userId: string) {
-    const session = db.getActiveSessionByUserId(userId);
+  static async getActiveSession(userId: string) {
+    const session = await db.getActiveSessionByUserId(userId);
     if (!session) return null;
     return this.getSessionById(session.id, userId);
   }
@@ -245,8 +245,8 @@ export class StudySessionService {
   /**
    * Complete Learn step of a word in session (Step 1 -> Step 2)
    */
-  static markWordLearned(sessionId: string, wordId: string, userId: string) {
-    const session = db.findStudySessionById(sessionId);
+  static async markWordLearned(sessionId: string, wordId: string, userId: string) {
+    const session = await db.findStudySessionById(sessionId);
     if (!session || session.userId !== userId) throw new Error('学习任务不存在');
 
     const sw = session.words.find(w => w.wordId === wordId);
@@ -257,10 +257,10 @@ export class StudySessionService {
     sw.learnedAt = now;
     sw.writeStatus = 'WRITE_PENDING';
 
-    db.updateStudySessionWord(sw);
+    await db.updateStudySessionWord(sw);
 
     // Update word progress in db
-    let progress = db.getWordProgress(userId, wordId);
+    let progress = await db.getWordProgress(userId, wordId);
     if (!progress) {
       progress = {
         id: `p-${Date.now()}`,
@@ -282,7 +282,7 @@ export class StudySessionService {
       progress.learnCount += 1;
       progress.lastLearnAt = now;
     }
-    db.saveWordProgress(progress);
+    await db.saveWordProgress(progress);
 
     return sw;
   }
@@ -290,20 +290,20 @@ export class StudySessionService {
   /**
    * Complete Write step of a word in session (Step 2 -> Word Completed)
    */
-  static writeWord(
+  static async writeWord(
     sessionId: string,
     wordId: string,
     userId: string,
     rawInput: string,
     timeSpentSec = 5
   ) {
-    const session = db.findStudySessionById(sessionId);
+    const session = await db.findStudySessionById(sessionId);
     if (!session || session.userId !== userId) throw new Error('学习任务不存在');
 
     const sw = session.words.find(w => w.wordId === wordId);
     if (!sw) throw new Error('单词不属于此任务');
 
-    const word = db.findWordById(wordId);
+    const word = await db.findWordById(wordId);
     if (!word) throw new Error('单词数据不存在');
 
     const cleanInput = (rawInput || '').trim().toLowerCase();
@@ -324,13 +324,13 @@ export class StudySessionService {
       sw.isCorrect = false;
     }
 
-    db.updateStudySessionWord(sw);
+    await db.updateStudySessionWord(sw);
 
     // Update ReviewService & spaced repetition record
     const updatedProgress = ReviewService.processReview(userId, wordId, isCorrect);
 
     // Save learning record
-    db.addLearningRecord({
+    await db.addLearningRecord({
       id: `lr-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       userId,
       itemType: 'WORD',
@@ -343,7 +343,7 @@ export class StudySessionService {
     });
 
     // Check session progress strictly based on completed words
-    const freshSession = db.findStudySessionById(sessionId);
+    const freshSession = await db.findStudySessionById(sessionId);
     const completedWordsCount = freshSession
       ? freshSession.words.filter(w => w.completed).length
       : session.words.filter(w => w.completed).length;
@@ -358,7 +358,7 @@ export class StudySessionService {
       delete (session as any).completedAt;
     }
 
-    db.updateStudySession(session);
+    await db.updateStudySession(session);
 
     return {
       isCorrect,
@@ -377,8 +377,8 @@ export class StudySessionService {
   /**
    * Advance current word index in the session
    */
-  static nextWord(sessionId: string, userId: string) {
-    const session = db.findStudySessionById(sessionId);
+  static async nextWord(sessionId: string, userId: string) {
+    const session = await db.findStudySessionById(sessionId);
     if (!session || session.userId !== userId) throw new Error('学习任务不存在');
 
     const currentWord = session.words[session.currentWordIndex];
@@ -388,7 +388,7 @@ export class StudySessionService {
 
     if (session.currentWordIndex < session.totalCount - 1) {
       session.currentWordIndex += 1;
-      db.updateStudySession(session);
+      await db.updateStudySession(session);
     }
 
     return session;
@@ -397,12 +397,12 @@ export class StudySessionService {
   /**
    * Cancel an in-progress session
    */
-  static cancelSession(sessionId: string, userId: string) {
-    const session = db.findStudySessionById(sessionId);
+  static async cancelSession(sessionId: string, userId: string) {
+    const session = await db.findStudySessionById(sessionId);
     if (!session || session.userId !== userId) throw new Error('学习任务不存在');
 
     session.status = 'CANCELLED';
-    db.updateStudySession(session);
+    await db.updateStudySession(session);
     return session;
   }
 }
