@@ -9,7 +9,8 @@ import { StudySessionController } from '../controllers/studySessionController.ts
 import { SentencePracticeController } from '../controllers/sentencePracticeController.ts';
 import { AdminSentenceAIToolController } from '../controllers/adminSentenceAIToolController.ts';
 import { AdminExcelImportController } from '../controllers/adminExcelImportController.ts';
-import { authMiddleware, requireAdmin } from '../middleware/authMiddleware.ts';
+import { RbacController } from '../controllers/rbacController.ts';
+import { authMiddleware, requirePermission } from '../middleware/authMiddleware.ts';
 
 export const apiRouter = Router();
 
@@ -40,16 +41,27 @@ apiRouter.get('/words/:wordId/my-dictionaries', DictionaryController.getWordMyDi
 apiRouter.post('/words/:wordId/my-dictionaries', DictionaryController.syncWordMyDictionaries);
 
 // AI sentence import tool
-apiRouter.post('/admin/ai-sentence-tool/analyze', requireAdmin, AdminSentenceAIToolController.analyze);
-apiRouter.post('/admin/ai-sentence-tool/import', requireAdmin, AdminSentenceAIToolController.import);
-apiRouter.post('/admin/excel-import', requireAdmin, AdminExcelImportController.import);
+apiRouter.post('/admin/ai-sentence-tool/analyze', requirePermission('ai.sentence.generate'), AdminSentenceAIToolController.analyze);
+apiRouter.post('/admin/ai-sentence-tool/import', requirePermission('ai.sentence.import'), AdminSentenceAIToolController.import);
+apiRouter.post('/admin/excel-import', requirePermission('import.excel'), AdminExcelImportController.import);
+
+// RBAC administration
+apiRouter.get('/admin/roles', requirePermission('role.read'), RbacController.listRoles);
+apiRouter.post('/admin/roles', requirePermission('role.create'), RbacController.createRole);
+apiRouter.put('/admin/roles/:id', requirePermission('role.update'), RbacController.updateRole);
+apiRouter.delete('/admin/roles/:id', requirePermission('role.delete'), RbacController.deleteRole);
+apiRouter.get('/admin/permissions', requirePermission('permission.read'), RbacController.listPermissions);
+apiRouter.get('/admin/roles/:id/permissions', requirePermission('role.read'), RbacController.getRolePermissions);
+apiRouter.put('/admin/roles/:id/permissions', requirePermission('role.update'), RbacController.setRolePermissions);
+apiRouter.get('/admin/users/:userId/roles', requirePermission('role.read'), RbacController.getUserRoles);
+apiRouter.put('/admin/users/:userId/roles', requirePermission('role.assign'), RbacController.setUserRoles);
 
 // Admin Dictionaries
-apiRouter.get('/admin/dictionaries', requireAdmin, DictionaryController.getAdminDictionaries);
-apiRouter.post('/admin/dictionaries', requireAdmin, DictionaryController.createAdminDictionary);
-apiRouter.put('/admin/dictionaries/:id', requireAdmin, DictionaryController.updateAdminDictionary);
-apiRouter.delete('/admin/dictionaries/:id', requireAdmin, DictionaryController.deleteAdminDictionary);
-apiRouter.post('/admin/dictionaries/:id/import', requireAdmin, DictionaryController.importAdminWords);
+apiRouter.get('/admin/dictionaries', requirePermission('dictionary.read'), DictionaryController.getAdminDictionaries);
+apiRouter.post('/admin/dictionaries', requirePermission('dictionary.create'), DictionaryController.createAdminDictionary);
+apiRouter.put('/admin/dictionaries/:id', requirePermission('dictionary.update'), DictionaryController.updateAdminDictionary);
+apiRouter.delete('/admin/dictionaries/:id', requirePermission('dictionary.delete'), DictionaryController.deleteAdminDictionary);
+apiRouter.post('/admin/dictionaries/:id/import', requirePermission('word.import'), DictionaryController.importAdminWords);
 
 // Dictionary Config (Preferences)
 apiRouter.get('/dictionary/config', DictionaryController.getConfig);
