@@ -44,7 +44,7 @@ export class StatisticsService {
 
   static async getTodayStatistics(userId: string) {
     const records = await db.getLearningRecords(userId);
-    const progresses = await db.getAllWordProgresses(userId);
+    const progresses: import('../types/index.ts').UserWordProgress[] = await db.getAllWordProgresses(userId);
     const totalWords = (await db.getAllWords()).length;
 
     // Filter today's records (strictly starting from 00:00:00 today)
