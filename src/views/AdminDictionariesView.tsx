@@ -41,7 +41,9 @@ export const AdminDictionariesView: React.FC<AdminDictionariesViewProps> = ({
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<any | null>(null);
 
-  const isAdmin = user?.role === 'ADMIN';
+  const permissions = Array.isArray(user?.permissions) ? user.permissions : [];
+  const roles = Array.isArray(user?.roles) ? user.roles : [];
+  const isAdmin = user?.role === 'ADMIN' || roles.includes('SUPER_ADMIN') || permissions.includes('dictionary.read') || permissions.includes('word.import');
 
   useEffect(() => {
     if (isAdmin) {
@@ -200,6 +202,13 @@ export const AdminDictionariesView: React.FC<AdminDictionariesViewProps> = ({
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
+          <button
+            onClick={() => navigate('/admin/rbac')}
+            className="px-5 py-2.5 bg-violet-600 hover:bg-violet-500 text-white rounded-xl text-sm font-semibold transition-all shadow-sm flex items-center gap-2"
+          >
+            <ShieldAlert className="w-4 h-4" />
+            <span>角色权限</span>
+          </button>
           <button
             onClick={() => navigate('/admin/sentence-ai')}
             className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-semibold transition-all shadow-sm flex items-center gap-2"
