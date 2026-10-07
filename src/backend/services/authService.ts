@@ -6,13 +6,13 @@ interface SessionToken { userId: string; expiresAt: number; }
 const sessions = new Map<string, SessionToken>();
 
 export class AuthService {
-  private static hashPassword(password: string): string {
+  private static async hashPassword(password: string): string {
     const salt = crypto.randomBytes(16).toString('hex');
     const hash = crypto.scryptSync(password, salt, 64).toString('hex');
     return `scrypt$${salt}$${hash}`;
   }
 
-  private static verifyPassword(password: string, stored: string): boolean {
+  private static async verifyPassword(password: string, stored: string): boolean {
     if (!stored?.startsWith('scrypt$')) return false;
     const [, salt, expected] = stored.split('$');
     if (!salt || !expected) return false;
@@ -20,13 +20,13 @@ export class AuthService {
     return crypto.timingSafeEqual(Buffer.from(actual, 'hex'), Buffer.from(expected, 'hex'));
   }
 
-  private static createToken(userId: string): string {
+  private static async createToken(userId: string): string {
     const token = crypto.randomBytes(32).toString('hex');
     sessions.set(token, { userId, expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000 });
     return token;
   }
 
-  static register(username: string, email: string, password: string, captchaId: string, captchaCode: string): { user: Omit<User, 'passwordHash'>; token: string } {
+  static async register(username: string, email: string, password: string, captchaId: string, captchaCode: string): { user: Omit<User, 'passwordHash'>; token: string } {
     CaptchaService.verify(captchaId, captchaCode);
     username = String(username || '').trim();
     email = String(email || '').trim().toLowerCase();
@@ -34,8 +34,8 @@ export class AuthService {
     if (username.length < 3 || username.length > 30) throw new Error('用户名长度应为 3-30 个字符');
     if (password.length < 6) throw new Error('密码至少需要 6 个字符');
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error('邮箱格式不正确');
-    if (db.findUserByEmail(email)) throw new Error('该邮箱已注册');
-    if (db.findUserByUsername(username)) throw new Error('该用户名已存在');
+    if (await db.findUserByEmail(email)) throw new Error('该邮箱已注册');
+    if (await db.findUserByUsername(username)) throw new Error('该用户名已存在');
 
     const role: UserRole = 'USER';
     const now = new Date().toISOString();
@@ -45,28 +45,28 @@ export class AuthService {
       passwordHash: this.hashPassword(password),
       createdAt: now, updatedAt: now
     };
-    db.createUser(newUser);
+    await db.createUser(newUser);
     return { user: this.publicUser(newUser), token: this.createToken(newUser.id) };
   }
 
-  static login(identifier: string, password: string, captchaId: string, captchaCode: string): { user: Omit<User, 'passwordHash'>; token: string } {
+  static async login(identifier: string, password: string, captchaId: string, captchaCode: string): { user: Omit<User, 'passwordHash'>; token: string } {
     CaptchaService.verify(captchaId, captchaCode);
     identifier = String(identifier || '').trim();
-    const user = db.findUserByEmail(identifier) || db.findUserByUsername(identifier);
+    const user = await db.findUserByEmail(identifier) || await db.findUserByUsername(identifier);
     if (!user || !this.verifyPassword(password || '', user.passwordHash)) throw new Error('用户名/邮箱或密码错误');
     return { user: this.publicUser(user), token: this.createToken(user.id) };
   }
 
-  static getUserFromToken(token: string): User | undefined {
+  static async getUserFromToken(token: string): User | undefined {
     const session = sessions.get(token || '');
     if (!session) return undefined;
     if (session.expiresAt <= Date.now()) { sessions.delete(token); return undefined; }
-    return db.findUserById(session.userId);
+    return await db.findUserById(session.userId);
   }
 
-  static revokeToken(token: string) { if (token) sessions.delete(token); }
+  static async revokeToken(token: string) { if (token) sessions.delete(token); }
 
-  private static publicUser(user: User): Omit<User, 'passwordHash'> {
+  private static async publicUser(user: User): Omit<User, 'passwordHash'> {
     return { id: user.id, username: user.username, email: user.email, role: user.role || 'USER', createdAt: user.createdAt, updatedAt: user.updatedAt };
   }
 }
@@ -74,7 +74,7 @@ export class AuthService {
 export class CaptchaService {
   private static store = new Map<string, { code: string; expiresAt: number }>();
 
-  static create() {
+  static async create() {
     const id = crypto.randomBytes(16).toString('hex');
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     let code = '';
@@ -86,7 +86,7 @@ export class CaptchaService {
     return { captchaId: id, image: `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}` };
   }
 
-  static verify(id: string, input: string) {
+  static async verify(id: string, input: string) {
     const item = this.store.get(id);
     this.store.delete(id);
     if (!item || item.expiresAt < Date.now() || String(input || '').trim().toUpperCase() !== item.code) throw new Error('图形验证码错误或已过期');
