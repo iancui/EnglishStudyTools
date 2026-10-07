@@ -110,6 +110,6 @@ export class ReviewService {
       })
       .map(p => p.wordId);
 
-    return dueWordIds.map(id => await db.findWordById(id)).filter(Boolean);
+    return (await Promise.all(dueWordIds.map(id => db.findWordById(id)))).filter(Boolean);
   }
 }
