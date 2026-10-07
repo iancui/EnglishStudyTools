@@ -46,6 +46,7 @@ apiRouter.post('/admin/ai-sentence-tool/import', requirePermission('ai.sentence.
 apiRouter.post('/admin/excel-import', requirePermission('import.excel'), AdminExcelImportController.import);
 
 // RBAC administration
+apiRouter.get('/admin/users', requirePermission('user.read'), RbacController.listUsers);
 apiRouter.get('/admin/roles', requirePermission('role.read'), RbacController.listRoles);
 apiRouter.post('/admin/roles', requirePermission('role.create'), RbacController.createRole);
 apiRouter.put('/admin/roles/:id', requirePermission('role.update'), RbacController.updateRole);
