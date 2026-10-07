@@ -25,6 +25,7 @@ export default function App() {
   });
   const [user, setUser] = useState<any>(() => authStorage.getUser());
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [authRequired, setAuthRequired] = useState(false);
   const [isStudySetupOpen, setIsStudySetupOpen] = useState(false);
   const [setupInitialDictId, setSetupInitialDictId] = useState<string | undefined>(undefined);
   const [setupInitialMode, setSetupInitialMode] = useState<SessionMode>('LEARN_AND_WRITE');
@@ -64,24 +65,39 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    const handleAuthRequired = () => {
+      authStorage.clearToken();
+      setUser(null);
+      setAuthRequired(true);
+      if (window.location.pathname !== '/login') {
+        window.history.replaceState({}, '', '/login');
+        setCurrentRoute('/login');
+      }
+    };
+    window.addEventListener('linguastep:auth-required', handleAuthRequired);
     initApp();
 
     const handlePopState = () => {
       setCurrentRoute(window.location.pathname || '/');
     };
     window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('linguastep:auth-required', handleAuthRequired);
+    };
   }, []);
 
   const initApp = async () => {
     try {
-      const cfg = await api.getDictionaryConfig();
-      if (cfg) {
-        setConfig(prev => {
-          if (JSON.stringify(prev) === JSON.stringify(cfg)) return prev;
-          return cfg;
-        });
+      if (!authStorage.getToken()) {
+        setAuthRequired(true);
+        if (window.location.pathname !== '/login') {
+          window.history.replaceState({}, '', '/login');
+          setCurrentRoute('/login');
+        }
+        return;
       }
+
       const currentUser = await api.getCurrentUser();
       if (currentUser) {
         setUser((prev: any) => {
@@ -89,6 +105,14 @@ export default function App() {
           return currentUser;
         });
         authStorage.setUser(currentUser);
+      }
+
+      const cfg = await api.getDictionaryConfig();
+      if (cfg) {
+        setConfig(prev => {
+          if (JSON.stringify(prev) === JSON.stringify(cfg)) return prev;
+          return cfg;
+        });
       }
     } catch (e) {
       console.warn('Initial load fallback:', e);
@@ -126,6 +150,25 @@ export default function App() {
 
   // Route parser for dynamic and nested routes
   const renderCurrentView = () => {
+    if (currentRoute === '/login') {
+      return (
+        <AuthModal
+          isOpen={true}
+          onClose={() => {
+            if (authStorage.getToken()) {
+              setAuthRequired(false);
+              navigate('/');
+            }
+          }}
+          onSuccess={u => {
+            setUser(u);
+            setAuthRequired(false);
+            navigate('/');
+          }}
+        />
+      );
+    }
+
     if (currentRoute === '/') {
       return (
         <HomeView
