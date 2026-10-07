@@ -58,6 +58,49 @@ export class MysqlSentenceImporter {
         if ((existingRows as any[]).length) {
           sentenceId = (existingRows as any[])[0].id;
           await conn.execute('UPDATE sentence SET translation = ?, level = ?, difficulty = ? WHERE id = ?', [item.translation || '', item.level || 'A1', Math.max(1, Math.min(5, item.difficulty)), sentenceId]);
+          await conn.execute('DELETE FROM sentence_word WHERE sentence_id = ?', [sentenceId]);
+          await conn.execute('DELETE FROM sentence_step WHERE sentence_id = ?', [sentenceId]);
+          await conn.execute('DELETE FROM sentence_analysis WHERE sentence_id = ?', [sentenceId]);
+
+          for (let i = 0; i < item.words.length; i++) {
+            const w = item.words[i];
+            const wordText = w.text.trim().toLowerCase();
+            if (!wordText || /^[^a-zA-Z]+$/.test(wordText)) continue;
+            const [wordRows] = await conn.query('SELECT id FROM word WHERE text = ? LIMIT 1', [wordText]);
+            let wordId: string;
+            if ((wordRows as any[]).length) {
+              wordId = (wordRows as any[])[0].id;
+            } else {
+              wordId = randomUUID();
+              await conn.execute(
+                `INSERT INTO word (id, text, phonetic_uk, phonetic_us, pos, difficulty) VALUES (?, ?, ?, ?, ?, ?)`,
+                [wordId, wordText, w.phoneticUk || '', w.phoneticUs || '', w.pos || '', Math.max(1, Math.min(5, item.difficulty))]
+              );
+              await conn.execute(
+                `INSERT INTO word_meaning (id, word_id, pos, definition_cn) VALUES (?, ?, ?, ?)`,
+                [randomUUID(), wordId, w.pos || '', w.meaningCn || '']
+              );
+            }
+            await conn.execute(
+              `INSERT INTO sentence_word (id, sentence_id, word_id, position_no, translation_cn) VALUES (?, ?, ?, ?, ?)`,
+              [randomUUID(), sentenceId, wordId, i + 1, w.meaningCn || '']
+            );
+          }
+
+          for (let i = 0; i < item.steps.length; i++) {
+            const step = item.steps[i];
+            await conn.execute(
+              `INSERT INTO sentence_step (id, sentence_id, step_number, content, translation, phonetic, type) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+              [randomUUID(), sentenceId, i + 1, step.content, step.translation || '', step.phonetic || '', step.type]
+            );
+          }
+
+          for (const analysis of item.analyses) {
+            await conn.execute(
+              `INSERT INTO sentence_analysis (id, sentence_id, text, start_position, end_position, type, explanation) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+              [randomUUID(), sentenceId, analysis.text, analysis.startPosition, analysis.endPosition, analysis.type, analysis.explanation]
+            );
+          }
         } else {
           sentenceId = randomUUID();
           await conn.execute(
