@@ -4,13 +4,10 @@ import { UserSentenceProgress, LearningRecord } from '../types/index.ts';
 export class SentenceService {
   static async getAllSentences(userId: string) {
     const sentences = await db.getAllSentences();
-    return sentences.map(s => {
+    return Promise.all(sentences.map(async s => {
       const progress = await db.getSentenceProgress(userId, s.id);
-      return {
-        ...s,
-        progress: progress || null
-      };
-    });
+      return { ...s, progress: progress || null };
+    }));
   }
 
   static async getSentenceById(id: string, userId: string) {
@@ -34,13 +31,10 @@ export class SentenceService {
 
   static async getTodaySentences(userId: string, limit = 5) {
     const all = await db.getAllSentences();
-    return all.slice(0, limit).map(s => {
+    return Promise.all(all.slice(0, limit).map(async s => {
       const progress = await db.getSentenceProgress(userId, s.id);
-      return {
-        ...s,
-        progress: progress || null
-      };
-    });
+      return { ...s, progress: progress || null };
+    }));
   }
 
   static async completeSentence(userId: string, sentenceId: string, currentStep: number) {
