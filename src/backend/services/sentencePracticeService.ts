@@ -10,14 +10,14 @@ export class SentencePracticeService {
   /**
    * Preview matching sentences count for difficulty filter
    */
-  static previewPractice(userId: string, dictionaryId?: string) {
-    const config = db.getDictionaryConfig(userId);
+  static async previewPractice(userId: string, dictionaryId?: string) {
+    const config = await db.getDictionaryConfig(userId);
     const count = Math.max(1, config.sentencePracticeCount || 5);
-    const all = db.getAllSentences();
-    const dict = dictionaryId ? db.findDictionaryById(dictionaryId) : undefined;
+    const all = await db.getAllSentences();
+    const dict = dictionaryId ? await db.findDictionaryById(dictionaryId) : undefined;
     const dictWordSet = new Set(
       dictionaryId
-        ? db.getDictionaryWords(dictionaryId)
+        ? await db.getDictionaryWords(dictionaryId)
             .map(dw => dw.word?.text?.toLowerCase())
             .filter(Boolean) as string[]
         : []
@@ -43,13 +43,13 @@ export class SentencePracticeService {
   /**
    * Create and initialize a new Sentence Practice Session with a fixed sequence
    */
-  static createSession(
+  static async createSession(
     userId: string,
     params: {
       dictionaryId?: string;
     }
   ) {
-    const all = db.getAllSentences();
+    const all = await db.getAllSentences();
     if (all.length === 0) {
       throw new Error('句子库为空，无法开启练习');
     }
@@ -57,7 +57,7 @@ export class SentencePracticeService {
     const dictionaryId = params.dictionaryId;
     const dictWordSet = new Set(
       dictionaryId
-        ? db.getDictionaryWords(dictionaryId)
+        ? await db.getDictionaryWords(dictionaryId)
             .map(dw => dw.word?.text?.toLowerCase())
             .filter(Boolean) as string[]
         : []
@@ -87,7 +87,7 @@ export class SentencePracticeService {
       [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
     }
 
-    const config = db.getDictionaryConfig(userId);
+    const config = await db.getDictionaryConfig(userId);
     const requestedCount = Math.max(1, config.sentencePracticeCount || 5);
     const selected = candidates.slice(0, requestedCount);
 
@@ -120,13 +120,13 @@ export class SentencePracticeService {
       updatedAt: nowStr
     }));
 
-    db.createSentencePracticeSession(session, items);
+    await db.createSentencePracticeSession(session, items);
 
-    return db.findSentencePracticeSessionById(sessionId);
+    return await db.findSentencePracticeSessionById(sessionId);
   }
 
-  static getSessionById(sessionId: string, userId: string) {
-    const session = db.findSentencePracticeSessionById(sessionId);
+  static async getSessionById(sessionId: string, userId: string) {
+    const session = await db.findSentencePracticeSessionById(sessionId);
     if (!session) return null;
     if (session.userId !== userId) {
       throw new Error('无权访问该句子练习任务');
@@ -139,28 +139,28 @@ export class SentencePracticeService {
       if (currentItem && currentItem.currentPhase === 'PHRASE') {
         currentItem.currentPhase = 'REBUILD';
         currentItem.currentPhraseIndex = 0;
-        db.updateSentencePracticeItem(currentItem);
-        return db.findSentencePracticeSessionById(sessionId);
+        await db.updateSentencePracticeItem(currentItem);
+        return await db.findSentencePracticeSessionById(sessionId);
       }
     }
 
     return session;
   }
 
-  static getActiveSession(userId: string) {
-    return db.getActiveSentencePracticeSession(userId) || null;
+  static async getActiveSession(userId: string) {
+    return await db.getActiveSentencePracticeSession(userId) || null;
   }
 
   /**
    * Submit answer for a progressive phrase step
    */
-  static submitPhraseAnswer(
+  static async submitPhraseAnswer(
     sessionId: string,
     userId: string,
     phraseIndex: number,
     answer: string
   ) {
-    const session = db.findSentencePracticeSessionById(sessionId);
+    const session = await db.findSentencePracticeSessionById(sessionId);
     if (!session || session.userId !== userId) {
       throw new Error('句子练习任务不存在');
     }
@@ -213,7 +213,7 @@ export class SentencePracticeService {
       currentItem.currentPhraseIndex = phrases.length - 1;
     }
 
-    db.updateSentencePracticeItem(currentItem);
+    await db.updateSentencePracticeItem(currentItem);
 
     return {
       isCorrect: true,
@@ -229,12 +229,12 @@ export class SentencePracticeService {
   /**
    * Submit answer for the full sentence rebuild step
    */
-  static submitRebuildAnswer(
+  static async submitRebuildAnswer(
     sessionId: string,
     userId: string,
     answer: string
   ) {
-    const session = db.findSentencePracticeSessionById(sessionId);
+    const session = await db.findSentencePracticeSessionById(sessionId);
     if (!session || session.userId !== userId) {
       throw new Error('句子练习任务不存在');
     }
@@ -270,10 +270,10 @@ export class SentencePracticeService {
     // Rebuild is correct! Mark current sentence item completed
     currentItem.currentPhase = 'COMPLETED';
     currentItem.completed = true;
-    db.updateSentencePracticeItem(currentItem);
+    await db.updateSentencePracticeItem(currentItem);
 
     // Save sentence progress and learning record
-    db.saveSentenceProgress({
+    await db.saveSentenceProgress({
       id: `usp-${userId}-${currentItem.sentenceId}`,
       userId,
       sentenceId: currentItem.sentenceId,
@@ -284,7 +284,7 @@ export class SentencePracticeService {
       updatedAt: new Date().toISOString()
     });
 
-    db.addLearningRecord({
+    await db.addLearningRecord({
       id: `lr-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       userId,
       itemType: 'SENTENCE',
@@ -302,17 +302,17 @@ export class SentencePracticeService {
     if (session.currentSentenceIndex < session.totalCount - 1) {
       nextSentenceIndex = session.currentSentenceIndex + 1;
       session.currentSentenceIndex = nextSentenceIndex;
-      db.updateSentencePracticeSession(session);
+      await db.updateSentencePracticeSession(session);
     } else {
       sessionCompleted = true;
       session.status = 'COMPLETED';
-      db.updateSentencePracticeSession(session);
+      await db.updateSentencePracticeSession(session);
     }
 
     // Return the persisted session as the single source of truth.
     // The frontend must receive the updated currentSentenceIndex/status,
     // especially for the final sentence where status becomes COMPLETED.
-    const updatedSession = db.findSentencePracticeSessionById(sessionId);
+    const updatedSession = await db.findSentencePracticeSessionById(sessionId);
 
     return {
       isCorrect: true,
@@ -330,8 +330,8 @@ export class SentencePracticeService {
    * Reset the sentence that was just completed so the user can practice
    * the same sentence again without advancing the session.
    */
-  static retryCurrentSentence(sessionId: string, userId: string) {
-    const session = db.findSentencePracticeSessionById(sessionId);
+  static async retryCurrentSentence(sessionId: string, userId: string) {
+    const session = await db.findSentencePracticeSessionById(sessionId);
     if (!session || session.userId !== userId) {
       throw new Error('句子练习任务不存在');
     }
@@ -352,13 +352,13 @@ export class SentencePracticeService {
     item.updatedAt = new Date().toISOString();
     session.updatedAt = new Date().toISOString();
 
-    db.updateSentencePracticeItem(item);
-    db.updateSentencePracticeSession(session);
+    await db.updateSentencePracticeItem(item);
+    await db.updateSentencePracticeSession(session);
 
-    return db.findSentencePracticeSessionById(sessionId);
+    return await db.findSentencePracticeSessionById(sessionId);
   }
 
-  static cancelSession(sessionId: string, userId: string) {
-    return db.cancelSentencePracticeSession(sessionId, userId);
+  static async cancelSession(sessionId: string, userId: string) {
+    return await db.cancelSentencePracticeSession(sessionId, userId);
   }
 }
