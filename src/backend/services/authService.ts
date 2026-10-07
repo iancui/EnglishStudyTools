@@ -49,11 +49,11 @@ export class AuthService {
     return { user: this.publicUser(newUser), token: this.createToken(newUser.id) };
   }
 
-  static async login(identifier: string, password: string, captchaId: string, captchaCode: string): Promise<{ user: Omit<User, 'passwordHash'>; token: string }> {
+  static async login(username: string, password: string, captchaId: string, captchaCode: string): Promise<{ user: Omit<User, 'passwordHash'>; token: string }> {
     CaptchaService.verify(captchaId, captchaCode);
-    identifier = String(identifier || '').trim();
-    const user = await db.findUserByEmail(identifier) || await db.findUserByUsername(identifier);
-    if (!user || !this.verifyPassword(password || '', user.passwordHash)) throw new Error('用户名/邮箱或密码错误');
+    username = String(username || '').trim();
+    const user = await db.findUserByUsername(username);
+    if (!user || !this.verifyPassword(password || '', user.passwordHash)) throw new Error('账户名或密码错误');
     return { user: this.publicUser(user), token: this.createToken(user.id) };
   }
 
