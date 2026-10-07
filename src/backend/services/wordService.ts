@@ -203,8 +203,8 @@ export class WordService {
     const wrongProgresses = allProgress.filter(p => p.wrongCount > 0);
     const config = await DictionaryService.getConfig(userId);
 
-    return wrongProgresses
-      .map(p => {
+    return (await Promise.all(wrongProgresses
+      .map(async p => {
         const word = await db.findWordById(p.wordId);
         if (!word) return null;
         return {
