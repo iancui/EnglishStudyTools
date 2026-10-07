@@ -1,9 +1,9 @@
 import { db } from '../db/storage.ts';
-import { UserSentenceProgress, LearningRecord } from '../types/index.ts';
+import { UserSentenceProgress, LearningRecord, Sentence } from '../types/index.ts';
 
 export class SentenceService {
   static async getAllSentences(userId: string) {
-    const sentences = await db.getAllSentences();
+    const sentences: Sentence[] = await db.getAllSentences();
     return Promise.all(sentences.map(async s => {
       const progress = await db.getSentenceProgress(userId, s.id);
       return { ...s, progress: progress || null };
@@ -30,7 +30,7 @@ export class SentenceService {
   }
 
   static async getTodaySentences(userId: string, limit = 5) {
-    const all = await db.getAllSentences();
+    const all: Sentence[] = await db.getAllSentences();
     return Promise.all(all.slice(0, limit).map(async s => {
       const progress = await db.getSentenceProgress(userId, s.id);
       return { ...s, progress: progress || null };
