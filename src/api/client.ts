@@ -133,6 +133,29 @@ export const api = {
       body: JSON.stringify(data)
     }),
 
+  // RBAC administration
+  getAdminUsers: () => request<any[]>('/api/admin/users'),
+  getAdminRoles: () => request<any[]>('/api/admin/roles'),
+  createAdminRole: (data: { id: string; displayName: string; description?: string }) =>
+    request<any>('/api/admin/roles', { method: 'POST', body: JSON.stringify(data) }),
+  updateAdminRole: (id: string, data: { displayName: string; description?: string }) =>
+    request<any>(`/api/admin/roles/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteAdminRole: (id: string) =>
+    request<any>(`/api/admin/roles/${id}`, { method: 'DELETE' }),
+  getAdminPermissions: () => request<any[]>('/api/admin/permissions'),
+  getRolePermissions: (roleId: string) => request<string[]>(`/api/admin/roles/${roleId}/permissions`),
+  setRolePermissions: (roleId: string, permissionIds: string[]) =>
+    request<string[]>(`/api/admin/roles/${roleId}/permissions`, {
+      method: 'PUT',
+      body: JSON.stringify({ permissionIds })
+    }),
+  getUserRoles: (userId: string) => request<any[]>(`/api/admin/users/${userId}/roles`),
+  setUserRoles: (userId: string, roleIds: string[]) =>
+    request<any[]>(`/api/admin/users/${userId}/roles`, {
+      method: 'PUT',
+      body: JSON.stringify({ roleIds })
+    }),
+
   // Admin Dictionaries
   getAdminDictionaries: () => request<any[]>('/api/admin/dictionaries'),
   createAdminDictionary: (data: any) =>
