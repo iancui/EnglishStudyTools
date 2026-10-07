@@ -43,7 +43,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
 
     try {
       if (mode === 'login') {
-        const res = await api.login({ identifier: email || username, password, captchaId, captchaCode });
+        const res = await api.login({ identifier: username, password, captchaId, captchaCode });
         authStorage.setToken(res.token);
         authStorage.setUser(res.user);
         onSuccess(res.user);
@@ -107,16 +107,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
 
           <div className="space-y-1">
             <label className="text-xs font-semibold text-stone-700">
-              {mode === 'login' ? '邮箱或用户名' : '电子邮箱'}
+              {mode === 'login' ? '账户名' : '电子邮箱'}
             </label>
             <div className="relative">
-              <Mail className="w-4 h-4 text-stone-400 absolute left-3.5 top-3.5" />
+              {mode === 'login'
+                ? <User className="w-4 h-4 text-stone-400 absolute left-3.5 top-3.5" />
+                : <Mail className="w-4 h-4 text-stone-400 absolute left-3.5 top-3.5" />}
               <input
                 type={mode === 'login' ? 'text' : 'email'}
                 required
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder={mode === 'login' ? 'learner 或邮箱' : 'name@example.com'}
+                value={mode === 'login' ? username : email}
+                onChange={e => mode === 'login' ? setUsername(e.target.value) : setEmail(e.target.value)}
+                placeholder={mode === 'login' ? '请输入账户名，例如 admin' : 'name@example.com'}
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-stone-200 text-sm focus:border-stone-900 outline-none"
               />
             </div>
