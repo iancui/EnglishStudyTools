@@ -35,6 +35,56 @@ model User {
   @@map("users")
 }
 
+
+model RbacRole {
+  id             String                 @id @db.VarChar(64)
+  displayName    String                 @map("display_name") @db.VarChar(100)
+  description    String?                @db.VarChar(255)
+  isSystem       Boolean                @default(true) @map("is_system")
+  createdAt      DateTime               @default(now()) @map("created_at")
+  updatedAt      DateTime               @updatedAt @map("updated_at")
+  users          UserRoleAssignment[]
+  permissions    RbacRolePermission[]
+
+  @@map("roles")
+}
+
+model RbacPermission {
+  id             String                 @id @db.VarChar(100)
+  displayName    String                 @map("display_name") @db.VarChar(100)
+  resource       String                 @db.VarChar(50)
+  action         String                 @db.VarChar(50)
+  description    String?                @db.VarChar(255)
+  createdAt      DateTime               @default(now()) @map("created_at")
+  roles          RbacRolePermission[]
+
+  @@map("permissions")
+}
+
+model UserRoleAssignment {
+  userId         String   @map("user_id") @db.VarChar(36)
+  roleId         String   @map("role_id") @db.VarChar(64)
+  createdAt      DateTime @default(now()) @map("created_at")
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role           RbacRole @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@index([roleId])
+  @@map("user_roles")
+}
+
+model RbacRolePermission {
+  roleId         String         @map("role_id") @db.VarChar(64)
+  permissionId   String         @map("permission_id") @db.VarChar(100)
+  createdAt      DateTime       @default(now()) @map("created_at")
+  role           RbacRole       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission     RbacPermission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@index([permissionId])
+  @@map("role_permissions")
+}
+
 enum DictionaryOwnerType {
   SYSTEM
   USER
