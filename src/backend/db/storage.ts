@@ -1,805 +1,103 @@
-import fs from 'fs';
-import path from 'path';
+import mysql from 'mysql2/promise';
 import {
-  User,
-  Word,
-  Sentence,
-  Dictionary,
-  DictionaryWord,
-  StudySession,
-  StudySessionWord,
-  UserDictionaryConfig,
-  UserWordProgress,
-  UserSentenceProgress,
-  SentencePracticeSession,
-  SentencePracticeItem,
-  LearningRecord,
-  ReviewRecord,
-  ProgressStatus
+  User, Word, Sentence, Dictionary, DictionaryWord, StudySession, StudySessionWord,
+  UserDictionaryConfig, UserWordProgress, UserSentenceProgress, SentencePracticeSession,
+  SentencePracticeItem, LearningRecord, ReviewRecord
 } from '../types/index.ts';
-import { SEED_WORDS, SEED_SENTENCES } from './seedData.ts';
 import { extractSentencePhrases } from '../utils/sentenceUtils.ts';
 
-const STORAGE_FILE = path.resolve(process.cwd(), 'db_storage.json');
+type Row = Record<string, any>;
 
-interface DatabaseState {
-  users: User[];
-  words: Word[];
-  sentences: Sentence[];
-  dictionaries: Dictionary[];
-  dictionaryWords: DictionaryWord[];
-  studySessions: StudySession[];
-  studySessionWords: StudySessionWord[];
-  sentencePracticeSessions: SentencePracticeSession[];
-  sentencePracticeItems: SentencePracticeItem[];
-  configs: UserDictionaryConfig[];
-  wordProgresses: UserWordProgress[];
-  sentenceProgresses: UserSentenceProgress[];
-  learningRecords: LearningRecord[];
-  reviewRecords: ReviewRecord[];
+const pool = mysql.createPool({
+  host: process.env.DB_HOST || '127.0.0.1',
+  port: Number(process.env.DB_PORT || 3307),
+  user: process.env.DB_USER || 'linguastep',
+  password: process.env.DB_PASSWORD || 'LinguaDB@123456',
+  database: process.env.DB_NAME || 'linguastep',
+  waitForConnections: true,
+  connectionLimit: 10,
+  charset: 'utf8mb4'
+});
+
+const iso = (v: any) => v ? new Date(v).toISOString() : undefined;
+
+class MySQLStorage {
+  async findUserByEmail(email: string): Promise<User | undefined> {
+    const [rows] = await pool.execute('SELECT * FROM users WHERE LOWER(email)=LOWER(?) LIMIT 1', [email]);
+    return this.user((rows as Row[])[0]);
+  }
+  async findUserByUsername(username: string): Promise<User | undefined> {
+    const [rows] = await pool.execute('SELECT * FROM users WHERE LOWER(username)=LOWER(?) LIMIT 1', [username]);
+    return this.user((rows as Row[])[0]);
+  }
+  async findUserById(id: string): Promise<User | undefined> {
+    const [rows] = await pool.execute('SELECT * FROM users WHERE id=? LIMIT 1', [id]);
+    return this.user((rows as Row[])[0]);
+  }
+  async createUser(user: User): Promise<User> {
+    const c: UserDictionaryConfig = { id:`cfg-${Date.now()}`, userId:user.id, defaultDictionaryId:'dict-primary-6', sentenceDictionaryId:'dict-primary-6', englishDict:'Oxford', ecDict:'Oxford', phoneticType:'UK', audioType:'UK', enablePhonics:true, sentencePracticeCount:5, createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() };
+    const d: Dictionary = { id:`dict-user-${user.id}`, name:`${user.username}的生词本`, code:`vocab_${user.username}_${Date.now().toString(36)}`, description:'个人专属生词与高频复习词汇集', ownerType:'USER', ownerUserId:user.id, isSystem:false, isPublic:false, status:'ACTIVE', createdAt:c.createdAt, updatedAt:c.updatedAt };
+    const conn=await pool.getConnection(); try { await conn.beginTransaction();
+      await conn.execute('INSERT INTO users(id,username,email,password_hash,role,created_at,updated_at) VALUES(?,?,?,?,?,?,?)',[user.id,user.username,user.email,user.passwordHash,user.role,user.createdAt,user.updatedAt]);
+      await conn.execute('INSERT INTO dictionary(id,name,code,description,owner_type,owner_user_id,is_system,is_public,status,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)',[d.id,d.name,d.code,d.description,d.ownerType,d.ownerUserId,d.isSystem,d.isPublic,d.status,d.createdAt,d.updatedAt]);
+      await conn.execute('INSERT INTO user_dictionary_config(id,user_id,default_dictionary_id,sentence_dictionary_id,phonetic_type,audio_type,enable_phonics,sentence_practice_count,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?)',[c.id,c.userId,c.defaultDictionaryId,c.sentenceDictionaryId,c.phoneticType,c.audioType,c.enablePhonics,c.sentencePracticeCount,c.createdAt,c.updatedAt]);
+      await conn.commit(); return user;
+    } catch(e){await conn.rollback();throw e} finally{conn.release()}
+  }
+
+  private user(r?:Row): User|undefined { if(!r)return; return {id:r.id,username:r.username,email:r.email,passwordHash:r.password_hash,role:r.role,createdAt:iso(r.created_at)!,updatedAt:iso(r.updated_at)!}; }
+
+  async getAllDictionaries(userId?: string) { const [rows]=await pool.execute(`SELECT d.*,COUNT(dw.id) word_count FROM dictionary d LEFT JOIN dictionary_word dw ON dw.dictionary_id=d.id AND dw.is_active=1 WHERE d.status='ACTIVE' AND (d.is_system=1 OR d.is_public=1 OR d.owner_user_id=?) GROUP BY d.id ORDER BY d.created_at`,[userId||'']); return (rows as Row[]).map(this.dict); }
+  async getUserDictionaries(userId:string){const [rows]=await pool.execute(`SELECT d.*,COUNT(dw.id) word_count FROM dictionary d LEFT JOIN dictionary_word dw ON dw.dictionary_id=d.id AND dw.is_active=1 WHERE d.owner_type='USER' AND d.owner_user_id=? AND d.status<>'INACTIVE' GROUP BY d.id ORDER BY d.created_at`,[userId]);return(rows as Row[]).map(this.dict)}
+  async getWordUserDictionaries(userId:string,wordId:string){const [rows]=await pool.execute(`SELECT dw.dictionary_id FROM dictionary_word dw JOIN dictionary d ON d.id=dw.dictionary_id WHERE d.owner_type='USER' AND d.owner_user_id=? AND dw.word_id=? AND dw.is_active=1`,[userId,wordId]);return(rows as Row[]).map(r=>r.dictionary_id)}
+  async getAdminDictionaries(){const [rows]=await pool.execute(`SELECT d.*,COUNT(dw.id) word_count FROM dictionary d LEFT JOIN dictionary_word dw ON dw.dictionary_id=d.id AND dw.is_active=1 GROUP BY d.id ORDER BY d.created_at`);return(rows as Row[]).map(this.dict)}
+  async findDictionaryById(id:string){const [rows]=await pool.execute(`SELECT d.*,COUNT(dw.id) word_count FROM dictionary d LEFT JOIN dictionary_word dw ON dw.dictionary_id=d.id AND dw.is_active=1 WHERE d.id=? GROUP BY d.id`,[id]);return this.dict((rows as Row[])[0])}
+  private dict(r?:Row):any{if(!r)return;return{id:r.id,name:r.name,code:r.code,description:r.description||'',ownerType:r.owner_type,ownerUserId:r.owner_user_id,isSystem:Boolean(r.is_system),isPublic:Boolean(r.is_public),status:r.status,wordCount:Number(r.word_count||0),createdAt:iso(r.created_at)!,updatedAt:iso(r.updated_at)!}}
+  async createDictionary(d:Dictionary){await pool.execute('INSERT INTO dictionary(id,name,code,description,owner_type,owner_user_id,is_system,is_public,status,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)',[d.id,d.name,d.code,d.description||'',d.ownerType,d.ownerUserId,d.isSystem,d.isPublic,d.status,d.createdAt,d.updatedAt]);return d}
+  async updateDictionary(id:string,p:Partial<Dictionary>){const d=await this.findDictionaryById(id);if(!d)return;const x={...d,...p,updatedAt:new Date().toISOString()};await pool.execute('UPDATE dictionary SET name=?,description=?,is_public=?,status=?,updated_at=? WHERE id=?',[x.name,x.description||'',x.isPublic,x.status,x.updatedAt,id]);return x}
+  async deleteDictionary(id:string){const [r]=await pool.execute('DELETE FROM dictionary WHERE id=?',[id]);return Number((r as any).affectedRows)>0}
+  async getDictionaryWords(dictionaryId:string){const [rows]=await pool.execute(`SELECT dw.*,w.* FROM dictionary_word dw JOIN word w ON w.id=dw.word_id WHERE dw.dictionary_id=? AND dw.is_active=1 ORDER BY dw.sequence_no`,[dictionaryId]);return Promise.all((rows as Row[]).map(async r=>({...this.dw(r),word:await this.findWordById(r.word_id)})))}
+  private dw(r:Row):DictionaryWord{return{id:r.id,dictionaryId:r.dictionary_id,wordId:r.word_id,sequence:r.sequence_no,isActive:Boolean(r.is_active),definitionSource:r.definition_source||undefined,createdAt:iso(r.created_at)!}}
+  async addWordToDictionary(dictionaryId:string,wordId:string,sequence?:number){const [rows]=await pool.execute('SELECT * FROM dictionary_word WHERE dictionary_id=? AND word_id=?',[dictionaryId,wordId]);let r=(rows as Row[])[0];if(r){await pool.execute('UPDATE dictionary_word SET is_active=1 WHERE id=?',[r.id]);return this.dw({...r,is_active:1})}const [[m]]:any=await pool.query('SELECT COALESCE(MAX(sequence_no),0)+1 n FROM dictionary_word WHERE dictionary_id=?',[dictionaryId]);const x={id:`dw-${Date.now()}-${Math.random().toString(36).slice(2,6)}`,dictionaryId,wordId,sequence:sequence??m.n,isActive:true,createdAt:new Date().toISOString()};await pool.execute('INSERT INTO dictionary_word(id,dictionary_id,word_id,sequence_no,is_active,created_at) VALUES(?,?,?,?,?,?)',[x.id,dictionaryId,wordId,x.sequence,1,x.createdAt]);return x}
+  async removeWordFromDictionary(dictionaryId:string,wordId:string){const [r]=await pool.execute('DELETE FROM dictionary_word WHERE dictionary_id=? AND word_id=?',[dictionaryId,wordId]);return Number((r as any).affectedRows)>0}
+  async batchAddWordsToDictionary(id:string,wids:string[]){const out=[];for(const w of wids){if(await this.findWordById(w))out.push(await this.addWordToDictionary(id,w))}return out}
+  async getDictionaryConfig(userId:string){let [rows]=await pool.execute('SELECT * FROM user_dictionary_config WHERE user_id=?',[userId]);let r=(rows as Row[])[0];if(!r){const now=new Date().toISOString();const id=`cfg-${Date.now()}`;await pool.execute('INSERT INTO user_dictionary_config(id,user_id,default_dictionary_id,sentence_dictionary_id,phonetic_type,audio_type,enable_phonics,sentence_practice_count,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?)',[id,userId,'dict-primary-6','dict-primary-6','UK','UK',1,5,now,now]);r={id,user_id:userId,default_dictionary_id:'dict-primary-6',sentence_dictionary_id:'dict-primary-6',phonetic_type:'UK',audio_type:'UK',enable_phonics:1,sentence_practice_count:5,created_at:now,updated_at:now}}return this.config(r)}
+  private config(r:Row):UserDictionaryConfig{return{id:r.id,userId:r.user_id,defaultDictionaryId:r.default_dictionary_id||undefined,sentenceDictionaryId:r.sentence_dictionary_id||undefined,phoneticType:r.phonetic_type,audioType:r.audio_type,enablePhonics:Boolean(r.enable_phonics),sentencePracticeCount:Number(r.sentence_practice_count||5),createdAt:iso(r.created_at)!,updatedAt:iso(r.updated_at)!}}
+  async saveDictionaryConfig(userId:string,p:Partial<UserDictionaryConfig>){const c=await this.getDictionaryConfig(userId);const x={...c,...p,updatedAt:new Date().toISOString()};await pool.execute('UPDATE user_dictionary_config SET default_dictionary_id=?,sentence_dictionary_id=?,phonetic_type=?,audio_type=?,enable_phonics=?,sentence_practice_count=?,updated_at=? WHERE user_id=?',[x.defaultDictionaryId||null,x.sentenceDictionaryId||null,x.phoneticType,x.audioType,x.enablePhonics,x.sentencePracticeCount||5,x.updatedAt,userId]);return x}
+
+  async getAllWords(){const [rows]=await pool.execute('SELECT * FROM word ORDER BY id');return Promise.all((rows as Row[]).map(r=>this.findWordById(r.id))) as any}
+  async findWordById(id:string){const [rows]=await pool.execute('SELECT * FROM word WHERE id=?',[id]);return this.loadWord((rows as Row[])[0])}
+  async findWordByText(text:string){const [rows]=await pool.execute('SELECT * FROM word WHERE LOWER(text)=LOWER(?)',[text.trim()]);return this.loadWord((rows as Row[])[0])}
+  private async loadWord(r?:Row):Promise<Word|undefined>{if(!r)return;const [m]=await pool.execute('SELECT * FROM word_meaning WHERE word_id=? ORDER BY created_at',[r.id]);const [p]=await pool.execute('SELECT * FROM word_phonics WHERE word_id=? ORDER BY sequence_no',[r.id]);return{id:r.id,text:r.text,phoneticUk:r.phonetic_uk||'',phoneticUs:r.phonetic_us||'',audioUkUrl:r.audio_uk_url||undefined,audioUsUrl:r.audio_us_url||undefined,pos:r.pos||'',difficulty:Number(r.difficulty||1),meanings:(m as Row[]).map(x=>({id:x.id,wordId:x.word_id,pos:x.pos,definitionCn:x.definition_cn,definitionEn:x.definition_en||undefined,exampleEn:x.example_en||undefined,exampleCn:x.example_cn||undefined})),phonics:(p as Row[]).map(x=>({id:x.id,wordId:x.word_id,sequence:x.sequence_no,text:x.text,phonetic:x.phonetic,syllable:x.syllable,audioUrl:x.audio_url||undefined}))}}
+  async createWord(w:Word){const c=await pool.getConnection();try{await c.beginTransaction();await c.execute('INSERT INTO word(id,text,phonetic_uk,phonetic_us,audio_uk_url,audio_us_url,pos,difficulty) VALUES(?,?,?,?,?,?,?,?)',[w.id,w.text,w.phoneticUk,w.phoneticUs,w.audioUkUrl||null,w.audioUsUrl||null,w.pos,w.difficulty]);for(const m of w.meanings)await c.execute('INSERT INTO word_meaning(id,word_id,pos,definition_cn,definition_en,example_en,example_cn) VALUES(?,?,?,?,?,?,?)',[m.id,w.id,m.pos,m.definitionCn,m.definitionEn||null,m.exampleEn||null,m.exampleCn||null]);for(const p of w.phonics)await c.execute('INSERT INTO word_phonics(id,word_id,sequence_no,text,phonetic,syllable,audio_url) VALUES(?,?,?,?,?,?,?)',[p.id,w.id,p.sequence,p.text,p.phonetic,p.syllable,p.audioUrl||null]);await c.commit();return w}catch(e){await c.rollback();throw e}finally{c.release()}}
+  async getWordProgress(userId:string,wordId:string){const [rows]=await pool.execute('SELECT * FROM user_word_progress WHERE user_id=? AND word_id=?',[userId,wordId]);return this.progress((rows as Row[])[0])}
+  async getAllWordProgresses(userId:string){const [rows]=await pool.execute('SELECT * FROM user_word_progress WHERE user_id=?',[userId]);return(rows as Row[]).map(this.progress)}
+  private progress(r?:Row):UserWordProgress|undefined{if(!r)return;return{id:r.id,userId:r.user_id,wordId:r.word_id,status:r.status,learnCount:r.learn_count,reviewCount:r.review_count,correctCount:r.correct_count,wrongCount:r.wrong_count,streak:r.streak,mastery:r.mastery,lastLearnAt:iso(r.last_learn_at),lastReviewAt:iso(r.last_review_at),nextReviewAt:iso(r.next_review_at),createdAt:iso(r.created_at)!,updatedAt:iso(r.updated_at)!}}
+  async saveWordProgress(p:UserWordProgress){await pool.execute(`INSERT INTO user_word_progress(id,user_id,word_id,status,learn_count,review_count,correct_count,wrong_count,streak,mastery,last_learn_at,last_review_at,next_review_at,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE status=VALUES(status),learn_count=VALUES(learn_count),review_count=VALUES(review_count),correct_count=VALUES(correct_count),wrong_count=VALUES(wrong_count),streak=VALUES(streak),mastery=VALUES(mastery),last_learn_at=VALUES(last_learn_at),last_review_at=VALUES(last_review_at),next_review_at=VALUES(next_review_at),updated_at=VALUES(updated_at)`,[p.id,p.userId,p.wordId,p.status,p.learnCount,p.reviewCount,p.correctCount,p.wrongCount,p.streak,p.mastery,p.lastLearnAt||null,p.lastReviewAt||null,p.nextReviewAt||null,p.createdAt,p.updatedAt]);return p}
+  async createStudySession(s:StudySession,words:StudySessionWord[]){const c=await pool.getConnection();try{await c.beginTransaction();await c.execute("UPDATE study_session SET status='CANCELLED' WHERE user_id=? AND status='IN_PROGRESS'",[s.userId]);await c.execute('INSERT INTO study_session(id,user_id,mode,dictionary_id,total_count,completed_count,exclude_mastered,sort_mode,status,current_word_index,started_at,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)',[s.id,s.userId,s.mode,s.dictionaryId,s.totalCount,s.completedCount,s.excludeMastered,s.sortMode,s.status,s.currentWordIndex,s.startedAt,s.createdAt,s.updatedAt]);for(const w of words)await c.execute('INSERT INTO study_session_word(id,session_id,word_id,sequence_no,learn_status,write_status,completed,is_correct,user_input,learned_at,written_at,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',[w.id,w.sessionId,w.wordId,w.sequence,w.learnStatus,w.writeStatus,w.completed,w.isCorrect,w.userInput,w.learnedAt,w.writtenAt,w.createdAt]);await c.commit();return s}catch(e){await c.rollback();throw e}finally{c.release()}}
+  async findStudySessionById(id:string){const [ss]=await pool.execute('SELECT * FROM study_session WHERE id=?',[id]);const s=(ss as Row[])[0];if(!s)return;const [ws]=await pool.execute('SELECT * FROM study_session_word WHERE session_id=? ORDER BY sequence_no',[id]);const words=await Promise.all((ws as Row[]).map(async r=>({...this.sw(r),word:await this.findWordById(r.word_id)})));return{...this.session(s),words,dictionary:await this.findDictionaryById(s.dictionary_id)}}
+  private session(r:Row):StudySession{return{id:r.id,userId:r.user_id,mode:r.mode,dictionaryId:r.dictionary_id,totalCount:r.total_count,completedCount:r.completed_count,excludeMastered:Boolean(r.exclude_mastered),sortMode:r.sort_mode,status:r.status,currentWordIndex:r.current_word_index,startedAt:iso(r.started_at)!,completedAt:iso(r.completed_at),createdAt:iso(r.created_at)!,updatedAt:iso(r.updated_at)!}}
+  private sw(r:Row):StudySessionWord{return{id:r.id,sessionId:r.session_id,wordId:r.word_id,sequence:r.sequence_no,learnStatus:r.learn_status,writeStatus:r.write_status,completed:Boolean(r.completed),isCorrect:r.is_correct===null?null:Boolean(r.is_correct),userInput:r.user_input,learnedAt:iso(r.learned_at)||null,writtenAt:iso(r.written_at)||null,createdAt:iso(r.created_at)!}}
+  async getActiveSessionByUserId(userId:string){const [r]=await pool.execute("SELECT id FROM study_session WHERE user_id=? AND status='IN_PROGRESS' ORDER BY updated_at DESC LIMIT 1",[userId]);const id=(r as Row[])[0]?.id;return id?this.findStudySessionById(id):undefined}
+  async updateStudySession(s:StudySession){await pool.execute('UPDATE study_session SET completed_count=?,status=?,current_word_index=?,completed_at=?,updated_at=? WHERE id=?',[s.completedCount,s.status,s.currentWordIndex,s.completedAt||null,s.updatedAt,s.id]);return s}
+  async updateStudySessionWord(w:StudySessionWord){await pool.execute('UPDATE study_session_word SET learn_status=?,write_status=?,completed=?,is_correct=?,user_input=?,learned_at=?,written_at=? WHERE id=?',[w.learnStatus,w.writeStatus,w.completed,w.isCorrect,w.userInput,w.learnedAt||null,w.writtenAt||null,w.id]);return w}
+
+  async getAllSentences(){const [r]=await pool.execute('SELECT id FROM sentence ORDER BY id');return Promise.all((r as Row[]).map(x=>this.findSentenceById(x.id))) as any}
+  async findSentenceById(id:string){const [r]=await pool.execute('SELECT * FROM sentence WHERE id=?',[id]);const s=(r as Row[])[0];if(!s)return;const [sw]=await pool.execute('SELECT sw.position_no,w.id FROM sentence_word sw JOIN word w ON w.id=sw.word_id WHERE sw.sentence_id=? ORDER BY sw.position_no',[id]);const [st]=await pool.execute('SELECT * FROM sentence_step WHERE sentence_id=? ORDER BY step_number',[id]);const [an]=await pool.execute('SELECT * FROM sentence_analysis WHERE sentence_id=? ORDER BY start_position',[id]);return{id:s.id,content:s.content,translation:s.translation,level:s.level,audioUrl:s.audio_url||undefined,difficulty:s.difficulty,steps:(st as Row[]).map(x=>({id:x.id,sentenceId:id,stepNumber:x.step_number,content:x.content,translation:x.translation,phonetic:x.phonetic||undefined,type:x.type,audioUrl:x.audio_url||undefined})),analyses:(an as Row[]).map(x=>({id:x.id,sentenceId:id,text:x.text,startPosition:x.start_position,endPosition:x.end_position,type:x.type,explanation:x.explanation}))}}
+  async getSentenceProgress(userId:string,sentenceId:string){const[r]=await pool.execute('SELECT * FROM user_sentence_progress WHERE user_id=? AND sentence_id=?',[userId,sentenceId]);return this.usp((r as Row[])[0])}
+  private usp(r?:Row):UserSentenceProgress|undefined{if(!r)return;return{id:r.id,userId:r.user_id,sentenceId:r.sentence_id,status:r.status,currentStep:r.current_step,completedAt:iso(r.completed_at),createdAt:iso(r.created_at)!,updatedAt:iso(r.updated_at)!}}
+  async saveSentenceProgress(p:UserSentenceProgress){await pool.execute('INSERT INTO user_sentence_progress(id,user_id,sentence_id,status,current_step,completed_at,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE status=VALUES(status),current_step=VALUES(current_step),completed_at=VALUES(completed_at),updated_at=VALUES(updated_at)',[p.id,p.userId,p.sentenceId,p.status,p.currentStep,p.completedAt||null,p.createdAt,p.updatedAt]);return p}
+  async addLearningRecord(r:LearningRecord){await pool.execute('INSERT INTO learning_record(id,user_id,item_type,item_id,action,is_correct,input_text,time_spent_sec,created_at) VALUES(?,?,?,?,?,?,?,?,?)',[r.id,r.userId,r.itemType,r.itemId,r.action,r.isCorrect,r.inputText||null,r.timeSpentSec,r.createdAt]);return r}
+  async getLearningRecords(userId:string){const[r]=await pool.execute('SELECT * FROM learning_record WHERE user_id=? ORDER BY created_at');return(r as Row[]).map(x=>({id:x.id,userId:x.user_id,itemType:x.item_type,itemId:x.item_id,action:x.action,isCorrect:Boolean(x.is_correct),inputText:x.input_text||undefined,timeSpentSec:x.time_spent_sec,createdAt:iso(x.created_at)!}))}
+  async addReviewRecord(r:ReviewRecord){await pool.execute('INSERT INTO review_record(id,user_id,word_id,interval_days,next_review_at,result,created_at) VALUES(?,?,?,?,?,?,?)',[r.id,r.userId,r.wordId,r.intervalDays,r.nextReviewAt,r.result,r.createdAt]);return r}
+
+  async createSentencePracticeSession(s:SentencePracticeSession,items:SentencePracticeItem[]){const c=await pool.getConnection();try{await c.beginTransaction();await c.execute("UPDATE sentence_practice_session SET status='CANCELLED' WHERE user_id=? AND status='IN_PROGRESS'",[s.userId]);await c.execute('INSERT INTO sentence_practice_session(id,user_id,dictionary_id,difficulty,total_count,current_sentence_index,status,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?)',[s.id,s.userId,s.dictionaryId||null,s.difficulty,s.totalCount,s.currentSentenceIndex,s.status,s.createdAt,s.updatedAt]);for(const i of items)await c.execute('INSERT INTO sentence_practice_item(id,session_id,sentence_id,sequence_no,current_phase,current_phrase_index,completed,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?)',[i.id,i.sessionId,i.sentenceId,i.sequence,i.currentPhase,i.currentPhraseIndex,i.completed,i.createdAt,i.updatedAt]);await c.commit();return s}catch(e){await c.rollback();throw e}finally{c.release()}}
+  async findSentencePracticeSessionById(id:string){const[r]=await pool.execute('SELECT * FROM sentence_practice_session WHERE id=?',[id]);const s=(r as Row[])[0];if(!s)return;const[it]=await pool.execute('SELECT * FROM sentence_practice_item WHERE session_id=? ORDER BY sequence_no',[id]);const items=await Promise.all((it as Row[]).map(async x=>{const sentence=await this.findSentenceById(x.sentence_id);return{...this.spi(x),sentence,phrases:sentence?extractSentencePhrases(sentence):[]}}));return{...this.sps(s),items}}
+  private sps(r:Row):SentencePracticeSession{return{id:r.id,userId:r.user_id,dictionaryId:r.dictionary_id||undefined,difficulty:r.difficulty,totalCount:r.total_count,currentSentenceIndex:r.current_sentence_index,status:r.status,createdAt:iso(r.created_at)!,updatedAt:iso(r.updated_at)!}}
+  private spi(r:Row):SentencePracticeItem{return{id:r.id,sessionId:r.session_id,sentenceId:r.sentence_id,sequence:r.sequence_no,currentPhase:r.current_phase,currentPhraseIndex:r.current_phrase_index,completed:Boolean(r.completed),createdAt:iso(r.created_at)!,updatedAt:iso(r.updated_at)!}}
+  async getActiveSentencePracticeSession(userId:string){const[r]=await pool.execute("SELECT id FROM sentence_practice_session WHERE user_id=? AND status='IN_PROGRESS' ORDER BY updated_at DESC LIMIT 1",[userId]);const id=(r as Row[])[0]?.id;return id?this.findSentencePracticeSessionById(id):undefined}
+  async updateSentencePracticeSession(s:SentencePracticeSession){await pool.execute('UPDATE sentence_practice_session SET current_sentence_index=?,status=?,updated_at=? WHERE id=?',[s.currentSentenceIndex,s.status,s.updatedAt,s.id]);return s}
+  async updateSentencePracticeItem(i:SentencePracticeItem){await pool.execute('UPDATE sentence_practice_item SET current_phase=?,current_phrase_index=?,completed=?,updated_at=? WHERE id=?',[i.currentPhase,i.currentPhraseIndex,i.completed,i.updatedAt,i.id]);return i}
+  async cancelSentencePracticeSession(id:string,userId:string){const[r]=await pool.execute('UPDATE sentence_practice_session SET status=\'CANCELLED\',updated_at=NOW() WHERE id=? AND user_id=?',[id,userId]);return Number((r as any).affectedRows)>0}
 }
-
-class Storage {
-  private state: DatabaseState;
-
-  constructor() {
-    this.state = this.loadState();
-  }
-
-  private loadState(): DatabaseState {
-    try {
-      if (fs.existsSync(STORAGE_FILE)) {
-        const data = fs.readFileSync(STORAGE_FILE, 'utf-8');
-        const parsed = JSON.parse(data) as Partial<DatabaseState>;
-        const loaded: DatabaseState = {
-          users: parsed.users && parsed.users.length > 0 ? parsed.users : this.defaultUsers(),
-          words: parsed.words && parsed.words.length > 0 ? parsed.words : SEED_WORDS,
-          sentences: parsed.sentences && parsed.sentences.length > 0 ? parsed.sentences : SEED_SENTENCES,
-          dictionaries: parsed.dictionaries && parsed.dictionaries.length > 0 ? parsed.dictionaries : this.defaultDictionaries(),
-          dictionaryWords: parsed.dictionaryWords && parsed.dictionaryWords.length > 0 ? parsed.dictionaryWords : this.defaultDictionaryWords(),
-          studySessions: parsed.studySessions || [],
-          studySessionWords: parsed.studySessionWords || [],
-          sentencePracticeSessions: parsed.sentencePracticeSessions || [],
-          sentencePracticeItems: parsed.sentencePracticeItems || [],
-          configs: parsed.configs || this.defaultConfigs(),
-          wordProgresses: parsed.wordProgresses || this.defaultProgresses(),
-          sentenceProgresses: parsed.sentenceProgresses || [],
-          learningRecords: parsed.learningRecords || [],
-          reviewRecords: parsed.reviewRecords || []
-        };
-        // Ensure default admin & demo users exist
-        if (!loaded.users.find(u => u.role === 'ADMIN')) {
-          loaded.users.push(this.defaultAdminUser());
-        }
-        return loaded;
-      }
-    } catch (e) {
-      console.warn('Failed to load db_storage.json, initializing fresh database:', e);
-    }
-
-    const initial: DatabaseState = {
-      users: this.defaultUsers(),
-      words: SEED_WORDS,
-      sentences: SEED_SENTENCES,
-      dictionaries: this.defaultDictionaries(),
-      dictionaryWords: this.defaultDictionaryWords(),
-      studySessions: [],
-      studySessionWords: [],
-      sentencePracticeSessions: [],
-      sentencePracticeItems: [],
-      configs: this.defaultConfigs(),
-      wordProgresses: this.defaultProgresses(),
-      sentenceProgresses: [],
-      learningRecords: [],
-      reviewRecords: []
-    };
-
-    this.saveState(initial);
-    return initial;
-  }
-
-  private defaultUsers(): User[] {
-    return [
-      {
-        id: 'u-default',
-        username: 'learner',
-        email: 'learner@linguastep.com',
-        role: 'USER',
-        passwordHash: '$2a$10$w9uL2v5/yZ9T0kM4X7gI2eR9iK2vX0aQ8yW3oP1rS6tU5vY4wZ123',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      },
-      this.defaultAdminUser()
-    ];
-  }
-
-  private defaultAdminUser(): User {
-    return {
-      id: 'u-admin',
-      username: 'admin',
-      email: 'admin@linguastep.com',
-      role: 'ADMIN',
-      passwordHash: '$2a$10$w9uL2v5/yZ9T0kM4X7gI2eR9iK2vX0aQ8yW3oP1rS6tU5vY4wZ123',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-  }
-
-  private defaultDictionaries(): Dictionary[] {
-    const now = new Date().toISOString();
-    return [
-      {
-        id: 'dict-primary-6',
-        name: '小学英语六年级上册',
-        code: 'primary_grade_6',
-        description: '教育部教材同步词汇，涵盖日常生活、学校活动与假期的核心常用词汇',
-        ownerType: 'SYSTEM',
-        ownerUserId: null,
-        isSystem: true,
-        isPublic: true,
-        status: 'ACTIVE',
-        createdAt: now,
-        updatedAt: now
-      },
-      {
-        id: 'dict-junior',
-        name: '初中英语核心词汇',
-        code: 'junior_middle_school',
-        description: '中考高频核心词汇精选，重点攻克交流表达、句式展开与习惯用语',
-        ownerType: 'SYSTEM',
-        ownerUserId: null,
-        isSystem: true,
-        isPublic: true,
-        status: 'ACTIVE',
-        createdAt: now,
-        updatedAt: now
-      },
-      {
-        id: 'dict-cet4',
-        name: '大学英语四级必备',
-        code: 'cet_4_core',
-        description: '全国大学英语四级考试核心必背词汇，涵盖学术探索、社会与科技常用词',
-        ownerType: 'SYSTEM',
-        ownerUserId: null,
-        isSystem: true,
-        isPublic: true,
-        status: 'ACTIVE',
-        createdAt: now,
-        updatedAt: now
-      },
-      {
-        id: 'dict-travel',
-        name: '日常生活与出行旅游',
-        code: 'travel_and_life',
-        description: '出国旅行、城市探索、交通与生活问候必备的高频场景词汇',
-        ownerType: 'SYSTEM',
-        ownerUserId: null,
-        isSystem: true,
-        isPublic: true,
-        status: 'ACTIVE',
-        createdAt: now,
-        updatedAt: now
-      },
-      {
-        id: 'dict-user-custom',
-        name: '我的生词本',
-        code: 'my_vocab_notes',
-        description: '个性化收藏的高频生词、难词与重点复习词库',
-        ownerType: 'USER',
-        ownerUserId: 'u-default',
-        isSystem: false,
-        isPublic: false,
-        status: 'ACTIVE',
-        createdAt: now,
-        updatedAt: now
-      }
-    ];
-  }
-
-  private defaultDictionaryWords(): DictionaryWord[] {
-    const now = new Date().toISOString();
-    const result: DictionaryWord[] = [];
-
-    // Primary 6 words (Words 1-20, plus seasons and family)
-    const primaryWordIds = [
-      'w-1', 'w-2', 'w-3', 'w-7', 'w-8', 'w-9', 'w-10', 'w-11', 'w-12', 'w-13',
-      'w-14', 'w-15', 'w-16', 'w-18', 'w-19', 'w-21', 'w-45', 'w-47', 'w-48', 'w-50'
-    ];
-    primaryWordIds.forEach((wid, idx) => {
-      result.push({
-        id: `dw-p6-${wid}`,
-        dictionaryId: 'dict-primary-6',
-        wordId: wid,
-        sequence: idx + 1,
-        isActive: true,
-        definitionSource: 'PEP Primary English',
-        createdAt: now
-      });
-    });
-
-    // Junior words (Words 1-35)
-    const juniorWordIds = [
-      'w-1', 'w-2', 'w-3', 'w-4', 'w-5', 'w-6', 'w-7', 'w-8', 'w-9', 'w-17',
-      'w-20', 'w-21', 'w-22', 'w-23', 'w-24', 'w-25', 'w-26', 'w-27', 'w-28', 'w-30',
-      'w-31', 'w-32', 'w-33', 'w-34', 'w-35', 'w-36', 'w-45', 'w-46', 'w-47', 'w-49'
-    ];
-    juniorWordIds.forEach((wid, idx) => {
-      result.push({
-        id: `dw-jn-${wid}`,
-        dictionaryId: 'dict-junior',
-        wordId: wid,
-        sequence: idx + 1,
-        isActive: true,
-        definitionSource: 'Junior English Core',
-        createdAt: now
-      });
-    });
-
-    // CET-4 words (Words 20-50, academic & advanced)
-    const cet4WordIds = [
-      'w-4', 'w-5', 'w-6', 'w-22', 'w-23', 'w-24', 'w-25', 'w-26', 'w-27', 'w-28',
-      'w-29', 'w-30', 'w-36', 'w-37', 'w-38', 'w-39', 'w-40', 'w-41', 'w-42', 'w-43',
-      'w-44', 'w-46', 'w-48', 'w-49'
-    ];
-    cet4WordIds.forEach((wid, idx) => {
-      result.push({
-        id: `dw-cet-${wid}`,
-        dictionaryId: 'dict-cet4',
-        wordId: wid,
-        sequence: idx + 1,
-        isActive: true,
-        definitionSource: 'CET-4 Syllabus',
-        createdAt: now
-      });
-    });
-
-    // Travel words
-    const travelWordIds = [
-      'w-1', 'w-2', 'w-3', 'w-10', 'w-11', 'w-17', 'w-18', 'w-19', 'w-21', 'w-23',
-      'w-31', 'w-32', 'w-42', 'w-43', 'w-49', 'w-50'
-    ];
-    travelWordIds.forEach((wid, idx) => {
-      result.push({
-        id: `dw-tr-${wid}`,
-        dictionaryId: 'dict-travel',
-        wordId: wid,
-        sequence: idx + 1,
-        isActive: true,
-        definitionSource: 'Travel English',
-        createdAt: now
-      });
-    });
-
-    // User notebook words
-    const userWordIds = ['w-1', 'w-4', 'w-6', 'w-24', 'w-38', 'w-41', 'w-43', 'w-49'];
-    userWordIds.forEach((wid, idx) => {
-      result.push({
-        id: `dw-user-${wid}`,
-        dictionaryId: 'dict-user-custom',
-        wordId: wid,
-        sequence: idx + 1,
-        isActive: true,
-        definitionSource: 'User Vocabulary Notes',
-        createdAt: now
-      });
-    });
-
-    return result;
-  }
-
-  private defaultConfigs(): UserDictionaryConfig[] {
-    return [
-      {
-        id: 'cfg-default',
-        userId: 'u-default',
-        defaultDictionaryId: 'dict-primary-6',
-        sentenceDictionaryId: 'dict-primary-6',
-        englishDict: 'Oxford',
-        ecDict: 'Oxford',
-        phoneticType: 'UK',
-        audioType: 'UK',
-        enablePhonics: true,
-        sentencePracticeCount: 5,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }
-    ];
-  }
-
-  private defaultProgresses(): UserWordProgress[] {
-    return [
-      {
-        id: 'p-1',
-        userId: 'u-default',
-        wordId: 'w-1', // holiday
-        status: 'LEARNING',
-        learnCount: 2,
-        reviewCount: 1,
-        correctCount: 2,
-        wrongCount: 0,
-        streak: 2,
-        mastery: 50,
-        lastLearnAt: new Date(Date.now() - 3600000).toISOString(),
-        lastReviewAt: new Date(Date.now() - 1800000).toISOString(),
-        nextReviewAt: new Date(Date.now() + 86400000).toISOString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      },
-      {
-        id: 'p-2',
-        userId: 'u-default',
-        wordId: 'w-2', // where
-        status: 'MASTERED',
-        learnCount: 5,
-        reviewCount: 4,
-        correctCount: 5,
-        wrongCount: 0,
-        streak: 5,
-        mastery: 100,
-        lastLearnAt: new Date(Date.now() - 86400000).toISOString(),
-        lastReviewAt: new Date(Date.now() - 43200000).toISOString(),
-        nextReviewAt: new Date(Date.now() + 259200000).toISOString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }
-    ];
-  }
-
-  private saveState(stateToSave?: DatabaseState) {
-    try {
-      const data = JSON.stringify(stateToSave || this.state, null, 2);
-      fs.writeFileSync(STORAGE_FILE, data, 'utf-8');
-    } catch (e) {
-      console.error('Failed to write db_storage.json:', e);
-    }
-  }
-
-  // User queries
-  findUserByEmail(email: string): User | undefined {
-    return this.state.users.find(u => u.email.toLowerCase() === email.toLowerCase());
-  }
-
-  findUserByUsername(username: string): User | undefined {
-    return this.state.users.find(u => u.username.toLowerCase() === username.toLowerCase());
-  }
-
-  findUserById(id: string): User | undefined {
-    return this.state.users.find(u => u.id === id);
-  }
-
-  createUser(user: User): User {
-    this.state.users.push(user);
-    // Create default config
-    const config: UserDictionaryConfig = {
-      id: `cfg-${Date.now()}`,
-      userId: user.id,
-      defaultDictionaryId: 'dict-primary-6',
-      sentenceDictionaryId: 'dict-primary-6',
-      englishDict: 'Oxford',
-      ecDict: 'Oxford',
-      phoneticType: 'UK',
-      audioType: 'UK',
-      enablePhonics: true,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-    this.state.configs.push(config);
-    // Create default personal dictionary
-    const personalDict: Dictionary = {
-      id: `dict-user-${user.id}`,
-      name: `${user.username}的生词本`,
-      code: `vocab_${user.username}_${Date.now().toString(36)}`,
-      description: '个人专属生词与高频复习词汇集',
-      ownerType: 'USER',
-      ownerUserId: user.id,
-      isSystem: false,
-      isPublic: false,
-      status: 'ACTIVE',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-    this.state.dictionaries.push(personalDict);
-    this.saveState();
-    return user;
-  }
-
-  // Dictionary queries
-  getAllDictionaries(userId?: string): (Dictionary & { wordCount: number })[] {
-    return this.state.dictionaries
-      .filter(d => {
-        if (d.status === 'INACTIVE') return false;
-        if (d.isSystem || d.isPublic) return true;
-        if (userId && d.ownerUserId === userId) return true;
-        return false;
-      })
-      .map(d => {
-        const count = this.state.dictionaryWords.filter(dw => dw.dictionaryId === d.id && dw.isActive).length;
-        return { ...d, wordCount: count };
-      });
-  }
-
-  getUserDictionaries(userId: string): (Dictionary & { wordCount: number })[] {
-    return this.state.dictionaries
-      .filter(d => d.ownerType === 'USER' && d.ownerUserId === userId && d.status !== 'INACTIVE')
-      .map(d => {
-        const count = this.state.dictionaryWords.filter(dw => dw.dictionaryId === d.id && dw.isActive).length;
-        return { ...d, wordCount: count };
-      });
-  }
-
-  getWordUserDictionaries(userId: string, wordId: string): string[] {
-    const userDicts = this.getUserDictionaries(userId);
-    const userDictIds = new Set(userDicts.map(d => d.id));
-    return this.state.dictionaryWords
-      .filter(dw => userDictIds.has(dw.dictionaryId) && dw.wordId === wordId && dw.isActive)
-      .map(dw => dw.dictionaryId);
-  }
-
-  getAdminDictionaries(): (Dictionary & { wordCount: number })[] {
-    return this.state.dictionaries.map(d => {
-      const count = this.state.dictionaryWords.filter(dw => dw.dictionaryId === d.id && dw.isActive).length;
-      return { ...d, wordCount: count };
-    });
-  }
-
-  findDictionaryById(id: string): (Dictionary & { wordCount: number }) | undefined {
-    const d = this.state.dictionaries.find(item => item.id === id);
-    if (!d) return undefined;
-    const count = this.state.dictionaryWords.filter(dw => dw.dictionaryId === d.id && dw.isActive).length;
-    return { ...d, wordCount: count };
-  }
-
-  createDictionary(dict: Dictionary): Dictionary {
-    this.state.dictionaries.push(dict);
-    this.saveState();
-    return dict;
-  }
-
-  updateDictionary(id: string, partial: Partial<Dictionary>): Dictionary | undefined {
-    const idx = this.state.dictionaries.findIndex(d => d.id === id);
-    if (idx === -1) return undefined;
-    this.state.dictionaries[idx] = {
-      ...this.state.dictionaries[idx],
-      ...partial,
-      updatedAt: new Date().toISOString()
-    };
-    this.saveState();
-    return this.state.dictionaries[idx];
-  }
-
-  deleteDictionary(id: string): boolean {
-    const beforeCount = this.state.dictionaries.length;
-    this.state.dictionaries = this.state.dictionaries.filter(d => d.id !== id);
-    this.state.dictionaryWords = this.state.dictionaryWords.filter(dw => dw.dictionaryId !== id);
-    this.saveState();
-    return this.state.dictionaries.length < beforeCount;
-  }
-
-  // Dictionary Word queries
-  getDictionaryWords(dictionaryId: string): (DictionaryWord & { word?: Word })[] {
-    const list = this.state.dictionaryWords
-      .filter(dw => dw.dictionaryId === dictionaryId && dw.isActive)
-      .sort((a, b) => a.sequence - b.sequence);
-
-    return list.map(dw => ({
-      ...dw,
-      word: this.findWordById(dw.wordId)
-    }));
-  }
-
-  addWordToDictionary(dictionaryId: string, wordId: string, sequence?: number): DictionaryWord {
-    const existing = this.state.dictionaryWords.find(dw => dw.dictionaryId === dictionaryId && dw.wordId === wordId);
-    if (existing) {
-      existing.isActive = true;
-      this.saveState();
-      return existing;
-    }
-
-    const currentWords = this.state.dictionaryWords.filter(dw => dw.dictionaryId === dictionaryId);
-    const maxSeq = currentWords.length > 0 ? Math.max(...currentWords.map(w => w.sequence)) : 0;
-
-    const newDW: DictionaryWord = {
-      id: `dw-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-      dictionaryId,
-      wordId,
-      sequence: sequence ?? (maxSeq + 1),
-      isActive: true,
-      createdAt: new Date().toISOString()
-    };
-    this.state.dictionaryWords.push(newDW);
-    this.saveState();
-    return newDW;
-  }
-
-  removeWordFromDictionary(dictionaryId: string, wordId: string): boolean {
-    const idx = this.state.dictionaryWords.findIndex(dw => dw.dictionaryId === dictionaryId && dw.wordId === wordId);
-    if (idx === -1) return false;
-    this.state.dictionaryWords.splice(idx, 1);
-    this.saveState();
-    return true;
-  }
-
-  batchAddWordsToDictionary(dictionaryId: string, wordIds: string[]): DictionaryWord[] {
-    const added: DictionaryWord[] = [];
-    wordIds.forEach(wid => {
-      if (this.findWordById(wid)) {
-        added.push(this.addWordToDictionary(dictionaryId, wid));
-      }
-    });
-    return added;
-  }
-
-  // Dictionary Config
-  getDictionaryConfig(userId: string): UserDictionaryConfig {
-    let cfg = this.state.configs.find(c => c.userId === userId);
-    if (!cfg) {
-      cfg = {
-        id: `cfg-${Date.now()}`,
-        userId,
-        defaultDictionaryId: 'dict-primary-6',
-        sentenceDictionaryId: 'dict-primary-6',
-        englishDict: 'Oxford',
-        ecDict: 'Oxford',
-        phoneticType: 'UK',
-        audioType: 'UK',
-        enablePhonics: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-      this.state.configs.push(cfg);
-      this.saveState();
-    }
-    return cfg;
-  }
-
-  saveDictionaryConfig(userId: string, partial: Partial<UserDictionaryConfig>): UserDictionaryConfig {
-    let cfg = this.state.configs.find(c => c.userId === userId);
-    if (cfg) {
-      Object.assign(cfg, partial, { updatedAt: new Date().toISOString() });
-    } else {
-      cfg = {
-        id: `cfg-${Date.now()}`,
-        userId,
-        defaultDictionaryId: partial.defaultDictionaryId || 'dict-primary-6',
-        sentenceDictionaryId: partial.sentenceDictionaryId || 'dict-primary-6',
-        englishDict: partial.englishDict || 'Oxford',
-        ecDict: partial.ecDict || 'Oxford',
-        phoneticType: partial.phoneticType || 'UK',
-        audioType: partial.audioType || 'UK',
-        enablePhonics: partial.enablePhonics !== undefined ? partial.enablePhonics : true,
-        sentencePracticeCount: partial.sentencePracticeCount || 5,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-      this.state.configs.push(cfg);
-    }
-    this.saveState();
-    return cfg;
-  }
-
-  // Word queries
-  getAllWords(): Word[] {
-    return this.state.words;
-  }
-
-  findWordById(id: string): Word | undefined {
-    return this.state.words.find(w => w.id === id);
-  }
-
-  findWordByText(text: string): Word | undefined {
-    return this.state.words.find(w => w.text.toLowerCase() === text.trim().toLowerCase());
-  }
-
-  createWord(word: Word): Word {
-    this.state.words.push(word);
-    this.saveState();
-    return word;
-  }
-
-  // Word Progress
-  getWordProgress(userId: string, wordId: string): UserWordProgress | undefined {
-    return this.state.wordProgresses.find(p => p.userId === userId && p.wordId === wordId);
-  }
-
-  getAllWordProgresses(userId: string): UserWordProgress[] {
-    return this.state.wordProgresses.filter(p => p.userId === userId);
-  }
-
-  saveWordProgress(progress: UserWordProgress): UserWordProgress {
-    const idx = this.state.wordProgresses.findIndex(
-      p => p.userId === progress.userId && p.wordId === progress.wordId
-    );
-    if (idx >= 0) {
-      this.state.wordProgresses[idx] = { ...progress, updatedAt: new Date().toISOString() };
-    } else {
-      this.state.wordProgresses.push(progress);
-    }
-    this.saveState();
-    return progress;
-  }
-
-  // Study Sessions
-  createStudySession(session: StudySession, sessionWords: StudySessionWord[]): StudySession {
-    // If there's an existing IN_PROGRESS session for this user, mark it CANCELLED
-    this.state.studySessions.forEach(s => {
-      if (s.userId === session.userId && s.status === 'IN_PROGRESS') {
-        s.status = 'CANCELLED';
-        s.updatedAt = new Date().toISOString();
-      }
-    });
-
-    this.state.studySessions.push(session);
-    this.state.studySessionWords.push(...sessionWords);
-    this.saveState();
-    return session;
-  }
-
-  findStudySessionById(id: string): (StudySession & { words: StudySessionWord[]; dictionary?: Dictionary }) | undefined {
-    const session = this.state.studySessions.find(s => s.id === id);
-    if (!session) return undefined;
-
-    const words = this.state.studySessionWords
-      .filter(sw => sw.sessionId === id)
-      .sort((a, b) => a.sequence - b.sequence)
-      .map(sw => ({
-        ...sw,
-        word: this.findWordById(sw.wordId)
-      }));
-
-    const dictionary = this.findDictionaryById(session.dictionaryId);
-
-    return {
-      ...session,
-      words,
-      dictionary
-    };
-  }
-
-  getActiveSessionByUserId(userId: string): (StudySession & { words: StudySessionWord[]; dictionary?: Dictionary }) | undefined {
-    const session = this.state.studySessions
-      .filter(s => s.userId === userId && s.status === 'IN_PROGRESS')
-      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())[0];
-
-    if (!session) return undefined;
-    return this.findStudySessionById(session.id);
-  }
-
-  updateStudySession(session: StudySession): StudySession {
-    const idx = this.state.studySessions.findIndex(s => s.id === session.id);
-    if (idx >= 0) {
-      const { words, dictionary, ...baseSession } = session as any;
-      this.state.studySessions[idx] = { ...this.state.studySessions[idx], ...baseSession, updatedAt: new Date().toISOString() };
-    }
-    this.saveState();
-    return session;
-  }
-
-  updateStudySessionWord(sessionWord: StudySessionWord): StudySessionWord {
-    const idx = this.state.studySessionWords.findIndex(sw => sw.id === sessionWord.id);
-    if (idx >= 0) {
-      this.state.studySessionWords[idx] = { ...sessionWord };
-    }
-    this.saveState();
-    return sessionWord;
-  }
-
-  // Sentence queries
-  getAllSentences(): Sentence[] {
-    return this.state.sentences;
-  }
-
-  findSentenceById(id: string): Sentence | undefined {
-    return this.state.sentences.find(s => s.id === id);
-  }
-
-  getSentenceProgress(userId: string, sentenceId: string): UserSentenceProgress | undefined {
-    return this.state.sentenceProgresses.find(p => p.userId === userId && p.sentenceId === sentenceId);
-  }
-
-  saveSentenceProgress(progress: UserSentenceProgress): UserSentenceProgress {
-    const idx = this.state.sentenceProgresses.findIndex(
-      p => p.userId === progress.userId && p.sentenceId === progress.sentenceId
-    );
-    if (idx >= 0) {
-      this.state.sentenceProgresses[idx] = { ...progress, updatedAt: new Date().toISOString() };
-    } else {
-      this.state.sentenceProgresses.push(progress);
-    }
-    this.saveState();
-    return progress;
-  }
-
-  // Learning Records
-  addLearningRecord(record: LearningRecord): LearningRecord {
-    this.state.learningRecords.push(record);
-    this.saveState();
-    return record;
-  }
-
-  getLearningRecords(userId: string): LearningRecord[] {
-    return this.state.learningRecords.filter(r => r.userId === userId);
-  }
-
-  // Review Records
-  addReviewRecord(record: ReviewRecord): ReviewRecord {
-    this.state.reviewRecords.push(record);
-    this.saveState();
-    return record;
-  }
-
-  // Sentence Practice Sessions
-  createSentencePracticeSession(session: SentencePracticeSession, items: SentencePracticeItem[]): SentencePracticeSession {
-    this.state.sentencePracticeSessions.forEach(s => {
-      if (s.userId === session.userId && s.status === 'IN_PROGRESS') {
-        s.status = 'CANCELLED';
-        s.updatedAt = new Date().toISOString();
-      }
-    });
-
-    this.state.sentencePracticeSessions.push(session);
-    this.state.sentencePracticeItems.push(...items);
-    this.saveState();
-    return session;
-  }
-
-  findSentencePracticeSessionById(id: string): (SentencePracticeSession & { items: SentencePracticeItem[] }) | undefined {
-    const session = this.state.sentencePracticeSessions.find(s => s.id === id);
-    if (!session) return undefined;
-
-    const items = this.state.sentencePracticeItems
-      .filter(item => item.sessionId === id)
-      .sort((a, b) => a.sequence - b.sequence)
-      .map(item => {
-        const sentence = this.findSentenceById(item.sentenceId);
-        const phrases = sentence ? extractSentencePhrases(sentence) : [];
-        return {
-          ...item,
-          sentence,
-          phrases
-        };
-      });
-
-    return {
-      ...session,
-      items
-    };
-  }
-
-  getActiveSentencePracticeSession(userId: string): (SentencePracticeSession & { items: SentencePracticeItem[] }) | undefined {
-    const session = this.state.sentencePracticeSessions
-      .filter(s => s.userId === userId && s.status === 'IN_PROGRESS')
-      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())[0];
-
-    if (!session) return undefined;
-    return this.findSentencePracticeSessionById(session.id);
-  }
-
-  updateSentencePracticeSession(session: SentencePracticeSession): SentencePracticeSession {
-    const idx = this.state.sentencePracticeSessions.findIndex(s => s.id === session.id);
-    if (idx >= 0) {
-      this.state.sentencePracticeSessions[idx] = { ...session, updatedAt: new Date().toISOString() };
-    }
-    this.saveState();
-    return session;
-  }
-
-  updateSentencePracticeItem(item: SentencePracticeItem): SentencePracticeItem {
-    const idx = this.state.sentencePracticeItems.findIndex(i => i.id === item.id);
-    if (idx >= 0) {
-      this.state.sentencePracticeItems[idx] = { ...item, updatedAt: new Date().toISOString() };
-    }
-    this.saveState();
-    return item;
-  }
-
-  cancelSentencePracticeSession(id: string, userId: string): boolean {
-    const session = this.state.sentencePracticeSessions.find(s => s.id === id && s.userId === userId);
-    if (!session) return false;
-    session.status = 'CANCELLED';
-    session.updatedAt = new Date().toISOString();
-    this.saveState();
-    return true;
-  }
-}
-
-export const db = new Storage();
+export const db = new MySQLStorage();
