@@ -26,7 +26,7 @@ export class SentencePracticeService {
     const matching = dictionaryId && dictWordSet.size > 0
       ? all.filter(s => {
           const words = s.content.toLowerCase().match(/[a-z']+/g) || [];
-          return words.some(w => dictWordSet.has(w));
+          return words.some((w: string) => dictWordSet.has(w));
         })
       : all;
 
