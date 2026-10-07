@@ -44,7 +44,7 @@ export class StatisticsService {
 
   static async getTodayStatistics(userId: string) {
     const records = await db.getLearningRecords(userId);
-    const progresses: import('../types/index.ts').UserWordProgress[] = await db.getAllWordProgresses(userId);
+    const progresses = (await db.getAllWordProgresses(userId)).filter((p): p is import('../types/index.ts').UserWordProgress => Boolean(p));
     const totalWords = (await db.getAllWords()).length;
 
     // Filter today's records (strictly starting from 00:00:00 today)
@@ -98,7 +98,7 @@ export class StatisticsService {
   static async getOverviewStatistics(userId: string) {
     const todayStats = await this.getTodayStatistics(userId);
     const records = await db.getLearningRecords(userId);
-    const progresses = await db.getAllWordProgresses(userId);
+    const progresses = (await db.getAllWordProgresses(userId)).filter((p): p is import('../types/index.ts').UserWordProgress => Boolean(p));
     const sentences = await db.getAllSentences();
 
     const currentStreakDays = this.calculateStreakDays(records);
