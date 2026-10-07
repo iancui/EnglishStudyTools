@@ -7,11 +7,11 @@ export class SentencePracticeController {
    * Preview sentence practice count for filter
    * GET /api/sentence-practice/preview?difficulty=A1&count=5
    */
-  static preview(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  static async preview(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
             const userId = req.user?.id || 'u-default';
       const dictionaryId = (req.query.dictionaryId as string) || undefined;
-      const preview = SentencePracticeService.previewPractice(userId, dictionaryId);
+      const preview = await SentencePracticeService.previewPractice(userId, dictionaryId);
       res.json({
         code: 200,
         message: 'success',
@@ -27,11 +27,11 @@ export class SentencePracticeController {
    * POST /api/sentence-practice
    * Body: { difficulty, count }
    */
-  static createSession(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  static async createSession(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id || 'u-default';
       const { dictionaryId } = req.body;
-      const session = SentencePracticeService.createSession(userId, {
+      const session = await SentencePracticeService.createSession(userId, {
         dictionaryId
       });
       res.json({
@@ -48,10 +48,10 @@ export class SentencePracticeController {
    * Get current active session
    * GET /api/sentence-practice/current
    */
-  static getCurrentSession(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  static async getCurrentSession(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id || 'u-default';
-      const session = SentencePracticeService.getActiveSession(userId);
+      const session = await SentencePracticeService.getActiveSession(userId);
       res.json({
         code: 200,
         message: 'success',
@@ -66,11 +66,11 @@ export class SentencePracticeController {
    * Get specific session by ID
    * GET /api/sentence-practice/:id
    */
-  static getSessionById(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  static async getSessionById(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id || 'u-default';
       const { id } = req.params;
-      const session = SentencePracticeService.getSessionById(id, userId);
+      const session = await SentencePracticeService.getSessionById(id, userId);
       if (!session) {
         return res.status(404).json({
           code: 404,
@@ -94,13 +94,13 @@ export class SentencePracticeController {
    * Body: { answer }
    * The backend dynamically verifies phrase or rebuild based on currentPhase & currentPhraseIndex!
    */
-  static submitAnswer(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  static async submitAnswer(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id || 'u-default';
       const { id } = req.params;
       const { answer } = req.body;
 
-      const session = SentencePracticeService.getSessionById(id, userId);
+      const session = await SentencePracticeService.getSessionById(id, userId);
       if (!session) {
         return res.status(404).json({
           code: 404,
@@ -149,7 +149,7 @@ export class SentencePracticeController {
       }
 
       // Re-fetch updated session state
-      const updatedSession = SentencePracticeService.getSessionById(id, userId);
+      const updatedSession = await SentencePracticeService.getSessionById(id, userId);
 
       res.json({
         code: 200,
@@ -183,11 +183,11 @@ export class SentencePracticeController {
    * Retry the sentence that was just completed.
    * POST /api/sentence-practice/:id/retry
    */
-  static retryCurrentSentence(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  static async retryCurrentSentence(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id || 'u-default';
       const { id } = req.params;
-      const session = SentencePracticeService.retryCurrentSentence(id, userId);
+      const session = await SentencePracticeService.retryCurrentSentence(id, userId);
       res.json({
         code: 200,
         message: 'success',
@@ -206,11 +206,11 @@ export class SentencePracticeController {
    * Cancel session
    * POST /api/sentence-practice/:id/cancel
    */
-  static cancelSession(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  static async cancelSession(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id || 'u-default';
       const { id } = req.params;
-      const success = SentencePracticeService.cancelSession(id, userId);
+      const success = await SentencePracticeService.cancelSession(id, userId);
       res.json({
         code: 200,
         message: 'success',
