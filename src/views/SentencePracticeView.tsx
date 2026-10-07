@@ -765,8 +765,16 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
                         onKeyDown={e => handleWordKeyDown(i, e)}
                         onBlur={() => { handleWordBlur(i); setFocusedWordIdx(null); }}
                         onFocus={() => setFocusedWordIdx(i)}
-                        // 不在 mousedown 阶段拦截默认行为，否则浏览器可能无法稳定保持输入框焦点，
-                        // 表现为输入第一个字母后无法继续输入。点击单词时再播放发音。
+                        // 如果当前已经在输入另一个单词，点击后面的单词只播放发音，
+                        // 不允许浏览器把输入焦点/光标移到被点击的单词。
+                        // 如果当前没有输入框焦点，或点击的就是当前输入框，则保留正常聚焦行为。
+                        onMouseDown={e => {
+                          const active = document.activeElement;
+                          const currentInput = inputRefs.current[focusedWordIdx ?? -1];
+                          if (currentInput && active === currentInput && focusedWordIdx !== i) {
+                            e.preventDefault();
+                          }
+                        }}
                         onClick={() => handleWordClick(ws.correctWord)}
                         autoComplete="off"
                         autoCorrect="off"
