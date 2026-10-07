@@ -2,15 +2,15 @@ import { db } from '../db/storage.ts';
 import { UserDictionaryConfig, Dictionary, DictionaryWord, Word } from '../types/index.ts';
 
 export class DictionaryService {
-  static getConfig(userId: string): UserDictionaryConfig {
-    return db.getDictionaryConfig(userId);
+  static async getConfig(userId: string): UserDictionaryConfig {
+    return await db.getDictionaryConfig(userId);
   }
 
-  static updateConfig(userId: string, partial: Partial<UserDictionaryConfig>): UserDictionaryConfig {
-    return db.saveDictionaryConfig(userId, partial);
+  static async updateConfig(userId: string, partial: Partial<UserDictionaryConfig>): UserDictionaryConfig {
+    return await db.saveDictionaryConfig(userId, partial);
   }
 
-  static applyWordDictionaryConfig(word: any, config: UserDictionaryConfig) {
+  static async applyWordDictionaryConfig(word: any, config: UserDictionaryConfig) {
     const isUs = config.phoneticType === 'US';
     return {
       ...word,
@@ -22,21 +22,21 @@ export class DictionaryService {
   }
 
   // Dictionaries
-  static getAllDictionaries(userId: string) {
-    return db.getAllDictionaries(userId);
+  static async getAllDictionaries(userId: string) {
+    return await db.getAllDictionaries(userId);
   }
 
-  static getDictionaryById(id: string) {
-    const dict = db.findDictionaryById(id);
+  static async getDictionaryById(id: string) {
+    const dict = await db.findDictionaryById(id);
     if (!dict) return null;
-    const wordsWithDetails = db.getDictionaryWords(id);
+    const wordsWithDetails = await db.getDictionaryWords(id);
     return {
       ...dict,
       words: wordsWithDetails
     };
   }
 
-  static createUserDictionary(userId: string, data: { name: string; description?: string }) {
+  static async createUserDictionary(userId: string, data: { name: string; description?: string }) {
     if (!data.name || !data.name.trim()) {
       throw new Error('辞书名称不能为空');
     }
@@ -55,11 +55,11 @@ export class DictionaryService {
       updatedAt: new Date().toISOString()
     };
 
-    return db.createDictionary(newDict);
+    return await db.createDictionary(newDict);
   }
 
-  static updateUserDictionary(userId: string, id: string, data: { name?: string; description?: string }) {
-    const dict = db.findDictionaryById(id);
+  static async updateUserDictionary(userId: string, id: string, data: { name?: string; description?: string }) {
+    const dict = await db.findDictionaryById(id);
     if (!dict) {
       throw new Error('辞书不存在');
     }
@@ -67,11 +67,11 @@ export class DictionaryService {
       throw new Error('无权修改该辞书');
     }
 
-    return db.updateDictionary(id, data);
+    return await db.updateDictionary(id, data);
   }
 
-  static deleteUserDictionary(userId: string, id: string) {
-    const dict = db.findDictionaryById(id);
+  static async deleteUserDictionary(userId: string, id: string) {
+    const dict = await db.findDictionaryById(id);
     if (!dict) {
       throw new Error('辞书不存在');
     }
@@ -79,11 +79,11 @@ export class DictionaryService {
       throw new Error('无法删除系统辞书或非本人创建的辞书');
     }
 
-    return db.deleteDictionary(id);
+    return await db.deleteDictionary(id);
   }
 
-  static addWordToDictionary(userId: string, dictionaryId: string, wordId: string) {
-    const dict = db.findDictionaryById(dictionaryId);
+  static async addWordToDictionary(userId: string, dictionaryId: string, wordId: string) {
+    const dict = await db.findDictionaryById(dictionaryId);
     if (!dict) throw new Error('辞书不存在');
     if (dict.isSystem || dict.ownerType === 'SYSTEM') {
       throw new Error('系统辞书由管理员维护，普通用户不能修改内容');
@@ -92,14 +92,14 @@ export class DictionaryService {
       throw new Error('无权向该辞书添加单词');
     }
 
-    const word = db.findWordById(wordId);
+    const word = await db.findWordById(wordId);
     if (!word) throw new Error('单词不存在');
 
-    return db.addWordToDictionary(dictionaryId, wordId);
+    return await db.addWordToDictionary(dictionaryId, wordId);
   }
 
-  static removeWordFromDictionary(userId: string, dictionaryId: string, wordId: string) {
-    const dict = db.findDictionaryById(dictionaryId);
+  static async removeWordFromDictionary(userId: string, dictionaryId: string, wordId: string) {
+    const dict = await db.findDictionaryById(dictionaryId);
     if (!dict) throw new Error('辞书不存在');
     if (dict.isSystem || dict.ownerType === 'SYSTEM') {
       throw new Error('系统辞书由管理员维护，普通用户不能修改内容');
@@ -108,27 +108,27 @@ export class DictionaryService {
       throw new Error('无权从该辞书移除单词');
     }
 
-    return db.removeWordFromDictionary(dictionaryId, wordId);
+    return await db.removeWordFromDictionary(dictionaryId, wordId);
   }
 
-  static getUserDictionaries(userId: string) {
-    return db.getUserDictionaries(userId);
+  static async getUserDictionaries(userId: string) {
+    return await db.getUserDictionaries(userId);
   }
 
-  static getUserDictionaryWords(userId: string, dictionaryId: string) {
-    const dict = db.findDictionaryById(dictionaryId);
+  static async getUserDictionaryWords(userId: string, dictionaryId: string) {
+    const dict = await db.findDictionaryById(dictionaryId);
     if (!dict) throw new Error('辞书不存在');
     if (dict.ownerType === 'USER' && dict.ownerUserId !== userId) {
       throw new Error('无权查看该私有辞书');
     }
-    return db.getDictionaryWords(dictionaryId);
+    return await db.getDictionaryWords(dictionaryId);
   }
 
-  static getWordUserDictionaries(userId: string, wordId: string) {
-    const word = db.findWordById(wordId);
+  static async getWordUserDictionaries(userId: string, wordId: string) {
+    const word = await db.findWordById(wordId);
     if (!word) throw new Error('单词不存在');
-    const dictionaryIds = db.getWordUserDictionaries(userId, wordId);
-    const userDicts = db.getUserDictionaries(userId);
+    const dictionaryIds = await db.getWordUserDictionaries(userId, wordId);
+    const userDicts = await db.getUserDictionaries(userId);
     return {
       wordId,
       dictionaryIds,
@@ -136,26 +136,26 @@ export class DictionaryService {
     };
   }
 
-  static syncWordUserDictionaries(userId: string, wordId: string, targetDictionaryIds: string[]) {
-    const word = db.findWordById(wordId);
+  static async syncWordUserDictionaries(userId: string, wordId: string, targetDictionaryIds: string[]) {
+    const word = await db.findWordById(wordId);
     if (!word) throw new Error('单词不存在');
 
-    const userDicts = db.getUserDictionaries(userId);
+    const userDicts = await db.getUserDictionaries(userId);
     const validUserDictIds = new Set(userDicts.map(d => d.id));
-    const currentDictIds = new Set(db.getWordUserDictionaries(userId, wordId));
+    const currentDictIds = new Set(await db.getWordUserDictionaries(userId, wordId));
 
     const toAdd = targetDictionaryIds.filter(id => validUserDictIds.has(id) && !currentDictIds.has(id));
     const toRemove = [...currentDictIds].filter(id => !targetDictionaryIds.includes(id));
 
     toAdd.forEach(dictId => {
-      db.addWordToDictionary(dictId, wordId);
+      await db.addWordToDictionary(dictId, wordId);
     });
 
     toRemove.forEach(dictId => {
-      db.removeWordFromDictionary(dictId, wordId);
+      await db.removeWordFromDictionary(dictId, wordId);
     });
 
-    const updatedDictIds = db.getWordUserDictionaries(userId, wordId);
+    const updatedDictIds = await db.getWordUserDictionaries(userId, wordId);
     return {
       wordId,
       dictionaryIds: updatedDictIds,
@@ -163,22 +163,22 @@ export class DictionaryService {
     };
   }
 
-  static batchAddWords(userId: string, dictionaryId: string, wordIds: string[]) {
-    const dict = db.findDictionaryById(dictionaryId);
+  static async batchAddWords(userId: string, dictionaryId: string, wordIds: string[]) {
+    const dict = await db.findDictionaryById(dictionaryId);
     if (!dict) throw new Error('辞书不存在');
     if (dict.ownerType === 'USER' && dict.ownerUserId !== userId) {
       throw new Error('无权向该辞书批量添加单词');
     }
 
-    return db.batchAddWordsToDictionary(dictionaryId, wordIds);
+    return await db.batchAddWordsToDictionary(dictionaryId, wordIds);
   }
 
   // Admin Methods
-  static getAdminDictionaries() {
-    return db.getAdminDictionaries();
+  static async getAdminDictionaries() {
+    return await db.getAdminDictionaries();
   }
 
-  static createAdminDictionary(data: { name: string; code?: string; description?: string; isSystem?: boolean; isPublic?: boolean }) {
+  static async createAdminDictionary(data: { name: string; code?: string; description?: string; isSystem?: boolean; isPublic?: boolean }) {
     if (!data.name || !data.name.trim()) throw new Error('辞书名称不能为空');
 
     const newDict: Dictionary = {
@@ -195,23 +195,23 @@ export class DictionaryService {
       updatedAt: new Date().toISOString()
     };
 
-    return db.createDictionary(newDict);
+    return await db.createDictionary(newDict);
   }
 
-  static updateAdminDictionary(id: string, data: Partial<Dictionary>) {
-    const dict = db.findDictionaryById(id);
+  static async updateAdminDictionary(id: string, data: Partial<Dictionary>) {
+    const dict = await db.findDictionaryById(id);
     if (!dict) throw new Error('辞书不存在');
-    return db.updateDictionary(id, data);
+    return await db.updateDictionary(id, data);
   }
 
-  static deleteAdminDictionary(id: string) {
-    const dict = db.findDictionaryById(id);
+  static async deleteAdminDictionary(id: string) {
+    const dict = await db.findDictionaryById(id);
     if (!dict) throw new Error('辞书不存在');
-    return db.deleteDictionary(id);
+    return await db.deleteDictionary(id);
   }
 
-  static importWordsToDictionary(dictionaryId: string, words: Array<{ text: string; phoneticUk?: string; pos?: string; definitionCn?: string }>) {
-    const dict = db.findDictionaryById(dictionaryId);
+  static async importWordsToDictionary(dictionaryId: string, words: Array<{ text: string; phoneticUk?: string; pos?: string; definitionCn?: string }>) {
+    const dict = await db.findDictionaryById(dictionaryId);
     if (!dict) throw new Error('辞书不存在');
 
     const addedWords: Word[] = [];
@@ -220,7 +220,7 @@ export class DictionaryService {
     for (const item of words) {
       if (!item.text || !item.text.trim()) continue;
       const cleanText = item.text.trim().toLowerCase();
-      let word = db.findWordByText(cleanText);
+      let word = await db.findWordByText(cleanText);
 
       if (!word) {
         word = {
@@ -251,11 +251,11 @@ export class DictionaryService {
         };
         word.meanings[0].wordId = word.id;
         word.phonics[0].wordId = word.id;
-        db.createWord(word);
+        await db.createWord(word);
         addedWords.push(word);
       }
 
-      const dw = db.addWordToDictionary(dictionaryId, word.id);
+      const dw = await db.addWordToDictionary(dictionaryId, word.id);
       addedDictWords.push(dw);
     }
 
