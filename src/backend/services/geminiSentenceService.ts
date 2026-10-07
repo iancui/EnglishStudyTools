@@ -116,10 +116,12 @@ export class GeminiSentenceService {
 4. difficulty 为 1-5 的整数。
 5. words 必须按照句子中实际出现的顺序逐词拆分。标点不要作为 word。
 6. 每个 word 给出词性、英式/美式 IPA 和当前句子语境下最合适的中文含义。
-7. steps 用于“渐进式句子学习”：先给核心单词/短语，再给更完整的结构，最后必须有完整句子。type 只能是 WORD、PHRASE、STRUCTURE、SENTENCE。
-8. analyses 标注重要的短语、语法结构或句法成分；startPosition/endPosition 使用 content 的 JavaScript 字符索引，endPosition 为排他位置。
-9. 不要输出 Markdown，不要输出解释文字，只返回 JSON。
-10. 输入句子可能有多个，请保持输入顺序。
+7. words 的 meaningCn 必须是“当前句子语境中的准确中文含义”，不是孤立词典直译。特别注意 I=“我”、you=“你/你们”、it=“它/这件事”等代词，禁止把 I 翻译成“字母 i”。
+8. steps 用于“渐进式句子学习”：必须包含有实际教学价值的 WORD/PHRASE 短步骤，每个步骤都必须填写自然、准确的中文 translation；最后必须有一个完整句子步骤，translation 必须与 sentence 的完整翻译一致或等价。不要只生成英文步骤而省略中文翻译。
+9. sentence 的 translation 是完整自然中文译文；steps.translation 是对应短词、短语、结构和完整句子的中文译文，二者都必须完整返回。
+10. analyses 标注重要的短语、语法结构或句法成分；startPosition/endPosition 使用 content 的 JavaScript 字符索引，endPosition 为排他位置。
+11. 不要输出 Markdown，不要输出解释文字，只返回 JSON。
+12. 输入句子可能有多个，请保持输入顺序。
 
 待处理句子：
 ${normalized.map((s, i) => `${i + 1}. ${s}`).join('\n')}`;
