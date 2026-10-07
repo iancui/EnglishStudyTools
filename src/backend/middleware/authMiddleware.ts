@@ -22,3 +22,11 @@ export async function authMiddleware(req: AuthenticatedRequest, res: Response, n
   next();
 }
 
+
+
+export function requireAdmin(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  if (req.user?.role !== 'ADMIN') {
+    return res.status(403).json({ code: 403, message: '需要管理员权限', data: null });
+  }
+  next();
+}
