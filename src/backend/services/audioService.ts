@@ -4,8 +4,8 @@ export class AudioService {
   /**
    * Resolve audio playback configuration for a text string or word
    */
-  static getSpeechConfig(userId: string, text: string, speed: 'normal' | 'slow' = 'normal') {
-    const config = db.getDictionaryConfig(userId);
+  static async getSpeechConfig(userId: string, text: string, speed: 'normal' | 'slow' = 'normal') {
+    const config = await db.getDictionaryConfig(userId);
     const lang = config.audioType === 'US' ? 'en-US' : 'en-GB';
     const rate = speed === 'slow' ? 0.75 : 1.0;
 
@@ -21,11 +21,11 @@ export class AudioService {
   /**
    * Generates web speech synthesis payload or simulated audio asset descriptor
    */
-  static getWordAudioDescriptor(wordId: string, userId: string) {
-    const word = db.findWordById(wordId);
+  static async getWordAudioDescriptor(wordId: string, userId: string) {
+    const word = await db.findWordById(wordId);
     if (!word) return null;
 
-    const config = db.getDictionaryConfig(userId);
+    const config = await db.getDictionaryConfig(userId);
     const audioUrl = config.audioType === 'US' ? word.audioUsUrl : word.audioUkUrl;
 
     return {
