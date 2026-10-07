@@ -94,6 +94,14 @@ export interface SentenceAnalysis {
   explanation: string;
 }
 
+export interface SentenceWord {
+  id: string;
+  sentenceId: string;
+  wordId: string;
+  position: number;
+  translationCn?: string;
+}
+
 export interface Sentence {
   id: string;
   content: string;
@@ -101,6 +109,7 @@ export interface Sentence {
   level: string;
   audioUrl?: string;
   difficulty: number;
+  words?: SentenceWord[];
   steps: SentenceStep[];
   analyses: SentenceAnalysis[];
 }
