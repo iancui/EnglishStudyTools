@@ -3,10 +3,10 @@ import { AuthenticatedRequest } from '../middleware/authMiddleware.ts';
 import { StudySessionService } from '../services/studySessionService.ts';
 
 export class StudySessionController {
-  static previewSession(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  static async previewSession(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id || 'u-default';
-      const result = StudySessionService.previewSession(userId, req.body);
+      const result = await StudySessionService.previewSession(userId, req.body);
       res.json({
         code: 200,
         message: 'success',
@@ -17,10 +17,10 @@ export class StudySessionController {
     }
   }
 
-  static createSession(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  static async createSession(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id || 'u-default';
-      const session = StudySessionService.createSession(userId, req.body);
+      const session = await StudySessionService.createSession(userId, req.body);
       res.json({
         code: 200,
         message: 'success',
@@ -31,10 +31,10 @@ export class StudySessionController {
     }
   }
 
-  static getActiveSession(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  static async getActiveSession(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id || 'u-default';
-      const session = StudySessionService.getActiveSession(userId);
+      const session = await StudySessionService.getActiveSession(userId);
       res.json({
         code: 200,
         message: 'success',
@@ -45,11 +45,11 @@ export class StudySessionController {
     }
   }
 
-  static getSessionById(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  static async getSessionById(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id || 'u-default';
       const { id } = req.params;
-      const session = StudySessionService.getSessionById(id, userId);
+      const session = await StudySessionService.getSessionById(id, userId);
       if (!session) {
         return res.status(404).json({
           code: 404,
@@ -67,11 +67,11 @@ export class StudySessionController {
     }
   }
 
-  static markWordLearned(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  static async markWordLearned(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id || 'u-default';
       const { id, wordId } = req.params;
-      const result = StudySessionService.markWordLearned(id, wordId, userId);
+      const result = await StudySessionService.markWordLearned(id, wordId, userId);
       res.json({
         code: 200,
         message: 'success',
@@ -82,12 +82,12 @@ export class StudySessionController {
     }
   }
 
-  static writeWord(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  static async writeWord(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id || 'u-default';
       const { id, wordId } = req.params;
       const { answer, timeSpentSec } = req.body;
-      const result = StudySessionService.writeWord(id, wordId, userId, answer, timeSpentSec);
+      const result = await StudySessionService.writeWord(id, wordId, userId, answer, timeSpentSec);
       res.json({
         code: 200,
         message: 'success',
@@ -98,11 +98,11 @@ export class StudySessionController {
     }
   }
 
-  static nextWord(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  static async nextWord(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id || 'u-default';
       const { id } = req.params;
-      const session = StudySessionService.nextWord(id, userId);
+      const session = await StudySessionService.nextWord(id, userId);
       res.json({
         code: 200,
         message: 'success',
@@ -113,11 +113,11 @@ export class StudySessionController {
     }
   }
 
-  static cancelSession(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  static async cancelSession(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id || 'u-default';
       const { id } = req.params;
-      const session = StudySessionService.cancelSession(id, userId);
+      const session = await StudySessionService.cancelSession(id, userId);
       res.json({
         code: 200,
         message: 'success',
