@@ -35,7 +35,7 @@ function splitIntoWords(sentence: string): { word: string; original: string; pun
     const word = m[1];
     const punct = m[2] || '';
     if (word) {
-      tokens.push({ word: word.toLowerCase(), original: word, punctAfter: punct });
+      tokens.push({ word, original: word, punctAfter: punct });
     }
   }
   return tokens;
@@ -176,8 +176,8 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
     const current = wordStates[idx];
     if (!current) return;
 
-    const correct = current.correctWord.toLowerCase();
-    const clean = value.replace(/[^A-Za-z']/g, '').toLowerCase();
+    const correct = current.correctWord;
+    const clean = value.replace(/[^A-Za-z']/g, '');
 
     let errorPos = -1;
     let accepted = '';
@@ -333,7 +333,7 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
     let cancelled = false;
     Promise.all(wordTokens.map(async tok => {
       try {
-        const data: any = await api.lookupWord(tok.word);
+        const data: any = await api.lookupWord(tok.original);
         const meaning = data?.meanings?.find((m: any) => m?.definitionCn)?.definitionCn || data?.meanings?.[0]?.definitionCn || '';
         const phonetic = data?.activePhonetic || data?.phonetic || data?.phoneticUk || data?.phoneticUs || '';
         return [tok.word, { phonetic, meaning }] as const;
@@ -763,7 +763,7 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
                         onMouseDown={(e) => { e.preventDefault(); handleWordClick(ws.correctWord); }}
                         autoComplete="off"
                         autoCorrect="off"
-                        autoCapitalize="off"
+                        autoCapitalize="sentences"
                         spellCheck="false"
                         readOnly={isCorrect}
                         placeholder=""
