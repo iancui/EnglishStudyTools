@@ -147,13 +147,13 @@ export class DictionaryService {
     const toAdd = targetDictionaryIds.filter(id => validUserDictIds.has(id) && !currentDictIds.has(id));
     const toRemove = [...currentDictIds].filter(id => !targetDictionaryIds.includes(id));
 
-    toAdd.forEach(dictId => {
+    for (const dictId of toAdd) {
       await db.addWordToDictionary(dictId, wordId);
-    });
+    }
 
-    toRemove.forEach(dictId => {
+    for (const dictId of toRemove) {
       await db.removeWordFromDictionary(dictId, wordId);
-    });
+    }
 
     const updatedDictIds = await db.getWordUserDictionaries(userId, wordId);
     return {
