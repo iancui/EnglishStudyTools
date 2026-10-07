@@ -100,7 +100,8 @@ export class StudySessionService {
 
       selected = foundWords;
       if (!dictionaryId) {
-        dictionaryId = 'dict-custom-selection';
+        const config = await DictionaryService.getConfig(userId);
+        dictionaryId = config.defaultDictionaryId || 'dict-primary-6';
       }
     } else {
       // Case 2: Select from dictionary
