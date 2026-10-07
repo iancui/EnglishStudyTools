@@ -274,7 +274,7 @@ export class SentencePracticeService {
 
     // Save sentence progress and learning record
     await db.saveSentenceProgress({
-      id: `usp-${userId}-${currentItem.sentenceId}`,
+      id: `usp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       userId,
       sentenceId: currentItem.sentenceId,
       status: 'COMPLETED',
