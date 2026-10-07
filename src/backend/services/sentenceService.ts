@@ -2,10 +2,10 @@ import { db } from '../db/storage.ts';
 import { UserSentenceProgress, LearningRecord } from '../types/index.ts';
 
 export class SentenceService {
-  static getAllSentences(userId: string) {
-    const sentences = db.getAllSentences();
+  static async getAllSentences(userId: string) {
+    const sentences = await db.getAllSentences();
     return sentences.map(s => {
-      const progress = db.getSentenceProgress(userId, s.id);
+      const progress = await db.getSentenceProgress(userId, s.id);
       return {
         ...s,
         progress: progress || null
@@ -13,11 +13,11 @@ export class SentenceService {
     });
   }
 
-  static getSentenceById(id: string, userId: string) {
-    const sentence = db.findSentenceById(id);
+  static async getSentenceById(id: string, userId: string) {
+    const sentence = await db.findSentenceById(id);
     if (!sentence) return null;
 
-    const progress = db.getSentenceProgress(userId, id);
+    const progress = await db.getSentenceProgress(userId, id);
     return {
       ...sentence,
       progress: progress || {
@@ -27,15 +27,15 @@ export class SentenceService {
     };
   }
 
-  static getSentenceSteps(sentenceId: string) {
-    const sentence = db.findSentenceById(sentenceId);
+  static async getSentenceSteps(sentenceId: string) {
+    const sentence = await db.findSentenceById(sentenceId);
     return sentence ? sentence.steps : [];
   }
 
-  static getTodaySentences(userId: string, limit = 5) {
-    const all = db.getAllSentences();
+  static async getTodaySentences(userId: string, limit = 5) {
+    const all = await db.getAllSentences();
     return all.slice(0, limit).map(s => {
-      const progress = db.getSentenceProgress(userId, s.id);
+      const progress = await db.getSentenceProgress(userId, s.id);
       return {
         ...s,
         progress: progress || null
@@ -43,8 +43,8 @@ export class SentenceService {
     });
   }
 
-  static completeSentence(userId: string, sentenceId: string, currentStep: number) {
-    const sentence = db.findSentenceById(sentenceId);
+  static async completeSentence(userId: string, sentenceId: string, currentStep: number) {
+    const sentence = await db.findSentenceById(sentenceId);
     if (!sentence) {
       throw new Error('Sentence not found');
     }
@@ -63,7 +63,7 @@ export class SentenceService {
       updatedAt: now
     };
 
-    db.saveSentenceProgress(progress);
+    await db.saveSentenceProgress(progress);
 
     const record: LearningRecord = {
       id: `lr-${Date.now()}`,
@@ -75,7 +75,7 @@ export class SentenceService {
       timeSpentSec: 20,
       createdAt: now
     };
-    db.addLearningRecord(record);
+    await db.addLearningRecord(record);
 
     return progress;
   }
