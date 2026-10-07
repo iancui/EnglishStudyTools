@@ -2,11 +2,11 @@ import { db } from '../db/storage.ts';
 import { UserDictionaryConfig, Dictionary, DictionaryWord, Word } from '../types/index.ts';
 
 export class DictionaryService {
-  static async getConfig(userId: string): UserDictionaryConfig {
+  static async getConfig(userId: string): Promise<UserDictionaryConfig> {
     return await db.getDictionaryConfig(userId);
   }
 
-  static async updateConfig(userId: string, partial: Partial<UserDictionaryConfig>): UserDictionaryConfig {
+  static async updateConfig(userId: string, partial: Partial<UserDictionaryConfig>): Promise<UserDictionaryConfig> {
     return await db.saveDictionaryConfig(userId, partial);
   }
 
