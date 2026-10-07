@@ -208,6 +208,13 @@ export const AdminDictionariesView: React.FC<AdminDictionariesViewProps> = ({
             <span>Gemini 句子工具</span>
           </button>
           <button
+            onClick={() => navigate('/admin/excel-import')}
+            className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-semibold transition-all shadow-sm flex items-center gap-2"
+          >
+            <FileUp className="w-4 h-4" />
+            <span>Excel 批量导入</span>
+          </button>
+          <button
             onClick={handleOpenCreate}
           className="px-5 py-2.5 bg-stone-900 hover:bg-stone-800 text-white rounded-xl text-sm font-semibold transition-all shadow-sm flex items-center gap-2 self-start sm:self-auto"
         >
