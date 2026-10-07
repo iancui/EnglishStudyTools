@@ -106,7 +106,7 @@ export class StudySessionService {
       // Case 2: Select from dictionary
       // Fallback to default dictionary if not specified
       if (!dictionaryId) {
-        const config = DictionaryService.getConfig(userId);
+        const config = await DictionaryService.getConfig(userId);
         dictionaryId = config.defaultDictionaryId || 'dict-primary-6';
       }
 
@@ -202,7 +202,7 @@ export class StudySessionService {
 
     await db.createStudySession(session, sessionWords);
 
-    return this.getSessionById(sessionId, userId);
+    return await this.getSessionById(sessionId, userId);
   }
 
   /**
@@ -215,12 +215,12 @@ export class StudySessionService {
       throw new Error('无权访问该学习任务');
     }
 
-    const config = DictionaryService.getConfig(userId);
+    const config = await DictionaryService.getConfig(userId);
 
     // Decorate words with dictionary preferences
     const decoratedWords = session.words.map(sw => {
       const fullWord = sw.word || await db.findWordById(sw.wordId);
-      const decorated = fullWord ? DictionaryService.applyWordDictionaryConfig(fullWord, config) : null;
+      const decorated = fullWord ? await DictionaryService.applyWordDictionaryConfig(fullWord, config) : null;
       return {
         ...sw,
         word: decorated
@@ -239,7 +239,7 @@ export class StudySessionService {
   static async getActiveSession(userId: string) {
     const session = await db.getActiveSessionByUserId(userId);
     if (!session) return null;
-    return this.getSessionById(session.id, userId);
+    return await this.getSessionById(session.id, userId);
   }
 
   /**
@@ -327,7 +327,7 @@ export class StudySessionService {
     await db.updateStudySessionWord(sw);
 
     // Update ReviewService & spaced repetition record
-    const updatedProgress = ReviewService.processReview(userId, wordId, isCorrect);
+    const updatedProgress = await ReviewService.processReview(userId, wordId, isCorrect);
 
     // Save learning record
     await db.addLearningRecord({
