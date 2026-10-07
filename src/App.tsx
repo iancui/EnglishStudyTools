@@ -15,6 +15,7 @@ import { UserSettingsView } from './views/UserSettingsView.tsx';
 import { SettingsView } from './views/SettingsView.tsx';
 import { AuthModal } from './views/AuthModal.tsx';
 import { AdminSentenceAIToolView } from './views/AdminSentenceAIToolView.tsx';
+import { AdminExcelImportView } from './views/AdminExcelImportView.tsx';
 import { api, authStorage } from './api/client.ts';
 import { DictionaryConfig, SessionMode } from './types/index.ts';
 
@@ -235,6 +236,10 @@ export default function App() {
 
     if (currentRoute === '/admin/sentence-ai') {
       return <AdminSentenceAIToolView navigate={navigate} user={user} />;
+    }
+
+    if (currentRoute === '/admin/excel-import') {
+      return <AdminExcelImportView navigate={navigate} user={user} />;
     }
 
     if (currentRoute === '/admin/dictionaries' || currentRoute === '/admin') {
