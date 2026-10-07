@@ -10,7 +10,7 @@ export class DictionaryService {
     return await db.saveDictionaryConfig(userId, partial);
   }
 
-  static async applyWordDictionaryConfig(word: any, config: UserDictionaryConfig) {
+  static applyWordDictionaryConfig(word: any, config: UserDictionaryConfig) {
     const isUs = config.phoneticType === 'US';
     return {
       ...word,
