@@ -57,6 +57,7 @@ export class MysqlSentenceImporter {
 
         if ((existingRows as any[]).length) {
           sentenceId = (existingRows as any[])[0].id;
+          await conn.execute('UPDATE sentence SET translation = ?, level = ?, difficulty = ? WHERE id = ?', [item.translation || '', item.level || 'A1', Math.max(1, Math.min(5, item.difficulty)), sentenceId]);
         } else {
           sentenceId = randomUUID();
           await conn.execute(
@@ -93,9 +94,9 @@ export class MysqlSentenceImporter {
 
             await conn.execute(
               `INSERT INTO sentence_word
-                (id, sentence_id, word_id, position_no)
-               VALUES (?, ?, ?, ?)`,
-              [randomUUID(), sentenceId, wordId, i + 1]
+                (id, sentence_id, word_id, position_no, translation_cn)
+               VALUES (?, ?, ?, ?, ?)`,
+              [randomUUID(), sentenceId, wordId, i + 1, w.meaningCn || '']
             );
           }
 
