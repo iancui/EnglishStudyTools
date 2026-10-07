@@ -5,7 +5,7 @@ import { MysqlSentenceImporter } from '../services/mysqlSentenceImporter.ts';
 
 export class AdminSentenceAIToolController {
   static async analyze(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-    GeminiSentenceService.analyze(req.body?.sentences || [], req.body?.model)
+    await GeminiSentenceService.analyze(req.body?.sentences || [], req.body?.model)
       .then(data => res.json({ code: 200, message: 'success', data }))
       .catch(next);
   }
