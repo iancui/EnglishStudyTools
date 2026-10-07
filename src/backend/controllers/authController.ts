@@ -19,9 +19,8 @@ export class AuthController {
 
   static async login(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
-      const { identifier, username, email, password, captchaId, captchaCode } = req.body;
-      const idOrEmail = identifier || username || email;
-      const result = await AuthService.login(idOrEmail, password, captchaId, captchaCode);
+      const { username, password, captchaId, captchaCode } = req.body;
+      const result = await AuthService.login(username, password, captchaId, captchaCode);
       res.json({
         code: 200,
         message: 'success',
