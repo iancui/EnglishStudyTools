@@ -104,7 +104,7 @@ export class ReviewService {
     const now = new Date();
 
     const dueWordIds = allProgress
-      .filter(p => {
+      .filter((p): p is UserWordProgress => {
         if (!p.nextReviewAt) return false;
         return new Date(p.nextReviewAt) <= now;
       })
