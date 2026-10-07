@@ -1,4 +1,6 @@
 import mysql from 'mysql2/promise';
+import dotenv from 'dotenv';
+dotenv.config();
 import {
   User, Word, Sentence, Dictionary, DictionaryWord, StudySession, StudySessionWord,
   UserDictionaryConfig, UserWordProgress, UserSentenceProgress, SentencePracticeSession,
