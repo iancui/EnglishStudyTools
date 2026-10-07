@@ -49,7 +49,7 @@ export class AuthService {
     return { user: this.publicUser(newUser), token: this.createToken(newUser.id) };
   }
 
-  static async login(identifier: string, password: string, captchaId: string, captchaCode: string): { user: Omit<User, 'passwordHash'>; token: string } {
+  static async login(identifier: string, password: string, captchaId: string, captchaCode: string): Promise<{ user: Omit<User, 'passwordHash'>; token: string } {
     CaptchaService.verify(captchaId, captchaCode);
     identifier = String(identifier || '').trim();
     const user = await db.findUserByEmail(identifier) || await db.findUserByUsername(identifier);
@@ -74,7 +74,7 @@ export class AuthService {
 export class CaptchaService {
   private static store = new Map<string, { code: string; expiresAt: number }>();
 
-  static async create() {
+  static create() {
     const id = crypto.randomBytes(16).toString('hex');
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     let code = '';
@@ -86,7 +86,7 @@ export class CaptchaService {
     return { captchaId: id, image: `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}` };
   }
 
-  static async verify(id: string, input: string) {
+  static verify(id: string, input: string) {
     const item = this.store.get(id);
     this.store.delete(id);
     if (!item || item.expiresAt < Date.now() || String(input || '').trim().toUpperCase() !== item.code) throw new Error('图形验证码错误或已过期');
