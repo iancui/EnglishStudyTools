@@ -80,6 +80,16 @@ class MySQLStorage {
     return (rows as Row[]).length > 0;
   }
 
+  async getAdminUsers(): Promise<any[]> {
+    const [rows] = await pool.query('SELECT id,username,email,role,created_at AS createdAt,updated_at AS updatedAt FROM users ORDER BY created_at DESC');
+    const users = rows as Row[];
+    return Promise.all(users.map(async u => ({
+      id:u.id, username:u.username, email:u.email, legacyRole:u.role,
+      createdAt:iso(u.createdAt), updatedAt:iso(u.updatedAt),
+      roles:await this.getUserRoles(u.id)
+    })));
+  }
+
   async getRoles(): Promise<any[]> {
     const [rows] = await pool.query('SELECT id,display_name AS displayName,description,is_system AS isSystem,created_at AS createdAt,updated_at AS updatedAt FROM roles ORDER BY is_system DESC,id');
     return rows as Row[];
