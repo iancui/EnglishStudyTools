@@ -68,7 +68,7 @@ export class SentencePracticeService {
     if (dictionaryId && dictWordSet.size > 0) {
       candidates = candidates.filter(s => {
         const words = s.content.toLowerCase().match(/[a-z']+/g) || [];
-        return words.some(w => dictWordSet.has(w));
+        return words.some((w: string) => dictWordSet.has(w));
       });
     }
 
