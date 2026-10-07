@@ -60,7 +60,7 @@ export const api = {
       body: JSON.stringify(data)
     }),
 
-  login: (data: { identifier: string; password: string; captchaId: string; captchaCode: string }) =>
+  login: (data: { username: string; password: string; captchaId: string; captchaCode: string }) =>
     request<{ user: any; token: string }>('/api/auth/login', {
       method: 'POST',
       body: JSON.stringify(data)
