@@ -763,7 +763,9 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
                         onKeyDown={e => handleWordKeyDown(i, e)}
                         onBlur={() => { handleWordBlur(i); setFocusedWordIdx(null); }}
                         onFocus={() => setFocusedWordIdx(i)}
-                        onMouseDown={(e) => { e.preventDefault(); handleWordClick(ws.correctWord); }}
+                        // 不在 mousedown 阶段拦截默认行为，否则浏览器可能无法稳定保持输入框焦点，
+                        // 表现为输入第一个字母后无法继续输入。点击单词时再播放发音。
+                        onClick={() => handleWordClick(ws.correctWord)}
                         autoComplete="off"
                         autoCorrect="off"
                         autoCapitalize="off"
