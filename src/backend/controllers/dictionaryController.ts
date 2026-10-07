@@ -130,7 +130,7 @@ export class DictionaryController {
     try {
       const userId = req.user?.id || 'u-default';
       const { id } = req.params;
-      DictionaryService.deleteUserDictionary(userId, id);
+      await DictionaryService.deleteUserDictionary(userId, id);
       res.json({
         code: 200,
         message: 'success',
@@ -168,7 +168,7 @@ export class DictionaryController {
       if (!wordId) {
         return res.status(400).json({ code: 400, message: 'wordId 不能为空', data: null });
       }
-      DictionaryService.removeWordFromDictionary(userId, id, wordId);
+      await DictionaryService.removeWordFromDictionary(userId, id, wordId);
       res.json({
         code: 200,
         message: 'success',
@@ -270,7 +270,7 @@ export class DictionaryController {
   static async deleteAdminDictionary(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      DictionaryService.deleteAdminDictionary(id);
+      await DictionaryService.deleteAdminDictionary(id);
       res.json({
         code: 200,
         message: 'success',
