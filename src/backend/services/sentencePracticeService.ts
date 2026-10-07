@@ -17,7 +17,7 @@ export class SentencePracticeService {
     const dict = dictionaryId ? await db.findDictionaryById(dictionaryId) : undefined;
     const dictWordSet = new Set(
       dictionaryId
-        ? await db.getDictionaryWords(dictionaryId)
+        ? (await db.getDictionaryWords(dictionaryId))
             .map(dw => dw.word?.text?.toLowerCase())
             .filter(Boolean) as string[]
         : []
