@@ -138,6 +138,7 @@ CREATE TABLE sentence_word (
   sentence_id VARCHAR(36) NOT NULL,
   word_id VARCHAR(36) NOT NULL,
   position_no INT NOT NULL,
+  translation_cn TEXT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY uk_sentence_word(sentence_id, position_no),
   INDEX idx_sentence_word_word(word_id),
