@@ -4,10 +4,10 @@ import { DictionaryService } from '../services/dictionaryService.ts';
 
 export class DictionaryController {
   // Config
-  static getConfig(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  static async getConfig(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id || 'u-default';
-      const config = DictionaryService.getConfig(userId);
+      const config = await DictionaryService.getConfig(userId);
       res.json({
         code: 200,
         message: 'success',
@@ -18,10 +18,10 @@ export class DictionaryController {
     }
   }
 
-  static updateConfig(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  static async updateConfig(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id || 'u-default';
-      const config = DictionaryService.updateConfig(userId, req.body);
+      const config = await DictionaryService.updateConfig(userId, req.body);
       res.json({
         code: 200,
         message: 'success',
@@ -33,10 +33,10 @@ export class DictionaryController {
   }
 
   // User / Public Dictionaries
-  static getMyDictionaries(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  static async getMyDictionaries(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id || 'u-default';
-      const list = DictionaryService.getUserDictionaries(userId);
+      const list = await DictionaryService.getUserDictionaries(userId);
       res.json({
         code: 200,
         message: 'success',
@@ -47,11 +47,11 @@ export class DictionaryController {
     }
   }
 
-  static getMyDictionaryWords(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  static async getMyDictionaryWords(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id || 'u-default';
       const dictId = req.params.dictionaryId || req.params.id;
-      const list = DictionaryService.getUserDictionaryWords(userId, dictId);
+      const list = await DictionaryService.getUserDictionaryWords(userId, dictId);
       res.json({
         code: 200,
         message: 'success',
@@ -62,10 +62,10 @@ export class DictionaryController {
     }
   }
 
-  static getAllDictionaries(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  static async getAllDictionaries(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id || 'u-default';
-      const list = DictionaryService.getAllDictionaries(userId);
+      const list = await DictionaryService.getAllDictionaries(userId);
       res.json({
         code: 200,
         message: 'success',
@@ -76,10 +76,10 @@ export class DictionaryController {
     }
   }
 
-  static getDictionaryById(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  static async getDictionaryById(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const dict = DictionaryService.getDictionaryById(id);
+      const dict = await DictionaryService.getDictionaryById(id);
       if (!dict) {
         return res.status(404).json({
           code: 404,
@@ -97,10 +97,10 @@ export class DictionaryController {
     }
   }
 
-  static createDictionary(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  static async createDictionary(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id || 'u-default';
-      const created = DictionaryService.createUserDictionary(userId, req.body);
+      const created = await DictionaryService.createUserDictionary(userId, req.body);
       res.json({
         code: 200,
         message: 'success',
@@ -111,11 +111,11 @@ export class DictionaryController {
     }
   }
 
-  static updateDictionary(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  static async updateDictionary(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id || 'u-default';
       const { id } = req.params;
-      const updated = DictionaryService.updateUserDictionary(userId, id, req.body);
+      const updated = await DictionaryService.updateUserDictionary(userId, id, req.body);
       res.json({
         code: 200,
         message: 'success',
@@ -126,7 +126,7 @@ export class DictionaryController {
     }
   }
 
-  static deleteDictionary(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  static async deleteDictionary(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id || 'u-default';
       const { id } = req.params;
@@ -141,7 +141,7 @@ export class DictionaryController {
     }
   }
 
-  static addWord(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  static async addWord(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id || 'u-default';
       const id = req.params.dictionaryId || req.params.id;
@@ -149,7 +149,7 @@ export class DictionaryController {
       if (!wordId) {
         return res.status(400).json({ code: 400, message: 'wordId 不能为空', data: null });
       }
-      const result = DictionaryService.addWordToDictionary(userId, id, wordId);
+      const result = await DictionaryService.addWordToDictionary(userId, id, wordId);
       res.json({
         code: 200,
         message: 'success',
@@ -160,7 +160,7 @@ export class DictionaryController {
     }
   }
 
-  static removeWord(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  static async removeWord(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id || 'u-default';
       const id = req.params.dictionaryId || req.params.id;
@@ -179,11 +179,11 @@ export class DictionaryController {
     }
   }
 
-  static getWordMyDictionaries(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  static async getWordMyDictionaries(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id || 'u-default';
       const { wordId } = req.params;
-      const data = DictionaryService.getWordUserDictionaries(userId, wordId);
+      const data = await DictionaryService.getWordUserDictionaries(userId, wordId);
       res.json({
         code: 200,
         message: 'success',
@@ -194,12 +194,12 @@ export class DictionaryController {
     }
   }
 
-  static syncWordMyDictionaries(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  static async syncWordMyDictionaries(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id || 'u-default';
       const { wordId } = req.params;
       const { dictionaryIds } = req.body;
-      const data = DictionaryService.syncWordUserDictionaries(userId, wordId, dictionaryIds || []);
+      const data = await DictionaryService.syncWordUserDictionaries(userId, wordId, dictionaryIds || []);
       res.json({
         code: 200,
         message: 'success',
@@ -210,12 +210,12 @@ export class DictionaryController {
     }
   }
 
-  static batchAddWords(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  static async batchAddWords(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id || 'u-default';
       const { id } = req.params;
       const { wordIds } = req.body;
-      const result = DictionaryService.batchAddWords(userId, id, wordIds || []);
+      const result = await DictionaryService.batchAddWords(userId, id, wordIds || []);
       res.json({
         code: 200,
         message: 'success',
@@ -227,9 +227,9 @@ export class DictionaryController {
   }
 
   // Admin APIs
-  static getAdminDictionaries(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  static async getAdminDictionaries(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
-      const list = DictionaryService.getAdminDictionaries();
+      const list = await DictionaryService.getAdminDictionaries();
       res.json({
         code: 200,
         message: 'success',
@@ -240,9 +240,9 @@ export class DictionaryController {
     }
   }
 
-  static createAdminDictionary(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  static async createAdminDictionary(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
-      const created = DictionaryService.createAdminDictionary(req.body);
+      const created = await DictionaryService.createAdminDictionary(req.body);
       res.json({
         code: 200,
         message: 'success',
@@ -253,10 +253,10 @@ export class DictionaryController {
     }
   }
 
-  static updateAdminDictionary(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  static async updateAdminDictionary(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const updated = DictionaryService.updateAdminDictionary(id, req.body);
+      const updated = await DictionaryService.updateAdminDictionary(id, req.body);
       res.json({
         code: 200,
         message: 'success',
@@ -267,7 +267,7 @@ export class DictionaryController {
     }
   }
 
-  static deleteAdminDictionary(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  static async deleteAdminDictionary(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
       DictionaryService.deleteAdminDictionary(id);
@@ -281,11 +281,11 @@ export class DictionaryController {
     }
   }
 
-  static importAdminWords(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  static async importAdminWords(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
       const { words } = req.body;
-      const result = DictionaryService.importWordsToDictionary(id, words || []);
+      const result = await DictionaryService.importWordsToDictionary(id, words || []);
       res.json({
         code: 200,
         message: 'success',
