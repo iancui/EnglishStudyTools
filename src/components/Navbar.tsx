@@ -16,7 +16,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   user,
   onOpenAuth
 }) => {
-  const isAdmin = user?.role === 'ADMIN';
+  const permissions = Array.isArray(user?.permissions) ? user.permissions : [];
+  const roles = Array.isArray(user?.roles) ? user.roles : [];
+  const isAdmin = user?.role === 'ADMIN' || roles.includes('SUPER_ADMIN') || permissions.some((p: string) => p.startsWith('dictionary.') || p.startsWith('role.') || p.startsWith('user.') || p === 'import.excel' || p.startsWith('ai.sentence.'));
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#E7EEF8]">
