@@ -3,6 +3,10 @@ import { AuthenticatedRequest } from '../middleware/authMiddleware.ts';
 import { db } from '../db/storage.ts';
 
 export class RbacController {
+  static async listUsers(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try { res.json({ code: 200, message: 'success', data: await db.getAdminUsers() }); } catch (e) { next(e); }
+  }
+
   static async listRoles(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try { res.json({ code: 200, message: 'success', data: await db.getRoles() }); } catch (e) { next(e); }
   }
