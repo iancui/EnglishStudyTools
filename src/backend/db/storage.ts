@@ -43,6 +43,7 @@ class MySQLStorage {
     const d: Dictionary = { id:`dict-user-${user.id}`, name:`${user.username}的生词本`, code:`vocab_${user.username}_${Date.now().toString(36)}`, description:'个人专属生词与高频复习词汇集', ownerType:'USER', ownerUserId:user.id, isSystem:false, isPublic:false, status:'ACTIVE', createdAt:c.createdAt, updatedAt:c.updatedAt };
     const conn=await pool.getConnection(); try { await conn.beginTransaction();
       await conn.query('INSERT INTO users(id,username,email,password_hash,role,created_at,updated_at) VALUES(?,?,?,?,?,?,?)',[user.id,user.username,user.email,user.passwordHash,user.role,mysqlDate(user.createdAt),mysqlDate(user.updatedAt)]);
+      await conn.query('INSERT IGNORE INTO user_roles(user_id,role_id) VALUES(?,?)',[user.id,'USER']);
       await conn.query('INSERT INTO dictionary(id,name,code,description,owner_type,owner_user_id,is_system,is_public,status,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)',[d.id,d.name,d.code,d.description,d.ownerType,d.ownerUserId,d.isSystem,d.isPublic,d.status,mysqlDate(d.createdAt),mysqlDate(d.updatedAt)]);
       await conn.query('INSERT INTO user_dictionary_config(id,user_id,default_dictionary_id,sentence_dictionary_id,phonetic_type,audio_type,enable_phonics,sentence_practice_count,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?)',[c.id,c.userId,c.defaultDictionaryId,c.sentenceDictionaryId,c.phoneticType,c.audioType,c.enablePhonics,c.sentencePracticeCount,mysqlDate(c.createdAt),mysqlDate(c.updatedAt)]);
       await conn.commit(); return user;
@@ -51,6 +52,117 @@ class MySQLStorage {
 
   private user(r?:Row): User|undefined { if(!r)return; return {id:r.id,username:r.username,email:r.email,passwordHash:r.password_hash,role:r.role,createdAt:iso(r.created_at)!,updatedAt:iso(r.updated_at)!}; }
 
+  async getUserRoles(userId:string): Promise<any[]> {
+    const [rows] = await pool.query(
+      'SELECT r.id, r.display_name AS displayName, r.description, r.is_system AS isSystem FROM roles r JOIN user_roles ur ON ur.role_id=r.id WHERE ur.user_id=? ORDER BY r.id',
+      [userId]
+    );
+    return rows as Row[];
+  }
+
+  async getUserPermissionIds(userId:string): Promise<string[]> {
+    const [rows] = await pool.query(
+      'SELECT DISTINCT rp.permission_id FROM role_permissions rp JOIN user_roles ur ON ur.role_id=rp.role_id WHERE ur.user_id=? UNION SELECT p.id FROM permissions p JOIN roles r ON r.id=\'SUPER_ADMIN\' JOIN user_roles ur ON ur.role_id=r.id WHERE ur.user_id=?',
+      [userId, userId]
+    );
+    return (rows as Row[]).map(r=>String(r.permission_id));
+  }
+
+  async getUserAccess(userId:string) {
+    return { roles: await this.getUserRoles(userId), permissions: await this.getUserPermissionIds(userId) };
+  }
+
+  async hasPermission(userId:string, permissionId:string): Promise<boolean> {
+    const [rows] = await pool.query(
+      'SELECT 1 FROM user_roles ur JOIN roles r ON r.id=ur.role_id LEFT JOIN role_permissions rp ON rp.role_id=ur.role_id AND rp.permission_id=? WHERE ur.user_id=? AND (r.id=\'SUPER_ADMIN\' OR rp.permission_id=?) LIMIT 1',
+      [permissionId, userId, permissionId]
+    );
+    return (rows as Row[]).length > 0;
+  }
+
+  async getRoles(): Promise<any[]> {
+    const [rows] = await pool.query('SELECT id,display_name AS displayName,description,is_system AS isSystem,created_at AS createdAt,updated_at AS updatedAt FROM roles ORDER BY is_system DESC,id');
+    return rows as Row[];
+  }
+
+  async createRole(input:{id:string;displayName:string;description?:string}) {
+    const id=String(input.id||'').trim();
+    const displayName=String(input.displayName||'').trim();
+    if(!/^[A-Z][A-Z0-9_]{2,50}$/.test(id)) throw new Error('角色标识只能使用大写字母、数字和下划线，长度3-51');
+    if(!displayName) throw new Error('角色名称不能为空');
+    await pool.query('INSERT INTO roles(id,display_name,description,is_system) VALUES(?,?,?,0)',[id,displayName,String(input.description||'').trim()||null]);
+    return (await this.getRoles()).find(r=>r.id===id);
+  }
+
+  async updateRole(id:string,input:{displayName?:string;description?:string}) {
+    const [check] = await pool.query('SELECT is_system FROM roles WHERE id=?',[id]);
+    const row=(check as Row[])[0];
+    if(!row) throw new Error('角色不存在');
+    if(Boolean(row.is_system)) throw new Error('系统角色不可修改');
+    await pool.query('UPDATE roles SET display_name=?,description=?,updated_at=NOW() WHERE id=?',[String(input.displayName||'').trim(),String(input.description||'').trim()||null,id]);
+    return (await this.getRoles()).find(r=>r.id===id);
+  }
+
+  async deleteRole(id:string): Promise<boolean> {
+    const [check] = await pool.query('SELECT is_system FROM roles WHERE id=?',[id]);
+    const row=(check as Row[])[0];
+    if(!row) return false;
+    if(Boolean(row.is_system)) throw new Error('系统角色不可删除');
+    const [users] = await pool.query('SELECT COUNT(*) n FROM user_roles WHERE role_id=?',[id]);
+    if(Number((users as Row[])[0]?.n||0)>0) throw new Error('角色仍被用户使用，不能删除');
+    const [result] = await pool.query('DELETE FROM roles WHERE id=?',[id]);
+    return Number((result as any).affectedRows)>0;
+  }
+
+  async getPermissions(): Promise<any[]> {
+    const [rows] = await pool.query('SELECT id,display_name AS displayName,resource,action,description FROM permissions ORDER BY resource,action,id');
+    return rows as Row[];
+  }
+
+  async getRolePermissions(roleId:string): Promise<string[]> {
+    const [rows] = await pool.query('SELECT permission_id FROM role_permissions WHERE role_id=? ORDER BY permission_id',[roleId]);
+    return (rows as Row[]).map(r=>String(r.permission_id));
+  }
+
+  async setRolePermissions(roleId:string,permissionIds:string[]) {
+    const [check] = await pool.query('SELECT id,is_system FROM roles WHERE id=?',[roleId]);
+    const role=(check as Row[])[0];
+    if(!role) throw new Error('角色不存在');
+    if(roleId==='SUPER_ADMIN') throw new Error('超级管理员权限不可修改');
+    const ids=[...new Set(permissionIds.map(String).filter(Boolean))];
+    const conn=await pool.getConnection();
+    try { await conn.beginTransaction();
+      await conn.query('DELETE FROM role_permissions WHERE role_id=?',[roleId]);
+      if(ids.length) {
+        const [valid] = await conn.query('SELECT id FROM permissions WHERE id IN ('+ids.map(()=>'?').join(',')+')',ids);
+        for(const p of valid as Row[]) await conn.query('INSERT INTO role_permissions(role_id,permission_id) VALUES(?,?)',[roleId,p.id]);
+      }
+      await conn.commit();
+      return this.getRolePermissions(roleId);
+    } catch(e){await conn.rollback();throw e} finally{conn.release()}
+  }
+
+  async setUserRoles(userId:string,roleIds:string[]) {
+    const [userRows] = await pool.query('SELECT id FROM users WHERE id=?',[userId]);
+    if(!(userRows as Row[]).length) throw new Error('用户不存在');
+    const ids=[...new Set(roleIds.map(String).filter(Boolean))];
+    const [valid] = await pool.query('SELECT id FROM roles WHERE id IN ('+ids.map(()=>'?').join(',')+')',ids);
+    if((valid as Row[]).length!==ids.length) throw new Error('包含不存在的角色');
+    const current=await this.getUserRoles(userId);
+    const hadSuper=current.some(r=>r.id==='SUPER_ADMIN');
+    const keepsSuper=ids.includes('SUPER_ADMIN');
+    if(hadSuper && !keepsSuper){
+      const [countRows]=await pool.query('SELECT COUNT(*) n FROM user_roles WHERE role_id=\'SUPER_ADMIN\'');
+      if(Number((countRows as Row[])[0]?.n||0)<=1) throw new Error('系统至少需要保留一个超级管理员');
+    }
+    const conn=await pool.getConnection();
+    try { await conn.beginTransaction();
+      await conn.query('DELETE FROM user_roles WHERE user_id=?',[userId]);
+      for(const id of ids) await conn.query('INSERT INTO user_roles(user_id,role_id) VALUES(?,?)',[userId,id]);
+      await conn.commit();
+      return this.getUserRoles(userId);
+    } catch(e){await conn.rollback();throw e} finally{conn.release()}
+  }
   async getAllDictionaries(userId?: string) { const [rows]=await pool.query(`SELECT d.*,COUNT(dw.id) word_count FROM dictionary d LEFT JOIN dictionary_word dw ON dw.dictionary_id=d.id AND dw.is_active=1 WHERE d.status='ACTIVE' AND (d.is_system=1 OR d.is_public=1 OR d.owner_user_id=?) GROUP BY d.id ORDER BY d.created_at`,[userId||'']); return (rows as Row[]).map(this.dict); }
   async getUserDictionaries(userId:string){const [rows]=await pool.query(`SELECT d.*,COUNT(dw.id) word_count FROM dictionary d LEFT JOIN dictionary_word dw ON dw.dictionary_id=d.id AND dw.is_active=1 WHERE d.owner_type='USER' AND d.owner_user_id=? AND d.status<>'INACTIVE' GROUP BY d.id ORDER BY d.created_at`,[userId]);return(rows as Row[]).map(this.dict)}
   async getWordUserDictionaries(userId:string,wordId:string){const [rows]=await pool.query(`SELECT dw.dictionary_id FROM dictionary_word dw JOIN dictionary d ON d.id=dw.dictionary_id WHERE d.owner_type='USER' AND d.owner_user_id=? AND dw.word_id=? AND dw.is_active=1`,[userId,wordId]);return(rows as Row[]).map(r=>r.dictionary_id)}
