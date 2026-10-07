@@ -331,14 +331,15 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
       return;
     }
     let cancelled = false;
-    Promise.all(wordTokens.map(async tok => {
+    Promise.all(wordTokens.map(async (tok, index) => {
       try {
+        const contextualMeaning = sentence?.words?.[index]?.translationCn || '';
         const data: any = await api.lookupWord(tok.original);
-        const meaning = data?.meanings?.find((m: any) => m?.definitionCn)?.definitionCn || data?.meanings?.[0]?.definitionCn || '';
+        const meaning = contextualMeaning || data?.meanings?.find((m: any) => m?.definitionCn)?.definitionCn || data?.meanings?.[0]?.definitionCn || '';
         const phonetic = data?.activePhonetic || data?.phonetic || data?.phoneticUk || data?.phoneticUs || '';
-        return [tok.word, { phonetic, meaning }] as const;
+        return [tok.original, { phonetic, meaning }] as const;
       } catch {
-        return [tok.word, { phonetic: '', meaning: '' }] as const;
+        return [tok.original, { phonetic: '', meaning: sentence?.words?.[index]?.translationCn || '' }] as const;
       }
     })).then(entries => {
       if (!cancelled) setResultWordInfo(Object.fromEntries(entries));
