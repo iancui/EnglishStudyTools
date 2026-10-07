@@ -23,7 +23,7 @@ export class WordService {
     const config = await DictionaryService.getConfig(userId);
 
     const progressMap = new Map<string, UserWordProgress>();
-    for (const p of allProgress) {
+    for (const p of allProgress as UserWordProgress[]) {
       progressMap.set(p.wordId, p);
     }
 
@@ -41,13 +41,13 @@ export class WordService {
       return scoreA - scoreB;
     });
 
-    return sorted.slice(0, limit).map(w => {
+    return Promise.all(sorted.slice(0, limit).map(async (w) => {
       const prog = progressMap.get(w.id);
       return {
         ...await DictionaryService.applyWordDictionaryConfig(w, config),
         progress: prog || null
       };
-    });
+    }));
   }
 
   static async getWordPhonics(wordId: string) {
@@ -200,13 +200,13 @@ export class WordService {
    */
   static async getWrongWords(userId: string) {
     const allProgress = await db.getAllWordProgresses(userId);
-    const wrongProgresses = allProgress.filter(p => p.wrongCount > 0);
+    const wrongProgresses = (allProgress as UserWordProgress[]).filter(p => p.wrongCount > 0);
     const config = await DictionaryService.getConfig(userId);
     const result = await Promise.all(wrongProgresses.map(async p => {
       const word = await db.findWordById(p.wordId);
       if (!word) return null;
       return {
-        ...DictionaryService.applyWordDictionaryConfig(word, config),
+        ...await DictionaryService.applyWordDictionaryConfig(word, config),
         progress: p
       };
     }));
