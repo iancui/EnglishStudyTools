@@ -117,7 +117,9 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
     setIsSpeaking(true);
     try {
       const lang = config?.audioType === 'US' ? 'en-US' : 'en-GB';
-      await SpeechPlayer.speak(target, { lang, rate: 0.95 });
+      // Single-letter pronouns must be spoken as the English pronoun, not as a lowercase letter.
+      const speechTarget = target.trim().toLowerCase() === 'i' ? 'I' : target;
+      await SpeechPlayer.speak(speechTarget, { lang, rate: 0.95 });
     } catch (e) {
       console.warn('Speech error:', e);
     } finally {
@@ -764,7 +766,7 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
                         onMouseDown={(e) => { e.preventDefault(); handleWordClick(ws.correctWord); }}
                         autoComplete="off"
                         autoCorrect="off"
-                        autoCapitalize="sentences"
+                        autoCapitalize="off"
                         spellCheck="false"
                         readOnly={isCorrect}
                         placeholder=""
