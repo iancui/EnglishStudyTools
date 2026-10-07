@@ -7,7 +7,7 @@ export class StatisticsService {
    * If user was active today, count backwards consecutively.
    * If user was not active today, streak is 0.
    */
-  static async calculateStreakDays(records: LearningRecord[]): number {
+  static calculateStreakDays(records: LearningRecord[]): number {
     if (!records || records.length === 0) return 0;
 
     const activeDates = new Set<string>();
@@ -45,7 +45,7 @@ export class StatisticsService {
   static async getTodayStatistics(userId: string) {
     const records = await db.getLearningRecords(userId);
     const progresses = await db.getAllWordProgresses(userId);
-    const totalWords = await db.getAllWords().length;
+    const totalWords = (await db.getAllWords()).length;
 
     // Filter today's records (strictly starting from 00:00:00 today)
     const today = new Date();
@@ -96,7 +96,7 @@ export class StatisticsService {
   }
 
   static async getOverviewStatistics(userId: string) {
-    const todayStats = this.getTodayStatistics(userId);
+    const todayStats = await this.getTodayStatistics(userId);
     const records = await db.getLearningRecords(userId);
     const progresses = await db.getAllWordProgresses(userId);
     const sentences = await db.getAllSentences();
