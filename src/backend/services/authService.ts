@@ -49,7 +49,7 @@ export class AuthService {
     return { user: this.publicUser(newUser), token: this.createToken(newUser.id) };
   }
 
-  static async login(identifier: string, password: string, captchaId: string, captchaCode: string): Promise<{ user: Omit<User, 'passwordHash'>; token: string } {
+  static async login(identifier: string, password: string, captchaId: string, captchaCode: string): Promise<{ user: Omit<User, 'passwordHash'>; token: string }> {
     CaptchaService.verify(captchaId, captchaCode);
     identifier = String(identifier || '').trim();
     const user = await db.findUserByEmail(identifier) || await db.findUserByUsername(identifier);
