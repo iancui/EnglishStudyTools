@@ -184,7 +184,8 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
     let errorPos = -1;
     let accepted = '';
     for (let i = 0; i < clean.length; i++) {
-      // 输入不强制大小写：i/I、am/AM 都按不区分大小写校验，但保留用户原始输入显示。\n      if (i >= correct.length || clean[i].toLowerCase() !== correct[i].toLowerCase()) {
+      // 输入不强制大小写：i/I、am/AM 都按不区分大小写校验，但保留用户原始输入显示。
+      if (i >= correct.length || clean[i].toLowerCase() !== correct[i].toLowerCase()) {
         errorPos = i;
         accepted = clean.slice(0, i + 1);
         break;
@@ -249,7 +250,8 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
         next[idx] = {
           ...ws,
           submitted: true,
-          correct: ws.errorPos === -1 && ws.userInput.length === ws.correctWord.length &&\n            ws.userInput.toLowerCase() === ws.correctWord.toLowerCase(),
+          correct: ws.errorPos === -1 && ws.userInput.length === ws.correctWord.length &&
+            ws.userInput.toLowerCase() === ws.correctWord.toLowerCase(),
         };
       }
       return next;
