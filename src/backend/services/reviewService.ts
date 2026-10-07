@@ -15,7 +15,7 @@ export class ReviewService {
   /**
    * Calculates the next review date and updated streak
    */
-  static async calculateNextReview(currentStreak: number, isCorrect: boolean): { intervalDays: number; nextReviewAt: Date; newStreak: number } {
+  static calculateNextReview(currentStreak: number, isCorrect: boolean): { intervalDays: number; nextReviewAt: Date; newStreak: number } {
     let newStreak = currentStreak;
     let intervalDays = 0;
 
