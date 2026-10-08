@@ -192,6 +192,45 @@ class MySQLStorage {
   async addWordToDictionary(dictionaryId:string,wordId:string,sequence?:number){const [rows]=await pool.query('SELECT * FROM dictionary_word WHERE dictionary_id=? AND word_id=?',[dictionaryId,wordId]);let r=(rows as Row[])[0];if(r){await pool.query('UPDATE dictionary_word SET is_active=1 WHERE id=?',[r.id]);return this.dw({...r,is_active:1})}const [[m]]:any=await pool.query('SELECT COALESCE(MAX(sequence_no),0)+1 n FROM dictionary_word WHERE dictionary_id=?',[dictionaryId]);const x={id:`dw-${Date.now()}-${Math.random().toString(36).slice(2,6)}`,dictionaryId,wordId,sequence:sequence??m.n,isActive:true,createdAt:new Date().toISOString()};await pool.query('INSERT INTO dictionary_word(id,dictionary_id,word_id,sequence_no,is_active,created_at) VALUES(?,?,?,?,?,?)',[x.id,dictionaryId,wordId,x.sequence,1,mysqlDate(x.createdAt)]);return x}
   async removeWordFromDictionary(dictionaryId:string,wordId:string){const [r]=await pool.query('DELETE FROM dictionary_word WHERE dictionary_id=? AND word_id=?',[dictionaryId,wordId]);return Number((r as any).affectedRows)>0}
   async batchAddWordsToDictionary(id:string,wids:string[]){const out=[];for(const w of wids){if(await this.findWordById(w))out.push(await this.addWordToDictionary(id,w))}return out}
+  async getSettingsBundle(userId: string) {
+    const [configRows] = await pool.query('SELECT * FROM user_dictionary_config WHERE user_id=? LIMIT 1', [userId]);
+    let configRow = (configRows as Row[])[0];
+    if (!configRow) {
+      const now = new Date().toISOString();
+      const id = `cfg-${Date.now()}`;
+      await pool.query(
+        'INSERT INTO user_dictionary_config(id,user_id,default_dictionary_id,sentence_dictionary_id,phonetic_type,audio_type,enable_phonics,sentence_practice_count,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?)',
+        [id,userId,'dict-primary-6','dict-primary-6','UK','UK',1,5,mysqlDate(now),mysqlDate(now)]
+      );
+      configRow = { id,user_id:userId,default_dictionary_id:'dict-primary-6',sentence_dictionary_id:'dict-primary-6',phonetic_type:'UK',audio_type:'UK',enable_phonics:1,sentence_practice_count:5,created_at:now,updated_at:now };
+    }
+
+    const [dictRows] = await pool.query(
+      `SELECT d.*, COUNT(dw.id) AS word_count
+       FROM dictionary d
+       LEFT JOIN dictionary_word dw ON dw.dictionary_id=d.id AND dw.is_active=1
+       WHERE d.status='ACTIVE' AND (d.is_system=1 OR d.is_public=1 OR d.owner_user_id=?)
+       GROUP BY d.id
+       ORDER BY d.created_at`,
+      [userId]
+    );
+    const [myRows] = await pool.query(
+      `SELECT d.*, COUNT(dw.id) AS word_count
+       FROM dictionary d
+       LEFT JOIN dictionary_word dw ON dw.dictionary_id=d.id AND dw.is_active=1
+       WHERE d.owner_type='USER' AND d.owner_user_id=? AND d.status<>'INACTIVE'
+       GROUP BY d.id
+       ORDER BY d.created_at`,
+      [userId]
+    );
+
+    return {
+      config: this.config(configRow),
+      dictionaries: (dictRows as Row[]).map(this.dict),
+      myDictionaries: (myRows as Row[]).map(this.dict)
+    };
+  }
+
   async getDictionaryConfig(userId:string){let [rows]=await pool.query('SELECT * FROM user_dictionary_config WHERE user_id=?',[userId]);let r=(rows as Row[])[0];if(!r){const now=new Date().toISOString();const id=`cfg-${Date.now()}`;await pool.query('INSERT INTO user_dictionary_config(id,user_id,default_dictionary_id,sentence_dictionary_id,phonetic_type,audio_type,enable_phonics,sentence_practice_count,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?)',[id,userId,'dict-primary-6','dict-primary-6','UK','UK',1,5,mysqlDate(now),mysqlDate(now)]);r={id,user_id:userId,default_dictionary_id:'dict-primary-6',sentence_dictionary_id:'dict-primary-6',phonetic_type:'UK',audio_type:'UK',enable_phonics:1,sentence_practice_count:5,created_at:now,updated_at:now}}return this.config(r)}
   private config(r:Row):UserDictionaryConfig{return{id:r.id,userId:r.user_id,defaultDictionaryId:r.default_dictionary_id||undefined,sentenceDictionaryId:r.sentence_dictionary_id||undefined,phoneticType:r.phonetic_type,audioType:r.audio_type,enablePhonics:Boolean(r.enable_phonics),sentencePracticeCount:Number(r.sentence_practice_count||5),createdAt:iso(r.created_at)!,updatedAt:iso(r.updated_at)!}}
   async saveDictionaryConfig(userId:string,p:Partial<UserDictionaryConfig>){const c=await this.getDictionaryConfig(userId);const x={...c,...p,updatedAt:new Date().toISOString()};await pool.query('UPDATE user_dictionary_config SET default_dictionary_id=?,sentence_dictionary_id=?,phonetic_type=?,audio_type=?,enable_phonics=?,sentence_practice_count=?,updated_at=? WHERE user_id=?',[x.defaultDictionaryId||null,x.sentenceDictionaryId||null,x.phoneticType,x.audioType,x.enablePhonics,x.sentencePracticeCount||5,mysqlDate(x.updatedAt),userId]);return x}
