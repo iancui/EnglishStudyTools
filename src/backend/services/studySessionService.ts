@@ -19,14 +19,14 @@ export class StudySessionService {
     params: { dictionaryId: string; count?: number; excludeMastered?: boolean; sortMode?: SessionSortMode }
   ) {
     const { dictionaryId, count = 20, excludeMastered = true } = params;
-    const dict = await db.findDictionaryById(dictionaryId);
-    if (!dict) throw new Error('辞书不存在');
+    const preview = await db.getStudyPreview(dictionaryId, userId);
+    if (!preview) throw new Error('辞书不存在');
 
-    const matchingCount = await db.getStudyCandidateCount(dictionaryId, userId, excludeMastered);
-    const totalInDict = await db.getStudyCandidateCount(dictionaryId, userId, false);
+    const totalInDict = Number(preview.total_in_dict || 0);
+    const matchingCount = Number(preview.matching_count || 0);
     return {
       dictionaryId,
-      dictionaryName: dict.name,
+      dictionaryName: String(preview.dictionary_name || ''),
       totalInDict,
       matchingCount,
       requestedCount: count,
