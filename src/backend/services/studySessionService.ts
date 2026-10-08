@@ -16,42 +16,23 @@ export class StudySessionService {
    */
   static async previewSession(
     userId: string,
-    params: {
-      dictionaryId: string;
-      count?: number;
-      excludeMastered?: boolean;
-      sortMode?: SessionSortMode;
-    }
+    params: { dictionaryId: string; count?: number; excludeMastered?: boolean; sortMode?: SessionSortMode }
   ) {
     const { dictionaryId, count = 20, excludeMastered = true } = params;
     const dict = await db.findDictionaryById(dictionaryId);
     if (!dict) throw new Error('辞书不存在');
 
-    const dictWords = await db.getDictionaryWords(dictionaryId);
-    const totalInDict = dictWords.length;
-
-    let matchingWords = dictWords.filter(dw => dw.word);
-    let masteredCount = 0;
-
-    if (excludeMastered) {
-      const filtered = [] as typeof matchingWords;
-      for (const dw of matchingWords) {
-        const progress = await db.getWordProgress(userId, dw.wordId);
-        const isMastered = WordProgressService.isMastered(progress);
-        if (isMastered) masteredCount++;
-        if (!isMastered) filtered.push(dw);
-      }
-      matchingWords = filtered;
-    }
-
+    const [totalRows] = await (db as any).queryRaw?.('') || [];
+    const matchingCount = await db.getStudyCandidateCount(dictionaryId, userId, excludeMastered);
+    const totalInDict = await db.getStudyCandidateCount(dictionaryId, userId, false);
     return {
       dictionaryId,
       dictionaryName: dict.name,
       totalInDict,
-      matchingCount: matchingWords.length,
+      matchingCount,
       requestedCount: count,
-      excludedMasteredCount: masteredCount,
-      effectiveCount: Math.min(count, matchingWords.length)
+      excludedMasteredCount: Math.max(0, totalInDict - matchingCount),
+      effectiveCount: Math.min(count, matchingCount)
     };
   }
 
