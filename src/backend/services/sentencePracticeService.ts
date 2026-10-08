@@ -71,7 +71,7 @@ export class SentencePracticeService {
     if (dictionaryId) {
       const dictionarySentences = await db.getDictionarySentences(dictionaryId);
       if (dictionarySentences.length > 0) {
-        const sentenceMap = new Map(all.map(s => [s.id, s]));
+        const sentenceMap = new Map(all.map((s: Sentence) => [s.id, s]));
         candidates = dictionarySentences
           .filter(r => !chapterId || String(r.chapter_id || '') === chapterId)
           .map(r => sentenceMap.get(String(r.sentence_id))).filter(Boolean) as typeof all;
