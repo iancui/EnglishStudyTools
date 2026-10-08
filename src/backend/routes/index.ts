@@ -30,6 +30,8 @@ apiRouter.get('/dictionaries/my', DictionaryController.getMyDictionaries);
 apiRouter.get('/dictionaries/my/:dictionaryId/words', DictionaryController.getMyDictionaryWords);
 apiRouter.get('/dictionaries', DictionaryController.getAllDictionaries);
 apiRouter.post('/dictionaries', DictionaryController.createDictionary);
+apiRouter.get('/dictionaries/:id/chapters', DictionaryController.getDictionaryChapters);
+apiRouter.post('/dictionaries/:id/chapters', DictionaryController.createDictionaryChapter);
 apiRouter.get('/dictionaries/:id', DictionaryController.getDictionaryById);
 apiRouter.put('/dictionaries/:id', DictionaryController.updateDictionary);
 apiRouter.delete('/dictionaries/:id', DictionaryController.deleteDictionary);
