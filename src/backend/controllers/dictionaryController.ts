@@ -1,6 +1,7 @@
 import { Response, NextFunction } from 'express';
 import { AuthenticatedRequest } from '../middleware/authMiddleware.ts';
 import { DictionaryService } from '../services/dictionaryService.ts';
+import { StudySessionService } from '../services/studySessionService.ts';
 
 export class DictionaryController {
   // Config
@@ -39,7 +40,33 @@ export class DictionaryController {
   static async updateConfig(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id || 'u-default';
+      const before = await DictionaryService.getConfig(userId);
+      const hasActiveSession = !!(await StudySessionService.getActiveSession(userId));
+
+      // 只有会影响“下一批单词怎么选”的配置变化，才重置当前进行中的批次。
+      const changedLearningConfig =
+        before.defaultDictionaryId !== req.body?.defaultDictionaryId ||
+        (before.wordStudyChapterId || '') !== (req.body?.wordStudyChapterId || '') ||
+        Number(before.wordStudyCount || 20) !== Number(req.body?.wordStudyCount || 20) ||
+        (before.wordStudySortMode || 'RANDOM') !== (req.body?.wordStudySortMode || 'RANDOM') ||
+        Boolean(before.wordStudyExcludeMastered !== false) !== Boolean(req.body?.wordStudyExcludeMastered !== false) ||
+        (before.wordStudyMode || 'LEARN_AND_WRITE') !== (req.body?.wordStudyMode || 'LEARN_AND_WRITE');
+
       const config = await DictionaryService.updateConfig(userId, req.body);
+
+      // 当前批次属于旧学习计划。配置一旦改变，直接按新配置重新生成一个全新的当前批次。
+      // 如果原本没有进行中的批次，则只保存配置，不主动创建学习任务。
+      if (hasActiveSession && changedLearningConfig) {
+        await StudySessionService.createSession(userId, {
+          dictionaryId: config.defaultDictionaryId,
+          chapterId: config.wordStudyChapterId,
+          count: config.wordStudyCount || 20,
+          excludeMastered: config.wordStudyExcludeMastered !== false,
+          sortMode: config.wordStudySortMode || 'RANDOM',
+          mode: config.wordStudyMode || 'LEARN_AND_WRITE'
+        });
+      }
+
       res.json({
         code: 200,
         message: 'success',
