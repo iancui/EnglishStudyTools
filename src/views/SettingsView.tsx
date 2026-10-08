@@ -418,7 +418,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {[
                   ['LEARN_AND_WRITE', '普通学习：学 + 背写'],
                   ['WRITE_ONLY', '单词听写：直接默写']
