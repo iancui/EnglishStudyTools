@@ -22,6 +22,66 @@ interface HomeViewProps {
   onStartSentencePractice?: () => void;
 }
 
+
+const ProgressCircleCard: React.FC<{
+  title: string;
+  icon: string;
+  total: number;
+  learned: number;
+  mastered: number;
+}> = ({ title, icon, total, learned, mastered }) => {
+  const percent = total > 0 ? Math.min(100, Math.round((mastered / total) * 100)) : 0;
+  const radius = 46;
+  const circumference = 2 * Math.PI * radius;
+  const dashOffset = circumference * (1 - percent / 100);
+
+  return (
+    <div className="bg-white border border-[#E7EEF8] rounded-3xl p-6 sm:p-7 shadow-xs flex items-center gap-6">
+      <div className="relative w-32 h-32 shrink-0">
+        <svg viewBox="0 0 112 112" className="w-full h-full -rotate-90">
+          <circle cx="56" cy="56" r={radius} fill="none" stroke="currentColor" strokeWidth="8" className="text-[#E7EEF8]" />
+          <circle
+            cx="56"
+            cy="56"
+            r={radius}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="8"
+            strokeLinecap="round"
+            strokeDasharray={circumference}
+            strokeDashoffset={dashOffset}
+            className="text-[#4F7DF3] transition-all duration-500"
+          />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="text-2xl font-extrabold text-[#29466F]">{percent}%</span>
+          <span className="text-[11px] font-semibold text-[#8BA0BD]">已掌握</span>
+        </div>
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2 mb-4">
+          <span className="text-xl">{icon}</span>
+          <h3 className="text-lg font-bold text-[#29466F]">{title}</h3>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          <div className="rounded-xl bg-[#F7FAFF] p-3">
+            <div className="text-xl font-extrabold font-mono text-[#29466F]">{total}</div>
+            <div className="text-[11px] text-[#8BA0BD] mt-1">总数</div>
+          </div>
+          <div className="rounded-xl bg-[#F7FAFF] p-3">
+            <div className="text-xl font-extrabold font-mono text-[#4F7DF3]">{learned}</div>
+            <div className="text-[11px] text-[#8BA0BD] mt-1">已学习</div>
+          </div>
+          <div className="rounded-xl bg-[#F7FAFF] p-3">
+            <div className="text-xl font-extrabold font-mono text-[#29466F]">{mastered}</div>
+            <div className="text-[11px] text-[#8BA0BD] mt-1">已掌握</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const HomeView: React.FC<HomeViewProps> = ({
   navigate,
   onOpenStudySetup,
@@ -109,6 +169,24 @@ export const HomeView: React.FC<HomeViewProps> = ({
         <p className="text-sm text-[#8BA0BD] max-w-xl leading-relaxed">
           基于认知闭环设计：单词“学 + 背写”一体化沉淀，进阶渐进长句掌握真实语境表达。
         </p>
+      </div>
+
+      {/* Learning Progress Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <ProgressCircleCard
+          title="词汇进度"
+          icon="📚"
+          total={stats?.totalWords || 0}
+          learned={stats?.learnedWords || 0}
+          mastered={stats?.masteredWords || 0}
+        />
+        <ProgressCircleCard
+          title="句子进度"
+          icon="💬"
+          total={stats?.totalSentences || 0}
+          learned={stats?.learnedSentences || 0}
+          mastered={stats?.masteredSentences || 0}
+        />
       </div>
 
       {/* Two Core Learning Portals */}
