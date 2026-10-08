@@ -27,6 +27,7 @@ interface SettingsViewProps {
   onLogout: () => void;
   navigate: (route: string) => void;
   onConfigUpdated: (cfg: DictionaryConfig) => void;
+  initialConfig: DictionaryConfig;
 }
 
 export const SettingsView: React.FC<SettingsViewProps> = ({
@@ -34,24 +35,17 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   user,
   onLogout,
   navigate,
-  onConfigUpdated
+  onConfigUpdated,
+  initialConfig
 }) => {
   const [activeTab, setActiveTab] = useState<'learning' | 'my-dictionaries' | 'account'>(initialTab);
 
   // Configuration State
-  const [config, setConfig] = useState<DictionaryConfig>({
-    id: '',
-    userId: '',
-    defaultDictionaryId: 'dict-primary-6',
-    englishDict: 'Oxford',
-    ecDict: 'Oxford',
-    phoneticType: 'UK',
-    audioType: 'UK',
-    enablePhonics: true
-  });
+  const [config, setConfig] = useState<DictionaryConfig>(initialConfig);
   const [allDictionaries, setAllDictionaries] = useState<DictionaryItem[]>([]);
   const [myDictionaries, setMyDictionaries] = useState<DictionaryItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [dictionariesLoading, setDictionariesLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
@@ -65,20 +59,23 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [isAuditioning, setIsAuditioning] = useState(false);
 
   useEffect(() => {
+    setConfig(initialConfig);
+  }, [initialConfig]);
+
+  useEffect(() => {
     loadSettingsData();
   }, []);
 
   const loadSettingsData = async () => {
     try {
-      setLoading(true);
+      setDictionariesLoading(true);
       const bundle = await api.getSettingsBundle();
-      if (bundle?.config) setConfig(bundle.config);
       if (bundle?.dictionaries) setAllDictionaries(bundle.dictionaries);
       if (bundle?.myDictionaries) setMyDictionaries(bundle.myDictionaries);
     } catch (e) {
-      console.error('Failed to load settings:', e);
+      console.error('Failed to load settings dictionaries:', e);
     } finally {
-      setLoading(false);
+      setDictionariesLoading(false);
     }
   };
 
@@ -141,14 +138,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     }
   };
 
-  if (loading) {
-    return (
-      <div className="max-w-3xl mx-auto px-4 py-24 text-center">
-        <div className="w-10 h-10 border-4 border-amber-400 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-        <p className="text-stone-500 text-sm">正在加载配置中心...</p>
-      </div>
-    );
-  }
+  if (loading) return null;
 
   const isAdmin = user?.role === 'ADMIN';
 
@@ -235,6 +225,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 </button>
               </div>
 
+              {dictionariesLoading && allDictionaries.length === 0 && (
+                <div className="text-xs text-stone-400 mb-2">正在加载辞书列表…</div>
+              )}
               <select
                 value={config.defaultDictionaryId || 'dict-primary-6'}
                 onChange={e => setConfig(prev => ({ ...prev, defaultDictionaryId: e.target.value }))}
