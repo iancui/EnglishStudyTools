@@ -245,6 +245,14 @@ class MySQLStorage {
     return rows as Row[];
   }
 
+  async getStudyPreview(dictionaryId: string, userId: string) {
+    const [rows] = await pool.query(
+      "SELECT d.name AS dictionary_name, COUNT(dw.word_id) AS total_in_dict, SUM(CASE WHEN up.word_id IS NULL OR (up.status <> 'MASTERED' AND COALESCE(up.mastery,0) <= 90) THEN 1 ELSE 0 END) AS matching_count FROM dictionary d LEFT JOIN dictionary_word dw ON dw.dictionary_id=d.id AND dw.is_active=1 LEFT JOIN user_word_progress up ON up.word_id=dw.word_id AND up.user_id=? WHERE d.id=? AND d.status='ACTIVE' GROUP BY d.id, d.name",
+      [userId, dictionaryId]
+    );
+    return (rows as Row[])[0];
+  }
+
   async getStudyCandidateCount(dictionaryId: string, userId: string, excludeMastered: boolean) {
     const mastered = excludeMastered ? "AND (up.word_id IS NULL OR (up.status <> 'MASTERED' AND COALESCE(up.mastery,0) <= 90))" : '';
     const [rows] = await pool.query(
