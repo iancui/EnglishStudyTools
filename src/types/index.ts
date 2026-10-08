@@ -40,6 +40,17 @@ export interface DictionaryItem {
   updatedAt: string;
 }
 
+export interface DictionarySentenceItem {
+  id: string;
+  dictionaryId: string;
+  chapterId?: string | null;
+  sentenceId: string;
+  sequence: number;
+  isActive: boolean;
+  createdAt: string;
+  sentence?: SentenceItem;
+}
+
 export interface DictionaryWordItem {
   id: string;
   dictionaryId: string;
