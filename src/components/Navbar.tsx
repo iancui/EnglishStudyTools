@@ -54,7 +54,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 : 'border-transparent text-[#8BA0BD] hover:text-[#29466F]'
             }`}
           >
-            错词本
+            复习
           </button>
           <button
             onClick={() => navigate('/statistics')}
@@ -116,7 +116,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       </div>
 
-      {/* Mobile navigation - Exactly 首页 | 错词本 | 学习记录 | 设置 */}
+      {/* Mobile navigation - Exactly 首页 | 复习 | 学习记录 | 设置 */}
       <div className="md:hidden flex items-center justify-around border-t border-stone-100 py-2.5 bg-stone-50/95 text-xs">
         <button
           onClick={() => navigate('/')}
@@ -132,7 +132,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             currentRoute === '/review' ? 'text-stone-900 font-bold' : 'text-stone-500'
           }`}
         >
-          错词本
+          复习
         </button>
         <button
           onClick={() => navigate('/statistics')}
