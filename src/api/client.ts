@@ -212,6 +212,8 @@ export const api = {
     sortMode?: string;
     writeSortMode?: 'RANDOM' | 'SEQUENCE';
     dictationSortMode?: 'RANDOM' | 'SEQUENCE';
+    includeWrite?: boolean;
+    includeDictation?: boolean;
     mode?: string;
   }) =>
     request<any>('/api/study-sessions', {
