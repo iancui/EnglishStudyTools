@@ -76,6 +76,9 @@ export const api = {
   getMyDictionaries: () => request<any[]>('/api/dictionaries/my'),
   getMyDictionaryWords: (dictId: string) => request<any[]>(`/api/dictionaries/my/${dictId}/words`),
   getDictionaryById: (id: string) => request<any>(`/api/dictionaries/${id}`),
+  getDictionaryChapters: (id: string) => request<any[]>(`/api/dictionaries/${id}/chapters`),
+  createDictionaryChapter: (id: string, data: { name: string; code?: string; description?: string }) =>
+    request<any>(`/api/dictionaries/${id}/chapters`, { method: 'POST', body: JSON.stringify(data) }),
   createDictionary: (data: { name: string; description?: string }) =>
     request<any>('/api/dictionaries', {
       method: 'POST',
