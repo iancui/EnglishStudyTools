@@ -90,6 +90,10 @@ export class CaptchaService {
     let code = '';
     for (let i = 0; i < 5; i++) code += chars[crypto.randomInt(chars.length)];
     this.store.set(id, { code, expiresAt: Date.now() + 5 * 60 * 1000 });
+    console.log('[captcha:create]', {
+      id,
+      codeLength: code.length
+    });
     const width = 150, height = 48;
     const noise = Array.from({length: 7}, (_, i) => `<line x1="${10+i*21}" y1="0" x2="${Math.random()*width}" y2="${height}" stroke="#d6d3d1" stroke-width="1"/>`).join('');
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><rect width="100%" height="100%" fill="#fafaf9"/>${noise}<text x="75" y="33" text-anchor="middle" font-family="Arial,sans-serif" font-size="25" font-weight="700" letter-spacing="5" fill="#292524">${code}</text></svg>`;
@@ -98,7 +102,16 @@ export class CaptchaService {
 
   static verify(id: string, input: string) {
     const item = this.store.get(id);
+    const normalizedInput = String(input || '').trim().toUpperCase();
+    console.log('[captcha:verify]', {
+      id,
+      exists: !!item,
+      expired: item ? item.expiresAt < Date.now() : null,
+      inputLength: normalizedInput.length,
+      codeLength: item?.code.length ?? null,
+      matched: item ? normalizedInput === item.code : false
+    });
     this.store.delete(id);
-    if (!item || item.expiresAt < Date.now() || String(input || '').trim().toUpperCase() !== item.code) throw new Error('图形验证码错误或已过期');
+    if (!item || item.expiresAt < Date.now() || normalizedInput !== item.code) throw new Error('图形验证码错误或已过期');
   }
 }
