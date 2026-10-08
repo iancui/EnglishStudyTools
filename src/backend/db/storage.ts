@@ -25,11 +25,13 @@ const iso = (v: any) => v ? new Date(v).toISOString() : undefined;
 // MySQL 5.7 DATETIME does not accept ISO-8601 strings containing T/Z.
 const mysqlDate = (v: any) => v ? new Date(v).toISOString().slice(0, 19).replace('T', ' ') : null;
 
+const authSessionTableReady = pool.query(
+  'CREATE TABLE IF NOT EXISTS auth_session (token VARCHAR(128) PRIMARY KEY, user_id VARCHAR(128) NOT NULL, expires_at DATETIME NOT NULL, INDEX idx_auth_session_user (user_id), INDEX idx_auth_session_expiry (expires_at))'
+);
+
 class MySQLStorage {
   async createAuthSession(token: string, userId: string, expiresAt: Date): Promise<void> {
-    await pool.query(
-      'CREATE TABLE IF NOT EXISTS auth_session (token VARCHAR(128) PRIMARY KEY, user_id VARCHAR(128) NOT NULL, expires_at DATETIME NOT NULL, INDEX idx_auth_session_user (user_id), INDEX idx_auth_session_expiry (expires_at))'
-    );
+    await authSessionTableReady;
     await pool.query(
       'INSERT INTO auth_session(token,user_id,expires_at) VALUES(?,?,?) ON DUPLICATE KEY UPDATE user_id=VALUES(user_id),expires_at=VALUES(expires_at)',
       [token, userId, mysqlDate(expiresAt.toISOString())]
@@ -37,9 +39,7 @@ class MySQLStorage {
   }
 
   async findAuthSession(token: string): Promise<{ userId: string; expiresAt: Date } | undefined> {
-    await pool.query(
-      'CREATE TABLE IF NOT EXISTS auth_session (token VARCHAR(128) PRIMARY KEY, user_id VARCHAR(128) NOT NULL, expires_at DATETIME NOT NULL, INDEX idx_auth_session_user (user_id), INDEX idx_auth_session_expiry (expires_at))'
-    );
+    await authSessionTableReady;
     const [rows] = await pool.query(
       'SELECT user_id, expires_at FROM auth_session WHERE token=? AND expires_at>NOW() LIMIT 1',
       [token]
