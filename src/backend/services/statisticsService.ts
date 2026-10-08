@@ -119,6 +119,7 @@ export class StatisticsService {
       studyTimeMinutes,
       masteredWords,
       learningWords,
+      learnedWords: masteredWords + learningWords,
       totalWords,
       progressPercent,
       accuracyRate
