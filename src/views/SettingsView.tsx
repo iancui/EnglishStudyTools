@@ -56,6 +56,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [creatingDict, setCreatingDict] = useState(false);
   const [selectedChapterDictId, setSelectedChapterDictId] = useState('');
   const [chapters, setChapters] = useState<DictionaryChapter[]>([]);
+  const [wordStudyChapters, setWordStudyChapters] = useState<DictionaryChapter[]>([]);
   const [newChapterName, setNewChapterName] = useState('');
   const [creatingChapter, setCreatingChapter] = useState(false);
 
@@ -70,6 +71,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     loadSettingsData();
     loadCurrentConfig();
   }, []);
+
+  useEffect(() => {
+    const dictId = config.defaultDictionaryId;
+    if (!dictId) { setWordStudyChapters([]); return; }
+    api.getDictionaryChapters(dictId).then(setWordStudyChapters).catch(() => setWordStudyChapters([]));
+  }, [config.defaultDictionaryId]);
 
   const loadCurrentConfig = async () => {
     try {
@@ -301,6 +308,96 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   </option>
                 ))}
               </select>
+            </div>
+
+            {/* 2. 背单词默认学习参数 */}
+            <div className="space-y-4 pt-6 border-t border-stone-100">
+              <div>
+                <label className="text-base font-bold text-stone-900 block">2. 背单词默认学习参数</label>
+                <p className="text-xs text-stone-500 mt-0.5">首页点击“开始背单词”后直接按这里的配置开始，不再弹出设置窗口。</p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-stone-600 block mb-1.5">学习章节</label>
+                  <select
+                    value={config.wordStudyChapterId || ''}
+                    onChange={e => setConfig(prev => ({ ...prev, wordStudyChapterId: e.target.value || undefined }))}
+                    className="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 text-sm font-medium text-stone-900"
+                  >
+                    <option value="">整本辞书</option>
+                    {wordStudyChapters.map(ch => (
+                      <option key={ch.id} value={ch.id}>{ch.sequence}. {ch.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-stone-600 block mb-1.5">每次学习数量</label>
+                  <select
+                    value={config.wordStudyCount || 20}
+                    onChange={e => setConfig(prev => ({ ...prev, wordStudyCount: Number(e.target.value) }))}
+                    className="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 text-sm font-medium text-stone-900"
+                  >
+                    {[10, 20, 30, 50].map(n => <option key={n} value={n}>{n} 词</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                {[
+                  ['RANDOM', '随机乱序'],
+                  ['SEQUENCE', '教材顺序'],
+                  ['REVIEW_FIRST', '优先复习']
+                ].map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setConfig(prev => ({ ...prev, wordStudySortMode: value as any }))}
+                    className={`py-3 rounded-xl border text-sm font-semibold transition-all ${
+                      (config.wordStudySortMode || 'RANDOM') === value
+                        ? 'border-amber-400 bg-amber-50 text-stone-900 ring-2 ring-amber-200'
+                        : 'border-stone-200 bg-white hover:bg-stone-50 text-stone-700'
+                    }`}
+                  >{label}</button>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {[
+                  ['LEARN_AND_WRITE', '普通学习：学 + 背写'],
+                  ['WRITE_ONLY', '单词听写：直接默写']
+                ].map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setConfig(prev => ({ ...prev, wordStudyMode: value as any }))}
+                    className={`py-3 rounded-xl border text-sm font-semibold transition-all ${
+                      (config.wordStudyMode || 'LEARN_AND_WRITE') === value
+                        ? 'border-amber-400 bg-amber-50 text-stone-900 ring-2 ring-amber-200'
+                        : 'border-stone-200 bg-white hover:bg-stone-50 text-stone-700'
+                    }`}
+                  >{label}</button>
+                ))}
+              </div>
+
+              <label className="flex items-center justify-between p-3.5 rounded-xl bg-stone-50 border border-stone-100">
+                <div>
+                  <div className="text-sm font-semibold text-stone-800">排除已掌握单词</div>
+                  <div className="text-xs text-stone-500 mt-0.5">已经掌握的词默认不再进入新学习任务。</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setConfig(prev => ({ ...prev, wordStudyExcludeMastered: prev.wordStudyExcludeMastered === false }))}
+                  className={`w-12 h-7 rounded-full transition-colors relative shrink-0 p-1 ${
+                    config.wordStudyExcludeMastered !== false ? 'bg-stone-900' : 'bg-stone-300'
+                  }`}
+                >
+                  <div className={`w-5 h-5 rounded-full bg-white transition-transform ${
+                    config.wordStudyExcludeMastered !== false ? 'translate-x-5' : 'translate-x-0'
+                  }`} />
+                </button>
+              </label>
             </div>
 
             {/* 2. 句子专用辞书 */}
