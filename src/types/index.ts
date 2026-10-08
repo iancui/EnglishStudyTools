@@ -12,6 +12,18 @@ export interface UserInfo {
 export type DictionaryOwnerType = 'SYSTEM' | 'USER';
 export type DictionaryStatus = 'ACTIVE' | 'INACTIVE';
 
+export interface DictionaryChapter {
+  id: string;
+  dictionaryId: string;
+  name: string;
+  code?: string;
+  description?: string;
+  sequence: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface DictionaryItem {
   id: string;
   name: string;
@@ -23,6 +35,7 @@ export interface DictionaryItem {
   isPublic: boolean;
   status: DictionaryStatus;
   wordCount?: number;
+  chapters?: DictionaryChapter[];
   createdAt: string;
   updatedAt: string;
 }
@@ -30,6 +43,7 @@ export interface DictionaryItem {
 export interface DictionaryWordItem {
   id: string;
   dictionaryId: string;
+  chapterId?: string | null;
   wordId: string;
   sequence: number;
   isActive: boolean;
@@ -196,6 +210,9 @@ export interface StatisticsData {
   progressPercent: number;
   accuracyRate: number;
   learnedWords: number;
+  totalSentences: number;
+  learnedSentences: number;
+  masteredSentences: number;
 }
 
 export type SentenceSessionStatus = 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
