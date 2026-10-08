@@ -547,9 +547,16 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
           totalCount={session.totalCount}
           onExit={() => navigate('/')}
           rightExtra={
-            <span className="text-xs font-bold font-mono text-[#4F7DF3] bg-[#EBF2FE] px-2.5 py-1 rounded-lg">
-              {session.difficulty}
-            </span>
+            <div className="flex items-center gap-2">
+              {session.dictionary?.name && (
+                <span className="text-xs font-semibold text-[#29466F] bg-white border border-[#DDE7F5] px-2.5 py-1 rounded-lg">
+                  {session.dictionary.name}
+                </span>
+              )}
+              <span className="text-xs font-bold font-mono text-[#4F7DF3] bg-[#EBF2FE] px-2.5 py-1 rounded-lg">
+                {session.difficulty}
+              </span>
+            </div>
           }
         />
         <main className="flex-1 w-full flex flex-col items-center justify-center px-4 sm:px-6 py-10 animate-fadeIn">
@@ -664,10 +671,17 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
         totalCount={session.totalCount}
         onExit={() => navigate('/')}
         rightExtra={
-          <span className="text-xs font-bold font-mono text-[#4F7DF3] bg-[#EBF2FE] px-2.5 py-1 rounded-lg">
-            {session.difficulty}
-          </span>
-        }
+            <div className="flex items-center gap-2">
+              {session.dictionary?.name && (
+                <span className="text-xs font-semibold text-[#29466F] bg-white border border-[#DDE7F5] px-2.5 py-1 rounded-lg">
+                  {session.dictionary.name}
+                </span>
+              )}
+              <span className="text-xs font-bold font-mono text-[#4F7DF3] bg-[#EBF2FE] px-2.5 py-1 rounded-lg">
+                {session.difficulty}
+              </span>
+            </div>
+          }
       />
 
       <main className="flex-1 flex flex-col justify-center items-center px-4 sm:px-6 py-10 sm:py-16 max-w-4xl w-full mx-auto animate-fadeIn text-center space-y-10">
