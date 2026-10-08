@@ -28,7 +28,7 @@ interface ApiResponse<T> {
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const token = authStorage.getToken();
   const headers = new Headers(options.headers || {});
-  headers.set('Content-Type', 'application/json');
+  if (!(options.body instanceof FormData)) headers.set('Content-Type', 'application/json');
   if (token) {
     headers.set('Authorization', `Bearer ${token}`);
   }
@@ -127,11 +127,17 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ dictionaryId, sentences })
     }),
-  importExcelWorkbook: (data: { wordDictionaryId: string; sentenceDictionaryId: string; words: any[]; sentences: any[] }) =>
-    request<any>('/api/admin/excel-import', {
-      method: 'POST',
-      body: JSON.stringify(data)
-    }),
+  importExcelWorkbook: (data: { file: File; wordDictionaryId: string; sentenceDictionaryId: string; wordSheetName: string; sentenceSheetName: string; wordMapping: Record<string, number>; sentenceMapping: Record<string, number> }) => {
+    const form = new FormData();
+    form.append('file', data.file);
+    form.append('wordDictionaryId', data.wordDictionaryId);
+    form.append('sentenceDictionaryId', data.sentenceDictionaryId);
+    form.append('wordSheetName', data.wordSheetName);
+    form.append('sentenceSheetName', data.sentenceSheetName);
+    form.append('wordMapping', JSON.stringify(data.wordMapping));
+    form.append('sentenceMapping', JSON.stringify(data.sentenceMapping));
+    return request<any>('/api/admin/excel-import', { method: 'POST', body: form });
+  },
 
   // RBAC administration
   getAdminUsers: () => request<any[]>('/api/admin/users'),
