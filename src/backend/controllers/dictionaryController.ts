@@ -53,6 +53,8 @@ export class DictionaryController {
         (before.wordStudySortMode || 'RANDOM') !== (req.body?.wordStudySortMode || 'RANDOM') ||
         (before.wordStudyWriteOrder || 'SEQUENCE') !== (req.body?.wordStudyWriteOrder || 'SEQUENCE') ||
         (before.wordStudyDictationOrder || 'RANDOM') !== (req.body?.wordStudyDictationOrder || 'RANDOM') ||
+        Boolean(before.wordStudyIncludeWrite !== false) !== Boolean(req.body?.wordStudyIncludeWrite !== false) ||
+        Boolean(before.wordStudyIncludeDictation !== false) !== Boolean(req.body?.wordStudyIncludeDictation !== false) ||
         Boolean(before.wordStudyExcludeMastered !== false) !== Boolean(req.body?.wordStudyExcludeMastered !== false) ||
         (before.wordStudyMode || 'LEARN_AND_WRITE') !== (req.body?.wordStudyMode || 'LEARN_AND_WRITE');
 
