@@ -71,14 +71,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const loadSettingsData = async () => {
     try {
       setLoading(true);
-      const [cfgRes, dictsRes, myDictsRes] = await Promise.all([
-        api.getDictionaryConfig(),
-        api.getDictionaries(),
-        api.getMyDictionaries()
-      ]);
-      if (cfgRes) setConfig(cfgRes);
-      if (dictsRes) setAllDictionaries(dictsRes);
-      if (myDictsRes) setMyDictionaries(myDictsRes);
+      const bundle = await api.getSettingsBundle();
+      if (bundle?.config) setConfig(bundle.config);
+      if (bundle?.dictionaries) setAllDictionaries(bundle.dictionaries);
+      if (bundle?.myDictionaries) setMyDictionaries(bundle.myDictionaries);
     } catch (e) {
       console.error('Failed to load settings:', e);
     } finally {
