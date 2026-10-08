@@ -350,6 +350,13 @@ export class ExcelImportService {
       }
 
       result.sentences.imported = validSentenceRows.length;
+
+      // 导入完成后只在事务内重算一次冗余计数，运行时读取不再 COUNT(dictionary_word)。
+      await conn.query(
+        'UPDATE dictionary d SET word_count=(SELECT COUNT(*) FROM dictionary_word dw WHERE dw.dictionary_id=d.id AND dw.is_active=1) WHERE d.id=?',
+        [wordDictionaryId]
+      );
+
       await conn.commit();
       return result;
     } catch (error) {
