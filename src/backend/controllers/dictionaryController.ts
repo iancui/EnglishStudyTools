@@ -4,6 +4,16 @@ import { DictionaryService } from '../services/dictionaryService.ts';
 
 export class DictionaryController {
   // Config
+  static async getSettingsBundle(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const userId = req.user?.id || 'u-default';
+      const data = await DictionaryService.getSettingsBundle(userId);
+      res.json({ code: 200, message: 'success', data });
+    } catch (e) {
+      next(e);
+    }
+  }
+
   static async getConfig(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id || 'u-default';
