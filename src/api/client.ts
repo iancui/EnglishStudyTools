@@ -1,6 +1,9 @@
 const TOKEN_KEY = 'linguastep_token';
 const USER_KEY = 'linguastep_user';
 
+let settingsBundleCache: { data: any; expiresAt: number } | null = null;
+let settingsBundlePromise: Promise<any> | null = null;
+
 export const authStorage = {
   getToken: () => localStorage.getItem(TOKEN_KEY) || '',
   setToken: (token: string) => localStorage.setItem(TOKEN_KEY, token),
