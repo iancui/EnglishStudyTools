@@ -139,14 +139,22 @@ export const HomeView: React.FC<HomeViewProps> = ({
     }
 
     try {
-      const session = await api.createStudySession({
-        dictionaryId: config.defaultDictionaryId,
-        chapterId: config.wordStudyChapterId,
-        count: config.wordStudyCount || 20,
-        excludeMastered: config.wordStudyExcludeMastered !== false,
-        sortMode: config.wordStudySortMode || 'RANDOM',
-        mode: modeOverride || config.wordStudyMode || 'LEARN_AND_WRITE'
-      });
+      const isSameBatchRestart = restart && !modeOverride && !!activeSession;
+      const session = await api.createStudySession(
+        isSameBatchRestart
+          ? {
+              wordIds: activeSession!.words.map((w) => w.wordId),
+              mode: activeSession!.mode
+            }
+          : {
+              dictionaryId: config.defaultDictionaryId,
+              chapterId: config.wordStudyChapterId,
+              count: config.wordStudyCount || 20,
+              excludeMastered: config.wordStudyExcludeMastered !== false,
+              sortMode: config.wordStudySortMode || 'RANDOM',
+              mode: modeOverride || config.wordStudyMode || 'LEARN_AND_WRITE'
+            }
+      );
       navigate('/study/' + session.id);
     } catch (e: any) {
       alert('开始学习失败：' + (e?.message || '没有符合条件的单词'));
