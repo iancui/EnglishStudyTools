@@ -99,6 +99,21 @@ CREATE TABLE dictionary (
   FOREIGN KEY (owner_user_id) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE dictionary_chapter (
+  id VARCHAR(36) PRIMARY KEY,
+  dictionary_id VARCHAR(36) NOT NULL,
+  name VARCHAR(100) NOT NULL,
+  code VARCHAR(50) NULL,
+  description TEXT NULL,
+  sequence_no INT NOT NULL DEFAULT 1,
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_dictionary_chapter_code(dictionary_id, code),
+  INDEX idx_dictionary_chapter_order(dictionary_id, sequence_no),
+  FOREIGN KEY (dictionary_id) REFERENCES dictionary(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE word (
   id VARCHAR(36) PRIMARY KEY,
   text VARCHAR(100) NOT NULL UNIQUE,
@@ -142,6 +157,7 @@ CREATE TABLE word_phonics (
 CREATE TABLE dictionary_word (
   id VARCHAR(36) PRIMARY KEY,
   dictionary_id VARCHAR(36) NOT NULL,
+  chapter_id VARCHAR(36) NULL,
   word_id VARCHAR(36) NOT NULL,
   sequence_no INT NOT NULL DEFAULT 1,
   is_active BOOLEAN NOT NULL DEFAULT TRUE,
@@ -149,7 +165,9 @@ CREATE TABLE dictionary_word (
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY uk_dictionary_word(dictionary_id, word_id),
   INDEX idx_dictionary_word(dictionary_id, sequence_no),
+  INDEX idx_dictionary_word_chapter(dictionary_id, chapter_id),
   FOREIGN KEY (dictionary_id) REFERENCES dictionary(id) ON DELETE CASCADE,
+  FOREIGN KEY (chapter_id) REFERENCES dictionary_chapter(id) ON DELETE SET NULL,
   FOREIGN KEY (word_id) REFERENCES word(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -167,13 +185,16 @@ CREATE TABLE sentence (
 CREATE TABLE dictionary_sentence (
   id VARCHAR(36) PRIMARY KEY,
   dictionary_id VARCHAR(36) NOT NULL,
+  chapter_id VARCHAR(36) NULL,
   sentence_id VARCHAR(36) NOT NULL,
   sequence_no INT NOT NULL DEFAULT 1,
   is_active BOOLEAN NOT NULL DEFAULT TRUE,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY uk_dictionary_sentence(dictionary_id, sentence_id),
   INDEX idx_dictionary_sentence_order(dictionary_id, sequence_no),
+  INDEX idx_dictionary_sentence_chapter(dictionary_id, chapter_id),
   FOREIGN KEY (dictionary_id) REFERENCES dictionary(id) ON DELETE CASCADE,
+  FOREIGN KEY (chapter_id) REFERENCES dictionary_chapter(id) ON DELETE SET NULL,
   FOREIGN KEY (sentence_id) REFERENCES sentence(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
