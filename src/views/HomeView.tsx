@@ -40,6 +40,7 @@ const LearningCard: React.FC<{
   batchTotal?: number;
 }> = ({ title, icon, total, learned, mastered, active, activeText, onStart, onContinue, onRestart, reviewCount = 0, onReview, batchCompleted = 0, batchTotal = 0 }) => {
   const percent = total > 0 ? Math.min(100, Math.round((mastered / total) * 100)) : 0;
+  const learnedPercent = total > 0 ? Math.min(100, Math.round((learned / total) * 100)) : 0;
   const radius = 46;
   const circumference = 2 * Math.PI * radius;
   const dashOffset = circumference * (1 - percent / 100);
@@ -49,11 +50,13 @@ const LearningCard: React.FC<{
         <div className="relative w-28 h-28 shrink-0">
           <svg viewBox="0 0 112 112" className="w-full h-full -rotate-90">
             <circle cx="56" cy="56" r={radius} fill="none" stroke="currentColor" strokeWidth="8" className="text-[#E7EEF8]" />
-            <circle cx="56" cy="56" r={radius} fill="none" stroke="currentColor" strokeWidth="8" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={dashOffset} className="text-[#4F7DF3] transition-all duration-500" />
+            <circle cx="56" cy="56" r={radius} fill="none" stroke="currentColor" strokeWidth="8" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={circumference * (1 - learnedPercent / 100)} className="text-[#4F7DF3] transition-all duration-500" />
+            <circle cx="56" cy="56" r={radius} fill="none" stroke="currentColor" strokeWidth="8" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={dashOffset} className="text-emerald-500 transition-all duration-500" />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-2xl font-extrabold text-[#29466F]">{percent}%</span>
-            <span className="text-[10px] text-[#8BA0BD]">已掌握</span>
+            <span className="text-2xl font-extrabold text-[#29466F]">{learnedPercent}%</span>
+            <span className="text-[10px] text-[#4F7DF3]">已学</span>
+            <span className="text-[10px] text-emerald-600">已掌握 {percent}%</span>
           </div>
         </div>
         <div className="min-w-0 flex-1">
