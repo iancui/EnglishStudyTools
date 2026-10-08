@@ -47,6 +47,7 @@ export class SentencePracticeService {
     userId: string,
     params: {
       dictionaryId?: string;
+      chapterId?: string;
     }
   ) {
     const all = await db.getAllSentences();
@@ -55,6 +56,7 @@ export class SentencePracticeService {
     }
 
     const dictionaryId = params.dictionaryId;
+    const chapterId = params.chapterId;
     const dictWordSet = new Set(
       dictionaryId
         ? (await db.getDictionaryWords(dictionaryId))
@@ -70,7 +72,9 @@ export class SentencePracticeService {
       const dictionarySentences = await db.getDictionarySentences(dictionaryId);
       if (dictionarySentences.length > 0) {
         const sentenceMap = new Map(all.map(s => [s.id, s]));
-        candidates = dictionarySentences.map(r => sentenceMap.get(String(r.sentence_id))).filter(Boolean) as typeof all;
+        candidates = dictionarySentences
+          .filter(r => !chapterId || String(r.chapter_id || '') === chapterId)
+          .map(r => sentenceMap.get(String(r.sentence_id))).filter(Boolean) as typeof all;
       }
     }
 
