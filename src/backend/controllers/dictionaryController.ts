@@ -7,7 +7,15 @@ export class DictionaryController {
   static async getSettingsBundle(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id || 'u-default';
+      const startedAt = Date.now();
       const data = await DictionaryService.getSettingsBundle(userId);
+      const elapsedMs = Date.now() - startedAt;
+      console.log('[perf:dictionary/settings-bundle]', {
+        userId,
+        elapsedMs,
+        dictionaryCount: data?.dictionaries?.length || 0,
+        myDictionaryCount: data?.myDictionaries?.length || 0
+      });
       res.json({ code: 200, message: 'success', data });
     } catch (e) {
       next(e);
