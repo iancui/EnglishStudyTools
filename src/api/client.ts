@@ -307,7 +307,7 @@ export const api = {
       requestedCount: number;
       effectiveCount: number;
     }>(`/api/sentence-practice/preview${dictionaryId ? `?dictionaryId=${encodeURIComponent(dictionaryId)}` : ''}`),
-  createSentencePracticeSession: (data: { dictionaryId?: string }) =>
+  createSentencePracticeSession: (data: { dictionaryId?: string; chapterId?: string }) =>
     request<any>('/api/sentence-practice', {
       method: 'POST',
       body: JSON.stringify(data)
