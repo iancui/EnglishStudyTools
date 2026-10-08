@@ -191,6 +191,8 @@ export interface StudySession {
   sortMode: SessionSortMode;
   writeSortMode: StudyOrderMode;
   dictationSortMode: StudyOrderMode;
+  includeWrite: boolean;
+  includeDictation: boolean;
   phase: StudySessionPhase;
   status: SessionStatus;
   currentWordIndex: number;
