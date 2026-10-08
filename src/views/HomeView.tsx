@@ -23,61 +23,50 @@ interface HomeViewProps {
 }
 
 
-const ProgressCircleCard: React.FC<{
+const LearningCard: React.FC<{
   title: string;
   icon: string;
   total: number;
   learned: number;
   mastered: number;
-}> = ({ title, icon, total, learned, mastered }) => {
+  active?: boolean;
+  activeText?: string;
+  onStart: () => void;
+  onContinue?: () => void;
+}> = ({ title, icon, total, learned, mastered, active, activeText, onStart, onContinue }) => {
   const percent = total > 0 ? Math.min(100, Math.round((mastered / total) * 100)) : 0;
   const radius = 46;
   const circumference = 2 * Math.PI * radius;
   const dashOffset = circumference * (1 - percent / 100);
-
   return (
-    <div className="bg-white border border-[#E7EEF8] rounded-3xl p-6 sm:p-7 shadow-xs flex items-center gap-6">
-      <div className="relative w-32 h-32 shrink-0">
-        <svg viewBox="0 0 112 112" className="w-full h-full -rotate-90">
-          <circle cx="56" cy="56" r={radius} fill="none" stroke="currentColor" strokeWidth="8" className="text-[#E7EEF8]" />
-          <circle
-            cx="56"
-            cy="56"
-            r={radius}
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="8"
-            strokeLinecap="round"
-            strokeDasharray={circumference}
-            strokeDashoffset={dashOffset}
-            className="text-[#4F7DF3] transition-all duration-500"
-          />
-        </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-2xl font-extrabold text-[#29466F]">{percent}%</span>
-          <span className="text-[11px] font-semibold text-[#8BA0BD]">已掌握</span>
-        </div>
-      </div>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2 mb-4">
-          <span className="text-xl">{icon}</span>
-          <h3 className="text-lg font-bold text-[#29466F]">{title}</h3>
-        </div>
-        <div className="grid grid-cols-3 gap-2">
-          <div className="rounded-xl bg-[#F7FAFF] p-3">
-            <div className="text-xl font-extrabold font-mono text-[#29466F]">{total}</div>
-            <div className="text-[11px] text-[#8BA0BD] mt-1">总数</div>
+    <div className="bg-white border border-[#E7EEF8] rounded-3xl p-6 sm:p-7 shadow-xs">
+      <div className="flex items-center gap-5">
+        <div className="relative w-28 h-28 shrink-0">
+          <svg viewBox="0 0 112 112" className="w-full h-full -rotate-90">
+            <circle cx="56" cy="56" r={radius} fill="none" stroke="currentColor" strokeWidth="8" className="text-[#E7EEF8]" />
+            <circle cx="56" cy="56" r={radius} fill="none" stroke="currentColor" strokeWidth="8" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={dashOffset} className="text-[#4F7DF3] transition-all duration-500" />
+          </svg>
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <span className="text-2xl font-extrabold text-[#29466F]">{percent}%</span>
+            <span className="text-[10px] text-[#8BA0BD]">已掌握</span>
           </div>
-          <div className="rounded-xl bg-[#F7FAFF] p-3">
-            <div className="text-xl font-extrabold font-mono text-[#4F7DF3]">{learned}</div>
-            <div className="text-[11px] text-[#8BA0BD] mt-1">已学习</div>
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-xl">{icon}</span>
+            <h2 className="text-xl font-bold text-[#29466F]">{title}</h2>
           </div>
-          <div className="rounded-xl bg-[#F7FAFF] p-3">
-            <div className="text-xl font-extrabold font-mono text-[#29466F]">{mastered}</div>
-            <div className="text-[11px] text-[#8BA0BD] mt-1">已掌握</div>
+          <div className="flex gap-5 text-sm">
+            <div><span className="font-bold text-[#29466F]">{total}</span><span className="text-[#8BA0BD] ml-1">总数</span></div>
+            <div><span className="font-bold text-[#4F7DF3]">{learned}</span><span className="text-[#8BA0BD] ml-1">已学</span></div>
+            <div><span className="font-bold text-emerald-600">{mastered}</span><span className="text-[#8BA0BD] ml-1">已掌握</span></div>
           </div>
         </div>
       </div>
+      <button type="button" onClick={active && onContinue ? onContinue : onStart} className="w-full mt-6 py-3.5 px-5 bg-[#4F7DF3] hover:bg-[#3D6CE5] text-white font-bold rounded-2xl transition-all flex items-center justify-center gap-2 text-sm">
+        <span>{active ? (activeText || '继续学习') : '开始' + title}</span>
+        <ArrowRight className="w-4 h-4" />
+      </button>
     </div>
   );
 };
@@ -157,324 +146,13 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-8 py-8 sm:py-12 space-y-10 animate-fadeIn">
-      {/* Platform Header */}
-      <div className="space-y-3">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EBF2FE] text-[#4F7DF3] text-xs font-semibold">
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>英语单词 + 句子渐进式学习平台</span>
-        </div>
-        <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#29466F]">
-          你好，开始今天的学习吧
-        </h1>
-        <p className="text-sm text-[#8BA0BD] max-w-xl leading-relaxed">
-          基于认知闭环设计：单词“学 + 背写”一体化沉淀，进阶渐进长句掌握真实语境表达。
-        </p>
+      <div>
+        <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#29466F]">今天学一点</h1>
       </div>
 
-      {/* Learning Progress Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <ProgressCircleCard
-          title="词汇进度"
-          icon="📚"
-          total={stats?.totalWords || 0}
-          learned={stats?.learnedWords || 0}
-          mastered={stats?.masteredWords || 0}
-        />
-        <ProgressCircleCard
-          title="句子进度"
-          icon="💬"
-          total={stats?.totalSentences || 0}
-          learned={stats?.learnedSentences || 0}
-          mastered={stats?.masteredSentences || 0}
-        />
-      </div>
-
-      {/* Two Core Learning Portals */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
-        {/* ============================================================ */}
-        {/* 入口 1：背单词 (学习 + 背写) */}
-        {/* ============================================================ */}
-        <div className="bg-white border border-[#E7EEF8] hover:border-[#4F7DF3]/40 rounded-3xl p-7 sm:p-8 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group">
-          <div className="space-y-5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3.5">
-                <div className="w-12 h-12 rounded-2xl bg-[#F7FAFF] border border-[#E7EEF8] flex items-center justify-center text-2xl group-hover:scale-105 transition-transform">
-                  📖
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-[#29466F] tracking-tight">
-                    背单词
-                  </h2>
-                  <p className="text-xs font-semibold text-[#8BA0BD] mt-0.5">
-                    认知学习 + 汉译英背写
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                {/* 今日到期徽章 */}
-                {reviewWords && reviewWords.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={handleStartTodayReview}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-600 border border-amber-200 hover:bg-amber-100 transition-colors cursor-pointer"
-                    title="点击开始今日复习"
-                  >
-                    <Clock className="w-3 h-3" />
-                    <span>今日到期 {reviewWords.length}</span>
-                  </button>
-                )}
-
-                {activeSession ? (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#EBF2FE] text-[#4F7DF3] border border-[#D5E3FC]">
-                    <Flame className="w-3.5 h-3.5 fill-[#4F7DF3]" />
-                    <span>{activeSession.mode === 'WRITE_ONLY' ? '听写中' : '进行中'}</span>
-                  </span>
-                ) : (
-                  <span className="text-xs text-[#8BA0BD] font-medium bg-[#F7FAFF] px-2.5 py-1 rounded-lg">
-                    核心词库
-                  </span>
-                )}
-              </div>
-            </div>
-
-            <p className="text-sm text-[#8BA0BD] leading-relaxed">
-              支持“音形认知 + 汉译英背写”全流程学习，或直接开启“纯发音释义 · 单词听写”默写冲刺。
-            </p>
-
-            {/* If user has an ongoing IN_PROGRESS session */}
-            {activeSession ? (
-              <div className="bg-[#F7FAFF] border border-[#E7EEF8] rounded-2xl p-4.5 space-y-3">
-                <div className="flex items-center justify-between text-xs">
-                  <div className="font-semibold text-[#29466F] truncate max-w-[180px]">
-                    {activeSession.mode === 'WRITE_ONLY' ? '单词听写' : (activeSession.dictionary?.name || '当前学习任务')}
-                  </div>
-                  <div className="font-mono font-bold text-[#4F7DF3]">
-                    {activeSession.mode === 'WRITE_ONLY' ? '继续听写' : '继续学习'} {activeSession.completedCount} / {activeSession.totalCount} 词
-                  </div>
-                </div>
-
-                {/* Progress bar */}
-                <div className="h-2 w-full bg-[#E7EEF8] rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-[#4F7DF3] rounded-full transition-all duration-300"
-                    style={{
-                      width: `${Math.min(
-                        100,
-                        Math.round(
-                          (activeSession.completedCount / activeSession.totalCount) * 100
-                        )
-                      )}%`
-                    }}
-                  />
-                </div>
-
-                <div className="text-[11px] text-[#8BA0BD] flex items-center justify-between">
-                  <span>当前进度已自动暂存</span>
-                  <span>
-                    完成度{' '}
-                    {Math.round(
-                      (activeSession.completedCount / activeSession.totalCount) * 100
-                    )}
-                    %
-                  </span>
-                </div>
-              </div>
-            ) : (
-              <div className="bg-[#F7FAFF] border border-[#E7EEF8]/60 rounded-2xl p-4 text-xs text-[#8BA0BD] space-y-1">
-                <div className="font-semibold text-[#29466F]">自由定制背单词与听写参数</div>
-                <div>支持普通学习与纯听写模式，自选词库、设定词量、乱序或优先复习。</div>
-              </div>
-            )}
-          </div>
-
-          {/* Action buttons */}
-          <div className="pt-6 border-t border-[#E7EEF8] mt-6 space-y-3">
-            {reviewWords !== null && reviewWords.length > 0 && (
-              <button
-                type="button"
-                onClick={handleStartTodayReview}
-                className="w-full py-3.5 px-6 bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white font-bold rounded-2xl transition-all shadow-xs flex items-center justify-center gap-2 text-sm select-none cursor-pointer"
-              >
-                <Clock className="w-4 h-4" />
-                <span>📚 开始今日复习 · {reviewWords.length} 个到期词</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            )}
-
-            {activeSession ? (
-              <div className="flex flex-wrap items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => navigate(`/study/${activeSession.id}`)}
-                  className="flex-1 py-3.5 px-6 bg-[#4F7DF3] hover:bg-[#3D6CE5] text-white font-bold rounded-2xl transition-all shadow-xs flex items-center justify-center gap-2 text-sm select-none cursor-pointer"
-                >
-                  <span>继续{activeSession.mode === 'WRITE_ONLY' ? '单词听写' : '背单词'}</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => onOpenStudySetup(activeSession.dictionaryId, activeSession.mode)}
-                  className="py-3.5 px-4 bg-white hover:bg-[#F7FAFF] text-[#8BA0BD] hover:text-[#29466F] font-semibold rounded-2xl border border-[#E7EEF8] transition-colors text-xs select-none cursor-pointer"
-                  title="重新配置并开启新的背诵任务"
-                >
-                  重新开始
-                </button>
-              </div>
-            ) : (
-              <div className="flex flex-col sm:flex-row items-center gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => onOpenStudySetup(undefined, 'LEARN_AND_WRITE')}
-                  className="flex-1 w-full py-3.5 px-5 bg-[#4F7DF3] hover:bg-[#3D6CE5] text-white font-bold rounded-2xl transition-all shadow-xs flex items-center justify-center gap-2 text-sm select-none cursor-pointer"
-                >
-                  <span>普通学习</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => onOpenStudySetup(undefined, 'WRITE_ONLY')}
-                  className="w-full sm:w-auto py-3.5 px-5 bg-[#EBF2FE] hover:bg-[#D5E3FC] text-[#4F7DF3] font-bold rounded-2xl transition-all text-sm flex items-center justify-center gap-1.5 select-none cursor-pointer"
-                  title="听发音看释义直接默写"
-                >
-                  <Headphones className="w-4 h-4" />
-                  <span>单词听写</span>
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* ============================================================ */}
-        {/* 入口 2：学语句 (从短语到完整句子) */}
-        {/* ============================================================ */}
-        <div className="bg-white border border-[#E7EEF8] hover:border-[#4F7DF3]/40 rounded-3xl p-7 sm:p-8 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group">
-          <div className="space-y-5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3.5">
-                <div className="w-12 h-12 rounded-2xl bg-[#F7FAFF] border border-[#E7EEF8] flex items-center justify-center text-2xl group-hover:scale-105 transition-transform">
-                  💬
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-[#29466F] tracking-tight">
-                    学语句
-                  </h2>
-                  <p className="text-xs font-semibold text-[#8BA0BD] mt-0.5">
-                    从短语逐步输入到完整句子
-                  </p>
-                </div>
-              </div>
-
-              {activeSentenceSession ? (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#EBF2FE] text-[#4F7DF3] border border-[#D5E3FC]">
-                  <Flame className="w-3.5 h-3.5 fill-[#4F7DF3]" />
-                  <span>进行中</span>
-                </span>
-              ) : (
-                <span className="text-xs text-[#8BA0BD] font-medium bg-[#F7FAFF] px-2.5 py-1 rounded-lg">
-                  语块进阶
-                </span>
-              )}
-            </div>
-
-            <p className="text-sm text-[#8BA0BD] leading-relaxed">
-              核心学习理念：单词 $\to$ 短语逐步拼写 $\to$ 完整长句精准重建。彻底告别被动阅读，实现主动输出。
-            </p>
-
-            {/* If user has an ongoing IN_PROGRESS sentence practice session */}
-            {activeSentenceSession ? (
-              <div className="bg-[#F7FAFF] border border-[#E7EEF8] rounded-2xl p-4.5 space-y-3">
-                <div className="flex items-center justify-between text-xs">
-                  <div className="font-semibold text-[#29466F]">
-                    {activeSentenceSession.dictionary?.name
-                      ? `词库：${activeSentenceSession.dictionary.name}`
-                      : activeSentenceSession.dictionaryId
-                        ? `词库ID：${activeSentenceSession.dictionaryId}`
-                        : '当前词库未指定'}
-                  </div>
-                  <div className="font-mono font-bold text-[#4F7DF3]">
-                    继续练习 {activeSentenceSession.currentSentenceIndex} / {activeSentenceSession.totalCount} 句
-                  </div>
-                </div>
-
-                {/* Progress bar */}
-                <div className="h-2 w-full bg-[#E7EEF8] rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-[#4F7DF3] rounded-full transition-all duration-300"
-                    style={{
-                      width: `${Math.min(
-                        100,
-                        Math.round(
-                          (activeSentenceSession.currentSentenceIndex / activeSentenceSession.totalCount) * 100
-                        )
-                      )}%`
-                    }}
-                  />
-                </div>
-
-                <div className="text-[11px] text-[#8BA0BD] flex items-center justify-between">
-                  <span>句子顺序与阶段已固定</span>
-                  <span>
-                    完成度{' '}
-                    {Math.round(
-                      (activeSentenceSession.currentSentenceIndex / activeSentenceSession.totalCount) * 100
-                    )}
-                    %
-                  </span>
-                </div>
-              </div>
-            ) : (
-              <div className="bg-[#F7FAFF] border border-[#E7EEF8]/60 rounded-2xl p-4 space-y-2 text-xs">
-                <div className="font-semibold text-[#29466F] flex items-center gap-1.5">
-                  <GitCommit className="w-3.5 h-3.5 text-[#4F7DF3]" />
-                  <span>递进式阶梯路径</span>
-                </div>
-                <div className="grid grid-cols-4 gap-1.5 text-center font-mono text-[11px] pt-1">
-                  <div className="bg-white py-1 rounded-lg border border-[#E7EEF8] text-[#29466F]">1. 单词</div>
-                  <div className="bg-white py-1 rounded-lg border border-[#E7EEF8] text-[#29466F]">2. 短语</div>
-                  <div className="bg-white py-1 rounded-lg border border-[#E7EEF8] text-[#29466F]">3. 句式</div>
-                  <div className="bg-white py-1 rounded-lg border border-[#E7EEF8] text-[#29466F]">4. 长句</div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Action button */}
-          <div className="pt-6 border-t border-[#E7EEF8] mt-6">
-            {activeSentenceSession ? (
-              <div className="flex flex-wrap items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => navigate(`/sentence-practice/${activeSentenceSession.id}`)}
-                  className="flex-1 py-3.5 px-6 bg-[#4F7DF3] hover:bg-[#3D6CE5] text-white font-bold rounded-2xl transition-all shadow-xs flex items-center justify-center gap-2 text-sm select-none"
-                >
-                  <span>继续练习</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => onStartSentencePractice?.()}
-                  className="py-3.5 px-4 bg-white hover:bg-[#F7FAFF] text-[#8BA0BD] hover:text-[#29466F] font-semibold rounded-2xl border border-[#E7EEF8] transition-colors text-xs select-none"
-                  title="按当前设置重新开启新的句子练习任务"
-                >
-                  重新设置
-                </button>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => onStartSentencePractice?.()}
-                className="w-full py-3.5 px-6 bg-[#4F7DF3] hover:bg-[#3D6CE5] text-white font-bold rounded-2xl transition-all shadow-xs flex items-center justify-center gap-2 text-sm select-none"
-              >
-                <span>开始练习</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-        </div>
+        <LearningCard title="背单词" icon="📚" total={stats?.totalWords || 0} learned={stats?.learnedWords || 0} mastered={stats?.masteredWords || 0} active={!!activeSession} activeText="继续背单词" onStart={() => onOpenStudySetup(undefined, 'LEARN_AND_WRITE')} onContinue={() => navigate('/study/' + activeSession!.id)} />
+        <LearningCard title="学句子" icon="💬" total={stats?.totalSentences || 0} learned={stats?.learnedSentences || 0} mastered={stats?.masteredSentences || 0} active={!!activeSentenceSession} activeText="继续学句子" onStart={() => onStartSentencePractice?.()} onContinue={() => navigate('/sentence-practice/' + activeSentenceSession!.id)} />
       </div>
 
       {/* Auxiliary Learning Shortcuts (今日复习、单词听写、错词本、学习记录、设置) */}
@@ -582,46 +260,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
         </button>
       </div>
 
-      {/* Today Statistics Board */}
-      <div className="bg-white border border-[#E7EEF8] rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xs">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-bold text-[#29466F]">今日学习数据</h3>
-            <p className="text-xs text-[#8BA0BD] mt-0.5">记录每一次努力积累</p>
-          </div>
-          <button
-            type="button"
-            onClick={() => navigate('/statistics')}
-            className="text-xs font-semibold text-[#4F7DF3] hover:text-[#3D6CE5] flex items-center gap-1"
-          >
-            <span>完整报告</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-          <div className="bg-[#F7FAFF] border border-[#E7EEF8]/60 rounded-2xl p-4 text-center">
-            <div className="text-xs text-[#8BA0BD]">总词量</div>
-            <div className="text-2xl font-bold font-mono text-[#29466F] mt-1">{stats?.totalWords ?? 0}</div>
-          </div>
-          <div className="bg-[#F7FAFF] border border-[#E7EEF8]/60 rounded-2xl p-4 text-center">
-            <div className="text-xs text-[#8BA0BD]">已经学习词量</div>
-            <div className="text-2xl font-bold font-mono text-[#4F7DF3] mt-1">{stats?.learnedWords ?? 0}</div>
-          </div>
-          <div className="bg-[#F7FAFF] border border-[#E7EEF8]/60 rounded-2xl p-4 text-center">
-            <div className="text-xs text-[#8BA0BD]">已经掌握词量</div>
-            <div className="text-2xl font-bold font-mono text-emerald-600 mt-1">{stats?.masteredWords ?? 0}</div>
-          </div>
-          <div className="bg-[#F7FAFF] border border-[#E7EEF8]/60 rounded-2xl p-4 text-center">
-            <div className="text-xs text-[#8BA0BD]">本次学习词量</div>
-            <div className="text-2xl font-bold font-mono text-[#29466F] mt-1">{activeSession?.totalCount ?? 0}</div>
-          </div>
-          <div className="bg-[#F7FAFF] border border-[#E7EEF8]/60 rounded-2xl p-4 text-center">
-            <div className="text-xs text-[#8BA0BD]">本次已学词量</div>
-            <div className="text-2xl font-bold font-mono text-[#29466F] mt-1">{activeSession?.completedCount ?? 0}</div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
