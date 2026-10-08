@@ -19,8 +19,18 @@ export class AuthController {
 
   static async login(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
-      const username = String(req.body?.username ?? req.body?.identifier ?? '').trim();
-      const { password, captchaId, captchaCode } = req.body || {};
+      const body = req.body || {};
+      console.log('[auth:login:body]', {
+        contentType: req.headers['content-type'],
+        bodyKeys: Object.keys(body),
+        hasUsername: !!body.username,
+        hasIdentifier: !!body.identifier,
+        hasPassword: !!body.password,
+        hasCaptchaId: !!body.captchaId,
+        hasCaptchaCode: !!body.captchaCode
+      });
+      const username = String(body.username ?? body.identifier ?? '').trim();
+      const { password, captchaId, captchaCode } = body;
       const result = await AuthService.login(username, password, captchaId, captchaCode);
       res.json({
         code: 200,
