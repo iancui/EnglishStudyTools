@@ -68,6 +68,11 @@ export class StatisticsService {
     const totalWords = await db.getWordCount();
     logStep('count-total-words', stepStartedAt, { totalWords });
 
+    stepStartedAt = Date.now();
+    const totalSentences = await db.getSentenceCount();
+    const sentenceProgress = await db.getSentenceProgressStats(userId);
+    logStep('count-sentence-progress', stepStartedAt, { totalSentences, ...sentenceProgress });
+
     // Filter today's records (strictly starting from 00:00:00 today)
     stepStartedAt = Date.now();
     const today = new Date();
@@ -121,6 +126,9 @@ export class StatisticsService {
       learningWords,
       learnedWords: masteredWords + learningWords,
       totalWords,
+      totalSentences,
+      learnedSentences: sentenceProgress.learned,
+      masteredSentences: sentenceProgress.mastered,
       progressPercent,
       accuracyRate
     };
