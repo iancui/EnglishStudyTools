@@ -7,7 +7,9 @@ export class ReviewController {
   static async getTodayReview(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id || 'u-default';
+      const startedAt = Date.now();
       const words = await ReviewService.getTodayReviewWords(userId);
+      console.log('[perf:home/today-review]', { userId, elapsedMs: Date.now() - startedAt, wordCount: words.length });
       res.json({
         code: 200,
         message: 'success',
