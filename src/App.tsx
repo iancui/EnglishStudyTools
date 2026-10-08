@@ -128,7 +128,7 @@ export default function App() {
   };
 
   const handleOpenStudySetup = (dictId?: string, mode?: SessionMode) => {
-    setSetupInitialDictId(dictId || config.defaultDictionaryId || 'dict-primary-6');
+    setSetupInitialDictId(dictId);
     setSetupInitialMode(mode || 'LEARN_AND_WRITE');
     setIsStudySetupOpen(true);
   };
