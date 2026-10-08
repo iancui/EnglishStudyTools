@@ -267,6 +267,10 @@ export default function App() {
       return <ReviewView navigate={navigate} config={config} />;
     }
 
+    if (currentRoute === '/review/wrong') {
+      return <WrongWordsView navigate={navigate} config={config} />;
+    }
+
     if (currentRoute === '/words/wrong') {
       return <WrongWordsView navigate={navigate} config={config} />;
     }
