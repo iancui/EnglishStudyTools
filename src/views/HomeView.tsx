@@ -172,28 +172,17 @@ const LearningCard: React.FC<{
         </div>
       </div>
 
-      {active && batchTotal > 0 && (
-        <div className="mt-6 rounded-2xl bg-[#F5F8FE] border border-[#E5ECF7] px-4 py-3">
-          <div className="flex items-center justify-between text-sm">
-            <span className="font-semibold text-[#29466F]">当前批次</span>
-            <span className="font-bold text-[#4F7DF3]">{batchCompleted} / {batchTotal}</span>
-          </div>
-          <div className="mt-2 h-2 rounded-full bg-[#DCE5F2] overflow-hidden">
-            <div
-              className="h-full rounded-full bg-[#4F7DF3] transition-all duration-500"
-              style={{ width: `${Math.min(100, Math.max(0, (batchCompleted / batchTotal) * 100))}%` }}
-            />
-          </div>
-        </div>
-      )}
-
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-6">
         <button
           type="button"
           onClick={active && onContinue ? onContinue : onStart}
           className="py-3.5 px-5 bg-[#4F7DF3] hover:bg-[#3D6CE5] text-white font-bold rounded-2xl transition-all flex items-center justify-center gap-2 text-sm"
         >
-          <span>{active ? (activeText || '继续学习') : '开始' + title}</span>
+          <span>
+            {active
+              ? (activeText || '继续学习') + (batchTotal > 0 ? ' ' + batchCompleted + '/' + batchTotal : '')
+              : '开始' + title}
+          </span>
           <ArrowRight className="w-4 h-4" />
         </button>
         {active && onRestart && (
