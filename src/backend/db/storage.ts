@@ -214,20 +214,16 @@ class MySQLStorage {
        ORDER BY d.created_at`,
       [userId]
     );
-    const [myRows] = await pool.query(
-      `SELECT d.*, COUNT(dw.id) AS word_count
-       FROM dictionary d
-       LEFT JOIN dictionary_word dw ON dw.dictionary_id=d.id AND dw.is_active=1
-       WHERE d.owner_type='USER' AND d.owner_user_id=? AND d.status<>'INACTIVE'
-       GROUP BY d.id
-       ORDER BY d.created_at`,
-      [userId]
-    );
+    const rawDictionaries = dictRows as Row[];
+    const dictionaries = rawDictionaries.map(this.dict);
+    const myDictionaries = rawDictionaries
+      .filter(r => r.owner_type === 'USER' && String(r.owner_user_id || '') === userId && r.status !== 'INACTIVE')
+      .map(this.dict);
 
     return {
       config: this.config(configRow),
-      dictionaries: (dictRows as Row[]).map(this.dict),
-      myDictionaries: (myRows as Row[]).map(this.dict)
+      dictionaries,
+      myDictionaries
     };
   }
 
