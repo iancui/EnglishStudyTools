@@ -210,6 +210,8 @@ export const api = {
     count?: number;
     excludeMastered?: boolean;
     sortMode?: string;
+    writeSortMode?: 'RANDOM' | 'SEQUENCE';
+    dictationSortMode?: 'RANDOM' | 'SEQUENCE';
     mode?: string;
   }) =>
     request<any>('/api/study-sessions', {
@@ -239,9 +241,12 @@ export const api = {
       meanings?: any[];
       sessionWord: any;
       sessionCompleted: boolean;
+      phaseChanged?: boolean;
+      sessionPhase?: 'LEARN_WRITE' | 'DICTATION';
       completedCount: number;
       totalCount: number;
       progress?: any;
+      session?: any;
     }>(`/api/study-sessions/${sessionId}/write/${wordId}`, {
       method: 'POST',
       body: JSON.stringify({ answer, timeSpentSec })
