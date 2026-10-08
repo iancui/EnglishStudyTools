@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { X, Play, BookOpen, Shuffle, ListOrdered, RotateCcw, Check, Sparkles, Headphones } from 'lucide-react';
 import { api } from '../api/client.ts';
-import { DictionaryItem, SessionMode, DictionaryConfig } from '../types/index.ts';
+import { SessionMode, DictionaryConfig } from '../types/index.ts';
 
 interface StudySetupModalProps {
   isOpen: boolean;
@@ -20,12 +20,12 @@ export const StudySetupModal: React.FC<StudySetupModalProps> = ({
   initialMode = 'LEARN_AND_WRITE',
   config
 }) => {
-  const [dictionaries, setDictionaries] = useState<DictionaryItem[]>([]);
   const [mode, setMode] = useState<SessionMode>(initialMode);
   const [count, setCount] = useState<number>(20);
   const [excludeMastered, setExcludeMastered] = useState<boolean>(true);
   const [sortMode, setSortMode] = useState<'RANDOM' | 'SEQUENCE' | 'REVIEW_FIRST'>('RANDOM');
   const [preview, setPreview] = useState<{
+    dictionaryName?: string;
     matchingCount: number;
     totalInDict: number;
     excludedMasteredCount: number;
@@ -40,17 +40,8 @@ export const StudySetupModal: React.FC<StudySetupModalProps> = ({
 
   useEffect(() => {
     if (!isOpen) return;
-
     setLatestConfig(config);
     if (initialMode) setMode(initialMode);
-
-    // 合并辞书列表和最新配置请求，避免打开普通学习时连续发起两个请求。
-    api.getSettingsBundle()
-      .then((bundle) => {
-        if (bundle?.dictionaries) setDictionaries(bundle.dictionaries);
-        if (bundle?.config) setLatestConfig(bundle.config);
-      })
-      .catch((e) => console.warn('加载辞书设置失败，使用当前配置:', e));
   }, [isOpen, initialMode, config]);
 
   useEffect(() => {
@@ -101,7 +92,7 @@ export const StudySetupModal: React.FC<StudySetupModalProps> = ({
 
   const countOptions = [10, 20, 30, 50];
 
-  const currentDictName = dictionaries.find(d => d.id === selectedDictId)?.name;
+  const currentDictName = preview?.dictionaryName;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fadeIn">
