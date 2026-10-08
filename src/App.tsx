@@ -162,9 +162,16 @@ export default function App() {
               navigate('/');
             }
           }}
-          onSuccess={u => {
+          onSuccess={async u => {
             setUser(u);
+            authStorage.setUser(u);
             setAuthRequired(false);
+            try {
+              const cfg = await api.getDictionaryConfig();
+              if (cfg) setConfig(cfg);
+            } catch (e) {
+              console.warn('Failed to load dictionary config after login:', e);
+            }
             navigate('/');
           }}
         />
