@@ -41,9 +41,11 @@ export class DictionaryController {
     try {
       const userId = req.user?.id || 'u-default';
       const before = await DictionaryService.getConfig(userId);
-      const hasActiveSession = !!(await StudySessionService.getActiveSession(userId));
+      const activeSession = await StudySessionService.getActiveSession(userId);
 
-      // 只有会影响“下一批单词怎么选”的配置变化，才重置当前进行中的批次。
+      // 修改会影响选词的学习配置时，当前批次属于旧学习计划。
+      // 旧批次直接取消，不创建新批次；回到首页后显示“开始背单词”，
+      // 用户主动点击后才按最新配置创建新的学习批次。
       const changedLearningConfig =
         before.defaultDictionaryId !== req.body?.defaultDictionaryId ||
         (before.wordStudyChapterId || '') !== (req.body?.wordStudyChapterId || '') ||
@@ -54,17 +56,8 @@ export class DictionaryController {
 
       const config = await DictionaryService.updateConfig(userId, req.body);
 
-      // 当前批次属于旧学习计划。配置一旦改变，直接按新配置重新生成一个全新的当前批次。
-      // 如果原本没有进行中的批次，则只保存配置，不主动创建学习任务。
-      if (hasActiveSession && changedLearningConfig) {
-        await StudySessionService.createSession(userId, {
-          dictionaryId: config.defaultDictionaryId,
-          chapterId: config.wordStudyChapterId,
-          count: config.wordStudyCount || 20,
-          excludeMastered: config.wordStudyExcludeMastered !== false,
-          sortMode: config.wordStudySortMode || 'RANDOM',
-          mode: config.wordStudyMode || 'LEARN_AND_WRITE'
-        });
+      if (activeSession && changedLearningConfig) {
+        await StudySessionService.cancelSession(activeSession.id, userId);
       }
 
       res.json({
@@ -76,7 +69,6 @@ export class DictionaryController {
       next(e);
     }
   }
-
   // User / Public Dictionaries
   static async getMyDictionaries(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
