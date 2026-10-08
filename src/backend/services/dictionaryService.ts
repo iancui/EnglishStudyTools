@@ -2,6 +2,10 @@ import { db } from '../db/storage.ts';
 import { UserDictionaryConfig, Dictionary, DictionaryWord, Word } from '../types/index.ts';
 
 export class DictionaryService {
+  static async getSettingsBundle(userId: string) {
+    return await db.getSettingsBundle(userId);
+  }
+
   static async getConfig(userId: string): Promise<UserDictionaryConfig> {
     return await db.getDictionaryConfig(userId);
   }
