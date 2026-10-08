@@ -550,7 +550,7 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
             <div className="flex items-center gap-2">
               {session.dictionary?.name && (
                 <span className="text-xs font-semibold text-[#29466F] bg-white border border-[#DDE7F5] px-2.5 py-1 rounded-lg">
-                  {session.dictionary.name}
+                  词库：{session.dictionary.name}
                 </span>
               )}
               <span className="text-xs font-bold font-mono text-[#4F7DF3] bg-[#EBF2FE] px-2.5 py-1 rounded-lg">
