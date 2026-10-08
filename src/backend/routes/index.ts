@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import multer from 'multer';
 import { AuthController } from '../controllers/authController.ts';
 import { WordController } from '../controllers/wordController.ts';
 import { ReviewController } from '../controllers/reviewController.ts';
@@ -13,6 +14,7 @@ import { RbacController } from '../controllers/rbacController.ts';
 import { authMiddleware, requirePermission } from '../middleware/authMiddleware.ts';
 
 export const apiRouter = Router();
+const excelUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 100 * 1024 * 1024 } });
 
 // Public authentication endpoints
 apiRouter.get('/auth/captcha', AuthController.captcha);
@@ -43,7 +45,7 @@ apiRouter.post('/words/:wordId/my-dictionaries', DictionaryController.syncWordMy
 // AI sentence import tool
 apiRouter.post('/admin/ai-sentence-tool/analyze', requirePermission('ai.sentence.generate'), AdminSentenceAIToolController.analyze);
 apiRouter.post('/admin/ai-sentence-tool/import', requirePermission('ai.sentence.import'), AdminSentenceAIToolController.import);
-apiRouter.post('/admin/excel-import', requirePermission('import.excel'), AdminExcelImportController.import);
+apiRouter.post('/admin/excel-import', requirePermission('import.excel'), excelUpload.single('file'), AdminExcelImportController.import);
 
 // RBAC administration
 apiRouter.get('/admin/users', requirePermission('user.read'), RbacController.listUsers);
