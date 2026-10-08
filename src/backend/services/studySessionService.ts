@@ -84,8 +84,6 @@ export class StudySessionService {
         dictionaryId = config.defaultDictionaryId || 'dict-primary-6';
       }
     } else {
-      // Case 2: Select from dictionary
-      // Fallback to default dictionary if not specified
       if (!dictionaryId) {
         const config = await DictionaryService.getConfig(userId);
         dictionaryId = config.defaultDictionaryId || 'dict-primary-6';
@@ -94,60 +92,28 @@ export class StudySessionService {
       const dict = await db.findDictionaryById(dictionaryId);
       if (!dict) throw new Error('所选辞书不存在');
 
-      const dictWords = await db.getDictionaryWords(dictionaryId);
-      if (dictWords.length === 0) {
-        throw new Error('该辞书中暂无单词');
+      const candidateRows = await db.getStudyCandidates(
+        dictionaryId,
+        userId,
+        excludeMastered,
+        sortMode,
+        Math.max(1, count)
+      );
+      if (!candidateRows.length) {
+        throw new Error('该辞书中没有符合条件的单词');
       }
 
-      // Filter candidates
-      let candidates = (await Promise.all(dictWords.map(async dw => ({
-        ...dw,
-        word: dw.word || await db.findWordById(dw.wordId)
-      })))).filter((dw): dw is typeof dw & { word: Word } => Boolean(dw.word));
+      const wordIds = candidateRows.map((r: any) => String(r.word_id));
+      const wordsById = new Map(
+        (await db.getWordsByIds(wordIds)).map(w => [w.id, w])
+      );
 
-      if (excludeMastered) {
-        const nonMastered = [] as typeof candidates;
-        for (const dw of candidates) {
-          const progress = await db.getWordProgress(userId, dw.wordId);
-          if (!WordProgressService.isMastered(progress)) nonMastered.push(dw);
-        }
-        // If all words are mastered, relax filter so user can still study
-        if (nonMastered.length > 0) {
-          candidates = nonMastered;
-        }
-      }
-
-      // Apply Sorting Strategy
-      if (sortMode === 'RANDOM') {
-        // True Fisher-Yates shuffle
-        for (let i = candidates.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
-        }
-      } else if (sortMode === 'REVIEW_FIRST') {
-        const now = new Date().getTime();
-        const progressMap = new Map<string, Awaited<ReturnType<typeof db.getWordProgress>>>();
-        for (const c of candidates) progressMap.set(c.wordId, await db.getWordProgress(userId, c.wordId));
-        candidates.sort((a, b) => {
-          const progA = progressMap.get(a.wordId);
-          const progB = progressMap.get(b.wordId);
-
-          const aDue = progA?.nextReviewAt ? new Date(progA.nextReviewAt).getTime() <= now : false;
-          const bDue = progB?.nextReviewAt ? new Date(progB.nextReviewAt).getTime() <= now : false;
-          if (aDue && !bDue) return -1;
-          if (!aDue && bDue) return 1;
-
-          const scoreA = !progA ? 3 : progA.status === 'REVIEW' ? 0 : progA.status === 'LEARNING' ? 1 : 2;
-          const scoreB = !progB ? 3 : progB.status === 'REVIEW' ? 0 : progB.status === 'LEARNING' ? 1 : 2;
-          return scoreA - scoreB;
-        });
-      } else {
-        // SEQUENCE
-        candidates.sort((a, b) => a.sequence - b.sequence);
-      }
-
-      // Slice up to requested count
-      selected = candidates.slice(0, Math.max(1, count));
+      selected = candidateRows
+        .map((r: any, idx: number) => {
+          const word = wordsById.get(String(r.word_id));
+          return word ? { wordId: String(r.word_id), word, sequence: idx + 1 } : null;
+        })
+        .filter(Boolean) as { wordId: string; word: Word; sequence: number }[];
     }
 
     const nowStr = new Date().toISOString();
