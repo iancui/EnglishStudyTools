@@ -126,6 +126,8 @@ export interface WordItem {
 export type SessionMode = 'LEARN_AND_WRITE' | 'WRITE_ONLY';
 export type SessionStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
 export type SessionSortMode = 'RANDOM' | 'SEQUENCE' | 'REVIEW_FIRST';
+export type StudyOrderMode = 'RANDOM' | 'SEQUENCE';
+export type StudySessionPhase = 'LEARN_WRITE' | 'DICTATION';
 export type SessionWordStatus = 'LEARN_PENDING' | 'LEARNED' | 'WRITE_PENDING' | 'WRITTEN' | 'COMPLETED';
 
 export interface StudySessionWordItem {
@@ -153,6 +155,9 @@ export interface StudySessionItem {
   completedCount: number;
   excludeMastered: boolean;
   sortMode: SessionSortMode;
+  writeSortMode: StudyOrderMode;
+  dictationSortMode: StudyOrderMode;
+  phase: StudySessionPhase;
   status: SessionStatus;
   currentWordIndex: number;
   startedAt: string;
@@ -210,6 +215,8 @@ export interface DictionaryConfig {
   wordStudyCount?: number;
   wordStudyChapterId?: string;
   wordStudySortMode?: 'RANDOM' | 'SEQUENCE' | 'REVIEW_FIRST';
+  wordStudyWriteOrder?: StudyOrderMode;
+  wordStudyDictationOrder?: StudyOrderMode;
   wordStudyExcludeMastered?: boolean;
   wordStudyMode?: 'LEARN_AND_WRITE' | 'WRITE_ONLY';
 }
