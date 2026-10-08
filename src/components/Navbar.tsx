@@ -49,7 +49,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             onClick={() => navigate('/review')}
             className={`transition-colors pb-1 border-b-2 ${
-              currentRoute === '/review'
+              currentRoute.startsWith('/review')
                 ? 'border-[#4F7DF3] text-[#29466F] font-semibold'
                 : 'border-transparent text-[#8BA0BD] hover:text-[#29466F]'
             }`}
@@ -129,7 +129,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <button
           onClick={() => navigate('/review')}
           className={`flex flex-col items-center py-1 px-3 ${
-            currentRoute === '/review' ? 'text-stone-900 font-bold' : 'text-stone-500'
+            currentRoute.startsWith('/review') ? 'text-stone-900 font-bold' : 'text-stone-500'
           }`}
         >
           复习
