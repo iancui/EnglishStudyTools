@@ -195,6 +195,7 @@ export interface StatisticsData {
   totalWords: number;
   progressPercent: number;
   accuracyRate: number;
+  learnedWords: number;
 }
 
 export type SentenceSessionStatus = 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
@@ -227,6 +228,8 @@ export interface SentencePracticeItem {
 export interface SentencePracticeSession {
   id: string;
   userId: string;
+  dictionaryId?: string;
+  dictionary?: DictionaryItem;
   difficulty: string;
   totalCount: number;
   currentSentenceIndex: number;
