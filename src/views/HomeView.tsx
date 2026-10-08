@@ -517,33 +517,26 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </button>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
           <div className="bg-[#F7FAFF] border border-[#E7EEF8]/60 rounded-2xl p-4 text-center">
-            <div className="text-xs text-[#8BA0BD]">今日学习单词</div>
-            <div className="text-2xl font-bold font-mono text-[#29466F] mt-1">
-              {stats?.todayLearnedWords ?? 0}
-            </div>
+            <div className="text-xs text-[#8BA0BD]">总词量</div>
+            <div className="text-2xl font-bold font-mono text-[#29466F] mt-1">{stats?.totalWords ?? 0}</div>
           </div>
-
           <div className="bg-[#F7FAFF] border border-[#E7EEF8]/60 rounded-2xl p-4 text-center">
-            <div className="text-xs text-[#8BA0BD]">拼写正确</div>
-            <div className="text-2xl font-bold font-mono text-emerald-600 mt-1">
-              {stats?.todayCorrect ?? 0}
-            </div>
+            <div className="text-xs text-[#8BA0BD]">已经学习词量</div>
+            <div className="text-2xl font-bold font-mono text-[#4F7DF3] mt-1">{stats?.learnedWords ?? 0}</div>
           </div>
-
           <div className="bg-[#F7FAFF] border border-[#E7EEF8]/60 rounded-2xl p-4 text-center">
-            <div className="text-xs text-[#8BA0BD]">今日掌握长句</div>
-            <div className="text-2xl font-bold font-mono text-[#29466F] mt-1">
-              {stats?.todaySentences ?? 0}
-            </div>
+            <div className="text-xs text-[#8BA0BD]">已经掌握词量</div>
+            <div className="text-2xl font-bold font-mono text-emerald-600 mt-1">{stats?.masteredWords ?? 0}</div>
           </div>
-
           <div className="bg-[#F7FAFF] border border-[#E7EEF8]/60 rounded-2xl p-4 text-center">
-            <div className="text-xs text-[#8BA0BD]">累计掌握词汇</div>
-            <div className="text-2xl font-bold font-mono text-[#4F7DF3] mt-1">
-              {stats?.masteredWords ?? 0}
-            </div>
+            <div className="text-xs text-[#8BA0BD]">本次学习词量</div>
+            <div className="text-2xl font-bold font-mono text-[#29466F] mt-1">{activeSession?.totalCount ?? 0}</div>
+          </div>
+          <div className="bg-[#F7FAFF] border border-[#E7EEF8]/60 rounded-2xl p-4 text-center">
+            <div className="text-xs text-[#8BA0BD]">本次已学词量</div>
+            <div className="text-2xl font-bold font-mono text-[#29466F] mt-1">{activeSession?.completedCount ?? 0}</div>
           </div>
         </div>
       </div>
