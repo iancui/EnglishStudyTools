@@ -281,6 +281,7 @@ export default function App() {
           onLogout={handleLogout}
           navigate={navigate}
           onConfigUpdated={setConfig}
+          initialConfig={config}
         />
       );
     }
@@ -293,6 +294,7 @@ export default function App() {
           onLogout={handleLogout}
           navigate={navigate}
           onConfigUpdated={setConfig}
+          initialConfig={config}
         />
       );
     }
@@ -305,6 +307,7 @@ export default function App() {
           onLogout={handleLogout}
           navigate={navigate}
           onConfigUpdated={setConfig}
+          initialConfig={config}
         />
       );
     }
