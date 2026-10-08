@@ -34,7 +34,8 @@ export const StudySetupModal: React.FC<StudySetupModalProps> = ({
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
-  const selectedDictId = config?.defaultDictionaryId || initialDictionaryId || '';
+  // Explicit dictionary selection takes priority; otherwise use Settings default.
+  const selectedDictId = initialDictionaryId || config?.defaultDictionaryId || '';
 
   useEffect(() => {
     if (isOpen) {
