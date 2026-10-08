@@ -33,18 +33,21 @@ export const StudySetupModal: React.FC<StudySetupModalProps> = ({
   const [loadingPreview, setLoadingPreview] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [latestConfig, setLatestConfig] = useState<DictionaryConfig | undefined>(config);
 
-  // Explicit dictionary selection takes priority; otherwise use Settings default.
-  const selectedDictId = initialDictionaryId || config?.defaultDictionaryId || '';
+  // Explicit dictionary selection takes priority; otherwise use the latest saved Settings default.
+  const selectedDictId = initialDictionaryId || latestConfig?.defaultDictionaryId || config?.defaultDictionaryId || '';
 
   useEffect(() => {
     if (isOpen) {
       loadDictionaries();
-      if (initialMode) {
-        setMode(initialMode);
-      }
+      setLatestConfig(config);
+      api.getDictionaryConfig().then((freshConfig) => {
+        if (freshConfig) setLatestConfig(freshConfig);
+      }).catch((e) => console.warn('刷新辞书设置失败，使用当前配置:', e));
+      if (initialMode) setMode(initialMode);
     }
-  }, [isOpen, initialMode]);
+  }, [isOpen, initialMode, config]);
 
   const loadDictionaries = async () => {
     try {
