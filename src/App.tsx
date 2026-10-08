@@ -127,6 +127,18 @@ export default function App() {
     navigate('/');
   };
 
+  const handleAuthSuccess = async (u: any) => {
+    setUser(u);
+    authStorage.setUser(u);
+    setAuthRequired(false);
+    try {
+      const cfg = await api.getDictionaryConfig();
+      if (cfg) setConfig(cfg);
+    } catch (e) {
+      console.warn('Failed to load dictionary config after login:', e);
+    }
+  };
+
   const handleOpenStudySetup = (dictId?: string, mode?: SessionMode) => {
     setSetupInitialDictId(dictId);
     setSetupInitialMode(mode || 'LEARN_AND_WRITE');
@@ -163,15 +175,7 @@ export default function App() {
             }
           }}
           onSuccess={async u => {
-            setUser(u);
-            authStorage.setUser(u);
-            setAuthRequired(false);
-            try {
-              const cfg = await api.getDictionaryConfig();
-              if (cfg) setConfig(cfg);
-            } catch (e) {
-              console.warn('Failed to load dictionary config after login:', e);
-            }
+            await handleAuthSuccess(u);
             navigate('/');
           }}
         />
@@ -362,7 +366,7 @@ export default function App() {
         <AuthModal
           isOpen={isAuthOpen}
           onClose={() => setIsAuthOpen(false)}
-          onSuccess={u => setUser(u)}
+          onSuccess={handleAuthSuccess}
         />
       </div>
     );
@@ -409,7 +413,7 @@ export default function App() {
       <AuthModal
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
-        onSuccess={u => setUser(u)}
+        onSuccess={handleAuthSuccess}
       />
     </div>
   );
