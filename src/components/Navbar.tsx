@@ -34,7 +34,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <span className="tracking-tight">LinguaStep</span>
         </button>
 
-        {/* Zone 2: Desktop navigation - Exactly 首页 | 错词本 | 学习记录 | 设置 */}
+        {/* Zone 2: Desktop navigation - Exactly 首页 | 复习 | 学习记录 | 设置 */}
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
           <button
             onClick={() => navigate('/')}
@@ -47,9 +47,9 @@ export const Navbar: React.FC<NavbarProps> = ({
             首页
           </button>
           <button
-            onClick={() => navigate('/words/wrong')}
+            onClick={() => navigate('/review')}
             className={`transition-colors pb-1 border-b-2 ${
-              currentRoute === '/words/wrong'
+              currentRoute === '/review'
                 ? 'border-[#4F7DF3] text-[#29466F] font-semibold'
                 : 'border-transparent text-[#8BA0BD] hover:text-[#29466F]'
             }`}
@@ -127,9 +127,9 @@ export const Navbar: React.FC<NavbarProps> = ({
           首页
         </button>
         <button
-          onClick={() => navigate('/words/wrong')}
+          onClick={() => navigate('/review')}
           className={`flex flex-col items-center py-1 px-3 ${
-            currentRoute === '/words/wrong' ? 'text-stone-900 font-bold' : 'text-stone-500'
+            currentRoute === '/review' ? 'text-stone-900 font-bold' : 'text-stone-500'
           }`}
         >
           错词本
