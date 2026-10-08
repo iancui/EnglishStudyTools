@@ -247,11 +247,18 @@ CREATE TABLE user_dictionary_config (
   audio_type VARCHAR(10) NOT NULL DEFAULT 'UK',
   enable_phonics BOOLEAN NOT NULL DEFAULT TRUE,
   sentence_practice_count INT NOT NULL DEFAULT 5,
+  word_study_count INT NOT NULL DEFAULT 20,
+  word_study_chapter_id VARCHAR(36) NULL,
+  word_study_sort_mode VARCHAR(20) NOT NULL DEFAULT 'RANDOM',
+  word_study_exclude_mastered BOOLEAN NOT NULL DEFAULT TRUE,
+  word_study_mode VARCHAR(30) NOT NULL DEFAULT 'LEARN_AND_WRITE',
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   FOREIGN KEY (default_dictionary_id) REFERENCES dictionary(id) ON DELETE SET NULL,
-  FOREIGN KEY (sentence_dictionary_id) REFERENCES dictionary(id) ON DELETE SET NULL
+  FOREIGN KEY (sentence_dictionary_id) REFERENCES dictionary(id) ON DELETE SET NULL,
+  FOREIGN KEY (word_study_chapter_id) REFERENCES dictionary_chapter(id) ON DELETE SET NULL,
+  INDEX idx_user_dictionary_config_word_chapter(word_study_chapter_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE user_word_progress (
