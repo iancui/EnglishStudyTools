@@ -10,6 +10,7 @@ import { AdminDictionariesView } from './views/AdminDictionariesView.tsx';
 import { SentenceListView } from './views/SentenceListView.tsx';
 import { SentenceStudyView } from './views/SentenceStudyView.tsx';
 import { WrongWordsView } from './views/WrongWordsView.tsx';
+import { ReviewView } from './views/ReviewView.tsx';
 import { StatisticsView } from './views/StatisticsView.tsx';
 import { DictionarySettingsView } from './views/DictionarySettingsView.tsx';
 import { UserSettingsView } from './views/UserSettingsView.tsx';
@@ -260,6 +261,10 @@ export default function App() {
           user={user}
         />
       );
+    }
+
+    if (currentRoute === '/review') {
+      return <ReviewView navigate={navigate} config={config} />;
     }
 
     if (currentRoute === '/words/wrong') {
