@@ -47,6 +47,8 @@ export class StudySessionService {
       count?: number;
       excludeMastered?: boolean;
       sortMode?: SessionSortMode;
+      writeSortMode?: 'RANDOM' | 'SEQUENCE';
+      dictationSortMode?: 'RANDOM' | 'SEQUENCE';
       mode?: SessionMode;
     }
   ) {
@@ -57,6 +59,8 @@ export class StudySessionService {
       count = 20,
       excludeMastered = true,
       sortMode = 'RANDOM',
+      writeSortMode = 'SEQUENCE',
+      dictationSortMode = 'RANDOM',
       mode = 'LEARN_AND_WRITE'
     } = params;
 
@@ -114,9 +118,20 @@ export class StudySessionService {
       selected = candidateRows
         .map((r: any, idx: number) => {
           const word = wordsById.get(String(r.word_id));
-          return word ? { wordId: String(r.word_id), word, sequence: idx + 1 } : null;
+          return word ? { wordId: String(r.word_id), word, sequence: Number(r.sequence_no || idx + 1) } : null;
         })
         .filter(Boolean) as { wordId: string; word: Word; sequence: number }[];
+    }
+
+    // The batch selection rule decides WHICH words enter the batch;
+    // the write-order setting decides the presentation order inside the batch.
+    if (writeSortMode === 'RANDOM') {
+      for (let i = selected.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [selected[i], selected[j]] = [selected[j], selected[i]];
+      }
+    } else {
+      selected.sort((a, b) => a.sequence - b.sequence);
     }
 
     const nowStr = new Date().toISOString();
@@ -131,6 +146,9 @@ export class StudySessionService {
       completedCount: 0,
       excludeMastered,
       sortMode,
+      writeSortMode,
+      dictationSortMode,
+      phase: mode === 'WRITE_ONLY' ? 'DICTATION' : 'LEARN_WRITE',
       status: 'IN_PROGRESS',
       currentWordIndex: 0,
       startedAt: nowStr,
@@ -318,15 +336,30 @@ export class StudySessionService {
 
     session.completedCount = completedWordsCount;
 
+    let phaseChanged = false;
+    let nextSession: any = null;
+
     if (completedWordsCount >= session.totalCount && session.totalCount > 0) {
-      session.status = 'COMPLETED';
-      session.completedAt = now;
+      if (session.phase === 'LEARN_WRITE' && session.mode === 'LEARN_AND_WRITE') {
+        // The learning/write stage is complete. Keep the same wordIds and
+        // immediately enter the reinforcement dictation stage.
+        nextSession = await db.startStudyDictationPhase(
+          session.id,
+          session.dictationSortMode || 'RANDOM'
+        );
+        phaseChanged = true;
+      } else {
+        session.status = 'COMPLETED';
+        session.completedAt = now;
+        await db.updateStudySession(session);
+        nextSession = await this.getSessionById(session.id, userId);
+      }
     } else {
       session.status = 'IN_PROGRESS';
       delete (session as any).completedAt;
+      await db.updateStudySession(session);
+      nextSession = await this.getSessionById(session.id, userId);
     }
-
-    await db.updateStudySession(session);
 
     return {
       isCorrect,
@@ -335,10 +368,13 @@ export class StudySessionService {
       phonetic: word.phoneticUk,
       meanings: word.meanings,
       sessionWord: sw,
-      sessionCompleted: session.status === 'COMPLETED',
-      completedCount: session.completedCount,
-      totalCount: session.totalCount,
-      progress: updatedProgress
+      sessionCompleted: nextSession?.status === 'COMPLETED',
+      phaseChanged,
+      sessionPhase: nextSession?.phase || session.phase,
+      completedCount: nextSession?.completedCount ?? session.completedCount,
+      totalCount: nextSession?.totalCount ?? session.totalCount,
+      progress: updatedProgress,
+      session: nextSession
     };
   }
 
