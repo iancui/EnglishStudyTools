@@ -336,12 +336,40 @@ export const api = {
 
   // Dictionary Config
   getDictionaryConfig: () => request<any>('/api/dictionary/config'),
-  getSettingsBundle: () => request<any>('/api/dictionary/settings-bundle'),
-  updateDictionaryConfig: (data: any) =>
-    request<any>('/api/dictionary/config', {
+  getSettingsBundle: async () => {
+    const now = Date.now();
+    if (settingsBundleCache && settingsBundleCache.expiresAt > now) {
+      return settingsBundleCache.data;
+    }
+    if (settingsBundlePromise) return settingsBundlePromise;
+
+    settingsBundlePromise = request<any>('/api/dictionary/settings-bundle')
+      .then(data => {
+        settingsBundleCache = { data, expiresAt: Date.now() + 60_000 };
+        return data;
+      })
+      .finally(() => {
+        settingsBundlePromise = null;
+      });
+
+    return settingsBundlePromise;
+  },
+  updateDictionaryConfig: async (data: any) => {
+    const result = await request<any>('/api/dictionary/config', {
       method: 'PUT',
       body: JSON.stringify(data)
-    }),
+    });
+    if (settingsBundleCache) {
+      settingsBundleCache = {
+        data: {
+          ...settingsBundleCache.data,
+          config: result
+        },
+        expiresAt: Date.now() + 60_000
+      };
+    }
+    return result;
+  },
 
   // Statistics
   getTodayStatistics: () => request<any>('/api/statistics/today'),
