@@ -56,6 +56,7 @@ const toSentenceRows = (sheet: ReturnType<typeof parseSheet>) => {
 export const AdminExcelImportView: React.FC<{ navigate: (route: string) => void; user: any }> = ({ navigate, user }) => {
   const [sheets, setSheets] = useState<RawSheet[]>([]);
   const [fileName, setFileName] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [wordSheetName, setWordSheetName] = useState('');
   const [sentenceSheetName, setSentenceSheetName] = useState('');
   const [wordDictionaryId, setWordDictionaryId] = useState('');
@@ -117,6 +118,7 @@ export const AdminExcelImportView: React.FC<{ navigate: (route: string) => void;
       }));
       setSheets(parsed);
       setFileName(file.name);
+      setSelectedFile(file);
 
       const wordCandidate = parsed.find(s => {
         const headers = (s.rows[0] || []).map(v => String(v ?? ''));
@@ -170,21 +172,15 @@ export const AdminExcelImportView: React.FC<{ navigate: (route: string) => void;
     setImporting(true);
     setError('');
     try {
-      const words = wordRows.map(x => ({
-        text: x.values.text,
-        phonetic: x.values.phonetic,
-        pos: x.values.pos,
-        meaningCn: x.values.meaningCn
-      }));
-      const sentences = sentenceRows.map(x => ({
-        content: x.values.content,
-        translation: x.values.translation
-      }));
+      if (!selectedFile) throw new Error('请先选择 Excel 文件');
       const res = await api.importExcelWorkbook({
+        file: selectedFile,
         wordDictionaryId,
         sentenceDictionaryId,
-        words,
-        sentences
+        wordSheetName,
+        sentenceSheetName,
+        wordMapping: currentWordMapping,
+        sentenceMapping: currentSentenceMapping
       });
       setResult(res);
     } catch (e: any) {
