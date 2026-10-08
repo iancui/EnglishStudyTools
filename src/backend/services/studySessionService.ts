@@ -16,9 +16,9 @@ export class StudySessionService {
    */
   static async previewSession(
     userId: string,
-    params: { dictionaryId: string; count?: number; excludeMastered?: boolean; sortMode?: SessionSortMode }
+    params: { dictionaryId: string; chapterId?: string; count?: number; excludeMastered?: boolean; sortMode?: SessionSortMode }
   ) {
-    const { dictionaryId, count = 20, excludeMastered = true } = params;
+    const { dictionaryId, chapterId, count = 20, excludeMastered = true } = params;
     const preview = await db.getStudyPreview(dictionaryId, userId);
     if (!preview) throw new Error('辞书不存在');
 
@@ -42,6 +42,7 @@ export class StudySessionService {
     userId: string,
     params: {
       dictionaryId?: string;
+      chapterId?: string;
       wordIds?: string[];
       count?: number;
       excludeMastered?: boolean;
@@ -97,7 +98,8 @@ export class StudySessionService {
         userId,
         excludeMastered,
         sortMode,
-        Math.max(1, count)
+        Math.max(1, count),
+        chapterId
       );
       if (!candidateRows.length) {
         throw new Error('该辞书中没有符合条件的单词');
