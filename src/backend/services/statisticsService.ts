@@ -43,13 +43,33 @@ export class StatisticsService {
   }
 
   static async getTodayStatistics(userId: string) {
+    const startedAt = Date.now();
+    const logStep = (step: string, stepStartedAt: number, extra: Record<string, unknown> = {}) => {
+      console.log('[perf:home/today-statistics]', {
+        userId,
+        step,
+        elapsedMs: Date.now() - stepStartedAt,
+        totalElapsedMs: Date.now() - startedAt,
+        ...extra
+      });
+    };
+
+    let stepStartedAt = Date.now();
     const records = await db.getLearningRecords(userId);
+    logStep('get-learning-records', stepStartedAt, { recordCount: records.length });
+
+    stepStartedAt = Date.now();
     const progresses = (await db.getAllWordProgresses(userId)).filter((p): p is import('../types/index.ts').UserWordProgress => Boolean(p));
+    logStep('get-word-progresses', stepStartedAt, { progressCount: progresses.length });
+
     // Only the count is needed here. Loading every word with meanings/phonics
     // creates thousands of DB queries and can block other homepage requests.
+    stepStartedAt = Date.now();
     const totalWords = await db.getWordCount();
+    logStep('count-total-words', stepStartedAt, { totalWords });
 
     // Filter today's records (strictly starting from 00:00:00 today)
+    stepStartedAt = Date.now();
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -82,6 +102,14 @@ export class StatisticsService {
     const accuracyRate = totalAttempts > 0
       ? Math.round((todayCorrect / totalAttempts) * 100)
       : 0;
+
+    logStep('calculate-statistics', stepStartedAt, {
+      todayRecordCount: todayRecords.length,
+      todayWordRecordCount: todayWordRecords.length,
+      todaySentenceRecordCount: todaySentenceRecords.length
+    });
+
+    logStep('total', startedAt);
 
     return {
       todayLearnedWords,
