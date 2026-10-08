@@ -14,12 +14,13 @@ import {
   GraduationCap
 } from 'lucide-react';
 import { api } from '../api/client.ts';
-import { StatisticsData, StudySessionItem, SentencePracticeSession, SessionMode } from '../types/index.ts';
+import { StatisticsData, StudySessionItem, SentencePracticeSession, SessionMode, DictionaryConfig } from '../types/index.ts';
 
 interface HomeViewProps {
   navigate: (route: string) => void;
   onOpenStudySetup: (dictId?: string, mode?: SessionMode) => void;
   onStartSentencePractice?: () => void;
+  config: DictionaryConfig;
 }
 
 
@@ -74,7 +75,8 @@ const LearningCard: React.FC<{
 export const HomeView: React.FC<HomeViewProps> = ({
   navigate,
   onOpenStudySetup,
-  onStartSentencePractice
+  onStartSentencePractice,
+  config
 }) => {
   const [stats, setStats] = useState<StatisticsData | null>(null);
   const [activeSession, setActiveSession] = useState<StudySessionItem | null>(null);
@@ -106,6 +108,27 @@ export const HomeView: React.FC<HomeViewProps> = ({
       setLoading(false);
       // 今日复习独立加载，失败不影响主数据
       loadReviewWords();
+    }
+  };
+
+  const handleStartWordStudy = async (modeOverride?: SessionMode) => {
+    if (activeSession) {
+      navigate('/study/' + activeSession.id);
+      return;
+    }
+
+    try {
+      const session = await api.createStudySession({
+        dictionaryId: config.defaultDictionaryId,
+        chapterId: config.wordStudyChapterId,
+        count: config.wordStudyCount || 20,
+        excludeMastered: config.wordStudyExcludeMastered !== false,
+        sortMode: config.wordStudySortMode || 'RANDOM',
+        mode: modeOverride || config.wordStudyMode || 'LEARN_AND_WRITE'
+      });
+      navigate('/study/' + session.id);
+    } catch (e: any) {
+      alert('开始学习失败：' + (e?.message || '没有符合条件的单词'));
     }
   };
 
@@ -151,7 +174,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <LearningCard title="背单词" icon="📚" total={stats?.totalWords || 0} learned={stats?.learnedWords || 0} mastered={stats?.masteredWords || 0} active={!!activeSession} activeText="继续背单词" onStart={() => onOpenStudySetup(undefined, 'LEARN_AND_WRITE')} onContinue={() => navigate('/study/' + activeSession!.id)} />
+        <LearningCard title="背单词" icon="📚" total={stats?.totalWords || 0} learned={stats?.learnedWords || 0} mastered={stats?.masteredWords || 0} active={!!activeSession} activeText="继续背单词" onStart={() => handleStartWordStudy()} onContinue={() => navigate('/study/' + activeSession!.id)} />
         <LearningCard title="学句子" icon="💬" total={stats?.totalSentences || 0} learned={stats?.learnedSentences || 0} mastered={stats?.masteredSentences || 0} active={!!activeSentenceSession} activeText="继续学句子" onStart={() => onStartSentencePractice?.()} onContinue={() => navigate('/sentence-practice/' + activeSentenceSession!.id)} />
       </div>
 
@@ -162,7 +185,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
             今日复习{reviewWords.length > 0 ? ` · ${reviewWords.length}` : ''}
           </button>
         )}
-        <button type="button" onClick={() => onOpenStudySetup(undefined, 'WRITE_ONLY')}
+        <button type="button" onClick={() => handleStartWordStudy('WRITE_ONLY')}
           className="px-4 py-2.5 rounded-xl bg-white border border-[#E7EEF8] text-sm font-semibold text-[#29466F] hover:border-[#4F7DF3]/40">
           单词听写
         </button>
