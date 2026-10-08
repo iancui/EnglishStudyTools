@@ -150,7 +150,7 @@ export const ReviewView: React.FC<ReviewViewProps> = ({ navigate, config }) => {
           description="集中处理最近拼写错误的单词，可勾选、随机抽取并专项复习。"
           meta={'当前 ' + wrongCount + ' 个错词'}
           buttonText="进入错词本"
-          onClick={() => navigate('/words/wrong')}
+          onClick={() => navigate('/review/wrong')}
         />
 
         <ReviewCard
