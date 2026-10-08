@@ -126,16 +126,43 @@ export class StatisticsService {
   }
 
   static async getOverviewStatistics(userId: string) {
-    const todayStats = await this.getTodayStatistics(userId);
-    const records = await db.getLearningRecords(userId);
-    const progresses = (await db.getAllWordProgresses(userId)).filter((p): p is import('../types/index.ts').UserWordProgress => Boolean(p));
-    const sentences = await db.getAllSentences();
+    const startedAt = Date.now();
+    const logStep = (step: string, stepStartedAt: number, extra: Record<string, unknown> = {}) => {
+      console.log('[perf:statistics/overview]', {
+        userId,
+        step,
+        elapsedMs: Date.now() - stepStartedAt,
+        totalElapsedMs: Date.now() - startedAt,
+        ...extra
+      });
+    };
 
+    let stepStartedAt = Date.now();
+    const todayStats = await this.getTodayStatistics(userId);
+    logStep('get-today-statistics', stepStartedAt);
+
+    stepStartedAt = Date.now();
+    const records = await db.getLearningRecords(userId);
+    logStep('get-learning-records', stepStartedAt, { recordCount: records.length });
+
+    stepStartedAt = Date.now();
+    const progresses = (await db.getAllWordProgresses(userId)).filter((p): p is import('../types/index.ts').UserWordProgress => Boolean(p));
+    logStep('get-word-progresses', stepStartedAt, { progressCount: progresses.length });
+
+    stepStartedAt = Date.now();
+    const sentences = await db.getAllSentences();
+    logStep('get-all-sentences', stepStartedAt, { sentenceCount: sentences.length });
+
+    stepStartedAt = Date.now();
     const currentStreakDays = this.calculateStreakDays(records);
+    const totalReviewedWords = progresses.reduce((acc, p) => acc + p.reviewCount, 0);
+    logStep('calculate-overview', stepStartedAt, { currentStreakDays, totalReviewedWords, totalSentences: sentences.length });
+
+    logStep('total', startedAt);
 
     return {
       ...todayStats,
-      totalReviewedWords: progresses.reduce((acc, p) => acc + p.reviewCount, 0),
+      totalReviewedWords,
       totalSentences: sentences.length,
       currentStreakDays
     };
