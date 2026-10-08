@@ -390,14 +390,11 @@ export default function App() {
         isOpen={isStudySetupOpen}
         onClose={() => setIsStudySetupOpen(false)}
         onSessionStarted={handleSessionStarted}
-      {/* Study Session Configuration Modal */}
-      <StudySetupModal
-        isOpen={isStudySetupOpen}
-        onClose={() => setIsStudySetupOpen(false)}
-        onSessionStarted={handleSessionStarted}
+        initialDictionaryId={setupInitialDictId}
+        initialMode={setupInitialMode}
+        config={config}
+      />
 
-
-      {/* Sentence Practice Configuration Modal */}
       {/* Authentication Modal */}
       <AuthModal
         isOpen={isAuthOpen}
