@@ -261,7 +261,7 @@ class MySQLStorage {
   private config(r:Row):UserDictionaryConfig{return{id:r.id,userId:r.user_id,defaultDictionaryId:r.default_dictionary_id||undefined,sentenceDictionaryId:r.sentence_dictionary_id||undefined,phoneticType:r.phonetic_type,audioType:r.audio_type,enablePhonics:Boolean(r.enable_phonics),sentencePracticeCount:Number(r.sentence_practice_count||5),createdAt:iso(r.created_at)!,updatedAt:iso(r.updated_at)!}}
   async saveDictionaryConfig(userId:string,p:Partial<UserDictionaryConfig>){const c=await this.getDictionaryConfig(userId);const x={...c,...p,updatedAt:new Date().toISOString()};await pool.query('UPDATE user_dictionary_config SET default_dictionary_id=?,sentence_dictionary_id=?,phonetic_type=?,audio_type=?,enable_phonics=?,sentence_practice_count=?,updated_at=? WHERE user_id=?',[x.defaultDictionaryId||null,x.sentenceDictionaryId||null,x.phoneticType,x.audioType,x.enablePhonics,x.sentencePracticeCount||5,mysqlDate(x.updatedAt),userId]);return x}
 
-  async getStudyCandidates(dictionaryId: string, userId: string, excludeMastered: boolean, sortMode: string, limit: number) {
+  async getStudyCandidates(dictionaryId: string, userId: string, excludeMastered: boolean, sortMode: string, limit: number, chapterId?: string) {
     let order = 'dw.sequence_no ASC';
     if (sortMode === 'RANDOM') order = 'RAND()';
     else if (sortMode === 'REVIEW_FIRST') order = `CASE WHEN up.status='REVIEW' AND up.next_review_at IS NOT NULL AND up.next_review_at <= NOW() THEN 0 WHEN up.status='REVIEW' THEN 1 WHEN up.status='LEARNING' THEN 2 ELSE 3 END, dw.sequence_no ASC`;
@@ -270,10 +270,10 @@ class MySQLStorage {
       `SELECT dw.word_id, dw.sequence_no
        FROM dictionary_word dw
        LEFT JOIN user_word_progress up ON up.word_id=dw.word_id AND up.user_id=?
-       WHERE dw.dictionary_id=? AND dw.is_active=1 ${mastered}
+       WHERE dw.dictionary_id=? AND dw.is_active=1 ${mastered} ${chapterId ? 'AND dw.chapter_id=?' : ''}
        ORDER BY ${order}
        LIMIT ?`,
-      [userId, dictionaryId, Math.max(1, limit)]
+      [userId, dictionaryId, ...(chapterId ? [chapterId] : []), Math.max(1, limit)]
     );
     return rows as Row[];
   }
