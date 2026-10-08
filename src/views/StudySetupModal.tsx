@@ -22,6 +22,8 @@ export const StudySetupModal: React.FC<StudySetupModalProps> = ({
 }) => {
   const [mode, setMode] = useState<SessionMode>(initialMode);
   const [count, setCount] = useState<number>(20);
+  const [chapters, setChapters] = useState<any[]>([]);
+  const [chapterId, setChapterId] = useState<string>('');
   const [excludeMastered, setExcludeMastered] = useState<boolean>(true);
   const [sortMode, setSortMode] = useState<'RANDOM' | 'SEQUENCE' | 'REVIEW_FIRST'>('RANDOM');
   const [preview, setPreview] = useState<{
@@ -41,17 +43,22 @@ export const StudySetupModal: React.FC<StudySetupModalProps> = ({
   useEffect(() => {
     if (!isOpen) return;
     setLatestConfig(config);
+    setChapterId('');
     if (initialMode) setMode(initialMode);
   }, [isOpen, initialMode, config]);
 
   useEffect(() => {
     if (!selectedDictId) return;
+    const loadChapters = async () => { try { setChapters(selectedDictId ? await api.getDictionaryChapters(selectedDictId) : []); } catch { setChapters([]); } };
+    loadChapters();
+
     const fetchPreview = async () => {
       try {
         setLoadingPreview(true);
         setErrorMsg('');
         const res = await api.previewStudySession({
           dictionaryId: selectedDictId,
+          chapterId: chapterId || undefined,
           count,
           excludeMastered,
           sortMode
@@ -65,7 +72,7 @@ export const StudySetupModal: React.FC<StudySetupModalProps> = ({
     };
 
     fetchPreview();
-  }, [selectedDictId, count, excludeMastered, sortMode]);
+  }, [selectedDictId, chapterId, count, excludeMastered, sortMode]);
 
   if (!isOpen) return null;
 
@@ -76,6 +83,7 @@ export const StudySetupModal: React.FC<StudySetupModalProps> = ({
       setErrorMsg('');
       const session = await api.createStudySession({
         dictionaryId: selectedDictId,
+        chapterId: chapterId || undefined,
         count,
         excludeMastered,
         sortMode,
@@ -190,10 +198,19 @@ export const StudySetupModal: React.FC<StudySetupModalProps> = ({
             </div>
           </div>
 
+          {/* Chapter Selection */}
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-[#29466F] uppercase">2. 学习章节</label>
+            <select value={chapterId} onChange={e=>setChapterId(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-[#E7EEF8] bg-white text-sm text-[#29466F]">
+              <option value="">整本辞书（按辞书顺序）</option>
+              {chapters.map(ch=><option key={ch.id} value={ch.id}>{ch.sequence}. {ch.name}</option>)}
+            </select>
+          </div>
+
           {/* 2. Count Selection */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs">
-              <span className="font-bold text-[#29466F] uppercase">2. 单词数量</span>
+              <span className="font-bold text-[#29466F] uppercase">3. 单词数量</span>
               <span className="text-[#8BA0BD] font-mono">当前选择: {count} 词</span>
             </div>
             <div className="grid grid-cols-4 gap-2">
