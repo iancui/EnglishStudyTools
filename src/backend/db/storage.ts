@@ -235,6 +235,78 @@ class MySQLStorage {
   private config(r:Row):UserDictionaryConfig{return{id:r.id,userId:r.user_id,defaultDictionaryId:r.default_dictionary_id||undefined,sentenceDictionaryId:r.sentence_dictionary_id||undefined,phoneticType:r.phonetic_type,audioType:r.audio_type,enablePhonics:Boolean(r.enable_phonics),sentencePracticeCount:Number(r.sentence_practice_count||5),createdAt:iso(r.created_at)!,updatedAt:iso(r.updated_at)!}}
   async saveDictionaryConfig(userId:string,p:Partial<UserDictionaryConfig>){const c=await this.getDictionaryConfig(userId);const x={...c,...p,updatedAt:new Date().toISOString()};await pool.query('UPDATE user_dictionary_config SET default_dictionary_id=?,sentence_dictionary_id=?,phonetic_type=?,audio_type=?,enable_phonics=?,sentence_practice_count=?,updated_at=? WHERE user_id=?',[x.defaultDictionaryId||null,x.sentenceDictionaryId||null,x.phoneticType,x.audioType,x.enablePhonics,x.sentencePracticeCount||5,mysqlDate(x.updatedAt),userId]);return x}
 
+  async getStudyCandidates(dictionaryId: string, userId: string, excludeMastered: boolean, sortMode: string, limit: number) {
+    let order = 'dw.sequence_no ASC';
+    if (sortMode === 'RANDOM') order = 'RAND()';
+    else if (sortMode === 'REVIEW_FIRST') order = `CASE WHEN up.status='REVIEW' AND up.next_review_at IS NOT NULL AND up.next_review_at <= NOW() THEN 0 WHEN up.status='REVIEW' THEN 1 WHEN up.status='LEARNING' THEN 2 ELSE 3 END, dw.sequence_no ASC`;
+    const mastered = excludeMastered ? "AND (up.word_id IS NULL OR (up.status <> 'MASTERED' AND COALESCE(up.mastery,0) <= 90))" : '';
+    const [rows] = await pool.query(
+      `SELECT dw.word_id, dw.sequence_no
+       FROM dictionary_word dw
+       LEFT JOIN user_word_progress up ON up.word_id=dw.word_id AND up.user_id=?
+       WHERE dw.dictionary_id=? AND dw.is_active=1 ${mastered}
+       ORDER BY ${order}
+       LIMIT ?`,
+      [userId, dictionaryId, Math.max(1, limit)]
+    );
+    return rows as Row[];
+  }
+
+  async getStudyCandidateCount(dictionaryId: string, userId: string, excludeMastered: boolean) {
+    const mastered = excludeMastered ? "AND (up.word_id IS NULL OR (up.status <> 'MASTERED' AND COALESCE(up.mastery,0) <= 90))" : '';
+    const [rows] = await pool.query(
+      `SELECT COUNT(*) AS total
+       FROM dictionary_word dw
+       LEFT JOIN user_word_progress up ON up.word_id=dw.word_id AND up.user_id=?
+       WHERE dw.dictionary_id=? AND dw.is_active=1 ${mastered}`,
+      [userId, dictionaryId]
+    );
+    return Number((rows as Row[])[0]?.total || 0);
+  }
+
+  async getWordsByIds(ids: string[]) {
+    if (!ids.length) return [] as Word[];
+    const unique = [...new Set(ids)];
+    const result = new Map<string, Word>();
+    for (let i = 0; i < unique.length; i += 500) {
+      const part = unique.slice(i, i + 500);
+      const placeholders = part.map(() => '?').join(',');
+      const [rows] = await pool.query(`SELECT * FROM word WHERE id IN (${placeholders})`, part);
+      const wordRows = rows as Row[];
+      const wordIds = wordRows.map(r => String(r.id));
+      const meanings = wordIds.length
+        ? (await pool.query(`SELECT * FROM word_meaning WHERE word_id IN (${wordIds.map(() => '?').join(',')}) ORDER BY created_at`, wordIds))[0] as Row[]
+        : [];
+      const phonics = wordIds.length
+        ? (await pool.query(`SELECT * FROM word_phonics WHERE word_id IN (${wordIds.map(() => '?').join(',')}) ORDER BY sequence_no`, wordIds))[0] as Row[]
+        : [];
+      const meaningsMap = new Map<string, Row[]>();
+      const phonicsMap = new Map<string, Row[]>();
+      for (const m of meanings) {
+        const key = String(m.word_id);
+        if (!meaningsMap.has(key)) meaningsMap.set(key, []);
+        meaningsMap.get(key)!.push(m);
+      }
+      for (const p of phonics) {
+        const key = String(p.word_id);
+        if (!phonicsMap.has(key)) phonicsMap.set(key, []);
+        phonicsMap.get(key)!.push(p);
+      }
+      for (const r of wordRows) {
+        const ms = meaningsMap.get(String(r.id)) || [];
+        const ps = phonicsMap.get(String(r.id)) || [];
+        result.set(String(r.id), {
+          id:r.id,text:r.text,phoneticUk:r.phonetic_uk||'',phoneticUs:r.phonetic_us||'',
+          audioUkUrl:r.audio_uk_url||undefined,audioUsUrl:r.audio_us_url||undefined,pos:r.pos||'',
+          difficulty:Number(r.difficulty||1),
+          meanings:ms.map(x=>({id:x.id,wordId:x.word_id,pos:x.pos,definitionCn:x.definition_cn,definitionEn:x.definition_en||undefined,exampleEn:x.example_en||undefined,exampleCn:x.example_cn||undefined})),
+          phonics:ps.map(x=>({id:x.id,wordId:x.word_id,sequence:x.sequence_no,text:x.text,phonetic:x.phonetic,syllable:x.syllable,audioUrl:x.audio_url||undefined}))
+        } as Word);
+      }
+    }
+    return unique.map(id => result.get(id)).filter(Boolean) as Word[];
+  }
+
   async getAllWords(){const [rows]=await pool.query('SELECT * FROM word ORDER BY id');return Promise.all((rows as Row[]).map(r=>this.findWordById(r.id))) as any}
   async findWordById(id:string){const [rows]=await pool.execute('SELECT * FROM word WHERE id=?',[id]);return this.loadWord((rows as Row[])[0])}
   async findWordByText(text:string){const [rows]=await pool.query('SELECT * FROM word WHERE LOWER(text)=LOWER(?)',[text.trim()]);return this.loadWord((rows as Row[])[0])}
