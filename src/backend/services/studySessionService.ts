@@ -53,6 +53,7 @@ export class StudySessionService {
     let { dictionaryId } = params;
     const {
       wordIds,
+      chapterId,
       count = 20,
       excludeMastered = true,
       sortMode = 'RANDOM',
