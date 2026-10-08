@@ -18,7 +18,7 @@ import {
   Shield
 } from 'lucide-react';
 import { api } from '../api/client.ts';
-import { DictionaryConfig, DictionaryItem } from '../types/index.ts';
+import { DictionaryConfig, DictionaryItem, DictionaryChapter } from '../types/index.ts';
 import { SpeechPlayer } from '../utils/speech.ts';
 
 interface SettingsViewProps {
@@ -54,6 +54,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [newDictName, setNewDictName] = useState('');
   const [newDictDesc, setNewDictDesc] = useState('');
   const [creatingDict, setCreatingDict] = useState(false);
+  const [selectedChapterDictId, setSelectedChapterDictId] = useState('');
+  const [chapters, setChapters] = useState<DictionaryChapter[]>([]);
+  const [newChapterName, setNewChapterName] = useState('');
+  const [creatingChapter, setCreatingChapter] = useState(false);
 
   // Audio testing
   const [isAuditioning, setIsAuditioning] = useState(false);
@@ -137,6 +141,22 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     }
   };
 
+  const loadChapters = async (dictId: string) => {
+    if (!dictId) { setChapters([]); return; }
+    try { setChapters(await api.getDictionaryChapters(dictId)); } catch { setChapters([]); }
+  };
+
+  const handleCreateChapter = async () => {
+    if (!selectedChapterDictId || !newChapterName.trim()) return;
+    try {
+      setCreatingChapter(true);
+      const chapter = await api.createDictionaryChapter(selectedChapterDictId, { name: newChapterName.trim() });
+      setChapters(prev => [...prev, chapter]);
+      setNewChapterName('');
+    } catch (e:any) { alert(e.message || '创建章节失败'); }
+    finally { setCreatingChapter(false); }
+  };
+
   const handleDeleteMyDict = async (dictId: string) => {
     if (!window.confirm('确定要删除这本自建辞书吗？该操作不会删除系统词汇。')) return;
     try {
@@ -211,6 +231,35 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           <span>个人账户</span>
         </button>
       </div>
+
+      {activeTab === 'my-dictionaries' && (
+        <div className="space-y-6 animate-fadeIn">
+          <div className="bg-white border border-stone-200 rounded-3xl p-6 sm:p-8 shadow-xs">
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <h2 className="text-xl font-bold text-stone-900">辞书章节</h2>
+                <p className="text-xs text-stone-500 mt-1">章节位于辞书下面，单词和句子都可以归属到具体章节。</p>
+              </div>
+              <Layers className="w-5 h-5 text-amber-700" />
+            </div>
+            <select value={selectedChapterDictId} onChange={e=>{setSelectedChapterDictId(e.target.value);loadChapters(e.target.value)}} className="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 text-sm font-medium">
+              <option value="">选择一本辞书</option>
+              {allDictionaries.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}
+            </select>
+            {selectedChapterDictId && <div className="mt-4 space-y-2">
+              {chapters.map((ch,i)=><div key={ch.id} className="flex items-center justify-between px-4 py-3 rounded-xl bg-stone-50 border border-stone-100">
+                <div><span className="text-xs text-stone-400 mr-2">Chapter {i+1}</span><span className="font-semibold text-stone-800">{ch.name}</span></div>
+                <span className="text-xs text-stone-400">顺序 {ch.sequence}</span>
+              </div>)}
+              {chapters.length===0 && <div className="text-xs text-stone-400 py-3">还没有章节</div>}
+              <div className="flex gap-2 pt-2">
+                <input value={newChapterName} onChange={e=>setNewChapterName(e.target.value)} placeholder="例如：Chapter 1 / Unit 1" className="flex-1 px-4 py-3 rounded-xl border border-stone-200 bg-white text-sm" />
+                <button type="button" disabled={creatingChapter} onClick={handleCreateChapter} className="px-5 py-3 rounded-xl bg-stone-900 text-white text-sm font-bold disabled:opacity-50">{creatingChapter?'创建中…':'新增章节'}</button>
+              </div>
+            </div>}
+          </div>
+        </div>
+      )}
 
       {/* ============================================================ */}
       {/* TAB 1: 学习与语音设置 (涵盖 1.学习设置 2.默认辞书 3.音标设置 4.发音设置 5.自然拼读) */}
