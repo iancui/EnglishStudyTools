@@ -159,8 +159,30 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
     if (!session || !currentSessionWord || isPendingRef.current) return;
     isPendingRef.current = true;
     try {
-      await api.learnSessionWord(session.id, currentSessionWord.wordId);
+      const res = await api.learnSessionWord(session.id, currentSessionWord.wordId);
       if (!isMountedRef.current) return;
+      if (res?.phaseChanged && res?.session) {
+        setSession(res.session);
+        setWordStep('WRITE');
+        setUserInput('');
+        setHasSubmitted(false);
+        setWriteResult(null);
+        setShowCompletionScreen(false);
+        return;
+      }
+      if (res?.sessionCompleted && res?.session) {
+        setSession(res.session);
+        setShowCompletionScreen(true);
+        return;
+      }
+      if (res?.session) {
+        setSession(res.session);
+        setWordStep('LEARN');
+        setUserInput('');
+        setHasSubmitted(false);
+        setWriteResult(null);
+        return;
+      }
       setWordStep('WRITE');
       requestAnimationFrame(() => inputRef.current?.focus());
     } catch (e) {
