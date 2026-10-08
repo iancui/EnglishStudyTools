@@ -259,7 +259,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
         isSameBatchRestart
           ? {
               wordIds: activeSession!.words.map((w) => w.wordId),
-              mode: activeSession!.mode
+              mode: activeSession!.mode,
+              writeSortMode: activeSession!.writeSortMode,
+              dictationSortMode: activeSession!.dictationSortMode
             }
           : {
               dictionaryId: config.defaultDictionaryId,
@@ -267,6 +269,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
               count: config.wordStudyCount || 20,
               excludeMastered: config.wordStudyExcludeMastered !== false,
               sortMode: config.wordStudySortMode || 'RANDOM',
+              writeSortMode: config.wordStudyWriteOrder || 'SEQUENCE',
+              dictationSortMode: config.wordStudyDictationOrder || 'RANDOM',
               mode: modeOverride || config.wordStudyMode || 'LEARN_AND_WRITE'
             }
       );
