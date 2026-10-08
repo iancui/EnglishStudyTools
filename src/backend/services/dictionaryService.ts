@@ -32,7 +32,6 @@ export class DictionaryService {
 
   static async getDictionaryChapters(dictionaryId:string){return await db.getDictionaryChapters(dictionaryId)}
   static async createDictionaryChapter(userId:string,dictionaryId:string,input:any){const dict=await db.findDictionaryById(dictionaryId);if(!dict)throw new Error('辞书不存在');if(dict.ownerType==='USER'&&dict.ownerUserId!==userId)throw new Error('无权操作该辞书');const chapters=await db.getDictionaryChapters(dictionaryId);return await db.createDictionaryChapter({id:`dc-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,dictionaryId,name:String(input.name||'').trim(),code:String(input.code||'').trim()||undefined,description:String(input.description||'').trim()||undefined,sequence:chapters.length+1})}
-  static async deleteDictionaryChapter(userId:string,chapterId:string){const dicts=await db.getAllDictionaries(userId);const dict=await db.findDictionaryById((await db.getDictionaryChapters('')).find?.(()=>false) as any);return dict}
   static async getDictionaryById(id: string) {
     const dict = await db.findDictionaryById(id);
     if (!dict) return null;
