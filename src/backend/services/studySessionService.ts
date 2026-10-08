@@ -180,6 +180,10 @@ export class StudySessionService {
 
     await db.createStudySession(session, sessionWords);
 
+    if (mode === 'WRITE_ONLY') {
+      return await db.startStudyDictationPhase(sessionId, dictationSortMode);
+    }
+
     return await this.getSessionById(sessionId, userId);
   }
 
