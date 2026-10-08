@@ -417,22 +417,43 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {[
-                  ['LEARN_AND_WRITE', '普通学习：学 + 背写'],
-                  ['WRITE_ONLY', '单词听写：直接默写']
-                ].map(([value, label]) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => setConfig(prev => ({ ...prev, wordStudyMode: value as any }))}
-                    className={`py-3 rounded-xl border text-sm font-semibold transition-all ${
-                      (config.wordStudyMode || 'LEARN_AND_WRITE') === value
-                        ? 'border-amber-400 bg-amber-50 text-stone-900 ring-2 ring-amber-200'
-                        : 'border-stone-200 bg-white hover:bg-stone-50 text-stone-700'
-                    }`}
-                  >{label}</button>
-                ))}
+              <div>
+                <label className="text-xs font-semibold text-stone-600 block mb-1.5">学习完成后进入</label>
+                <p className="text-[11px] text-stone-400 mb-2">可组合选择“背写”和“强化听写”。至少保留一个阶段。</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {[
+                    ['wordStudyIncludeWrite', '背写', '学习中文释义后输入英文拼写'],
+                    ['wordStudyIncludeDictation', '强化听写', '播放发音后听音输入英文拼写']
+                  ].map(([key, label, desc]) => {
+                    const enabled = key === 'wordStudyIncludeWrite'
+                      ? config.wordStudyIncludeWrite !== false
+                      : config.wordStudyIncludeDictation !== false;
+                    const otherEnabled = key === 'wordStudyIncludeWrite'
+                      ? config.wordStudyIncludeDictation !== false
+                      : config.wordStudyIncludeWrite !== false;
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => {
+                          if (enabled && !otherEnabled) return;
+                          setConfig(prev => ({ ...prev, [key]: !enabled } as DictionaryConfig));
+                        }}
+                        className={`p-4 rounded-2xl border text-left transition-all ${
+                          enabled
+                            ? 'border-amber-400 bg-amber-50 text-stone-900 ring-2 ring-amber-200'
+                            : 'border-stone-200 bg-white hover:bg-stone-50 text-stone-700'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-sm">{label}</span>
+                          <span className={`w-5 h-5 rounded-full border flex items-center justify-center text-xs ${enabled ? 'bg-stone-900 border-stone-900 text-white' : 'border-stone-300 text-transparent'}`}>✓</span>
+                        </div>
+                        <div className="text-xs text-stone-500 mt-1">{desc}</div>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               <label className="flex items-center justify-between p-3.5 rounded-xl bg-stone-50 border border-stone-100">
