@@ -45,7 +45,9 @@ export class StatisticsService {
   static async getTodayStatistics(userId: string) {
     const records = await db.getLearningRecords(userId);
     const progresses = (await db.getAllWordProgresses(userId)).filter((p): p is import('../types/index.ts').UserWordProgress => Boolean(p));
-    const totalWords = (await db.getAllWords()).length;
+    // Only the count is needed here. Loading every word with meanings/phonics
+    // creates thousands of DB queries and can block other homepage requests.
+    const totalWords = await db.getWordCount();
 
     // Filter today's records (strictly starting from 00:00:00 today)
     const today = new Date();
