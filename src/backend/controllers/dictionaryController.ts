@@ -94,6 +94,13 @@ export class DictionaryController {
     }
   }
 
+  static async getDictionaryChapters(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try { res.json({ code: 200, message: 'success', data: await DictionaryService.getDictionaryChapters(req.params.id) }); } catch (e) { next(e); }
+  }
+  static async createDictionaryChapter(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try { const data=await DictionaryService.createDictionaryChapter(req.user?.id||'u-default',req.params.id,req.body); res.json({code:200,message:'success',data}); } catch(e){next(e);}
+  }
+
   static async getDictionaryById(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
