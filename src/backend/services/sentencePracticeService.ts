@@ -65,7 +65,16 @@ export class SentencePracticeService {
 
     let candidates = [...all];
 
-    if (dictionaryId && dictWordSet.size > 0) {
+    // 有明确的辞书时，优先使用辞书自己的句子顺序；没有句子关联数据时再按句子库顺序。
+    if (dictionaryId) {
+      const dictionarySentences = await db.getDictionarySentences(dictionaryId);
+      if (dictionarySentences.length > 0) {
+        const sentenceMap = new Map(all.map(s => [s.id, s]));
+        candidates = dictionarySentences.map(r => sentenceMap.get(String(r.sentence_id))).filter(Boolean) as typeof all;
+      }
+    }
+
+    if (dictionaryId && dictWordSet.size > 0 && candidates.length === all.length) {
       candidates = candidates.filter(s => {
         const words = s.content.toLowerCase().match(/[a-z']+/g) || [];
         return words.some((w: string) => dictWordSet.has(w));
@@ -79,12 +88,6 @@ export class SentencePracticeService {
         throw new Error('当前词库下没有符合条件的句子，请更换词库或调整练习数量');
       }
       throw new Error('当前条件下没有可练习的句子');
-    }
-
-    // True Fisher-Yates shuffle to randomize once
-    for (let i = candidates.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
     }
 
     const config = await db.getDictionaryConfig(userId);
