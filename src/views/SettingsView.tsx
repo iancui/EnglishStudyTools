@@ -64,7 +64,20 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
   useEffect(() => {
     loadSettingsData();
+    loadCurrentConfig();
   }, []);
+
+  const loadCurrentConfig = async () => {
+    try {
+      const current = await api.getDictionaryConfig();
+      if (current) {
+        setConfig(current);
+        onConfigUpdated(current);
+      }
+    } catch (e) {
+      console.error('Failed to load current dictionary config:', e);
+    }
+  };
 
   const loadSettingsData = async () => {
     try {
