@@ -181,7 +181,6 @@ export default function App() {
       return (
         <HomeView
           navigate={navigate}
-          onOpenStudySetup={handleOpenStudySetup}
           onStartSentencePractice={handleStartSentencePractice}
           config={config}
         />
@@ -322,7 +321,6 @@ export default function App() {
     return (
       <HomeView
         navigate={navigate}
-        onOpenStudySetup={() => handleOpenStudySetup()}
         config={config}
       />
     );
