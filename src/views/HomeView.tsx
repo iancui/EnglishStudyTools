@@ -18,7 +18,6 @@ import { StatisticsData, StudySessionItem, SentencePracticeSession, SessionMode,
 
 interface HomeViewProps {
   navigate: (route: string) => void;
-  onOpenStudySetup: (dictId?: string, mode?: SessionMode) => void;
   onStartSentencePractice?: () => void;
   config: DictionaryConfig;
 }
@@ -74,7 +73,6 @@ const LearningCard: React.FC<{
 
 export const HomeView: React.FC<HomeViewProps> = ({
   navigate,
-  onOpenStudySetup,
   onStartSentencePractice,
   config
 }) => {
