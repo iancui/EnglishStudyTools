@@ -266,15 +266,51 @@ class MySQLStorage {
     let order = 'dw.sequence_no ASC';
     if (sortMode === 'RANDOM') order = 'RAND()';
     else if (sortMode === 'REVIEW_FIRST') order = `CASE WHEN up.status='REVIEW' AND up.next_review_at IS NOT NULL AND up.next_review_at <= NOW() THEN 0 WHEN up.status='REVIEW' THEN 1 WHEN up.status='LEARNING' THEN 2 ELSE 3 END, dw.sequence_no ASC`;
-    const mastered = excludeMastered ? "AND (up.word_id IS NULL OR (up.status <> 'MASTERED' AND COALESCE(up.mastery,0) <= 90))" : '';
+
+    const mastered = excludeMastered
+      ? "AND (up.word_id IS NULL OR (up.status <> 'MASTERED' AND COALESCE(up.mastery,0) <= 90))"
+      : '';
+
+    // 顺序学习是“批次游标”，而不是每天重新从第 1 个单词开始。
+    // 只有已经完成的 SEQUENCE 批次才会推进游标；未完成/取消的批次不会推进。
+    // 如果指定章节，只参考同一章节的历史顺序批次。
+    const sequenceCursor = sortMode === 'SEQUENCE'
+      ? `AND dw.sequence_no > COALESCE((
+          SELECT MAX(dw2.sequence_no)
+          FROM study_session ss2
+          JOIN study_session_word ssw2 ON ssw2.session_id=ss2.id
+          JOIN dictionary_word dw2
+            ON dw2.word_id=ssw2.word_id
+           AND dw2.dictionary_id=ss2.dictionary_id
+          WHERE ss2.user_id=?
+            AND ss2.dictionary_id=?
+            AND ss2.status='COMPLETED'
+            AND ss2.sort_mode='SEQUENCE'
+            ${chapterId ? 'AND dw2.chapter_id=?' : ''}
+        ),0)`
+      : '';
+
+    const params: any[] = [userId, dictionaryId];
+    if (chapterId) params.push(chapterId);
+
+    if (sortMode === 'SEQUENCE') {
+      params.push(userId, dictionaryId);
+      if (chapterId) params.push(chapterId);
+    }
+
+    params.push(Math.max(1, limit));
+
     const [rows] = await pool.query(
       `SELECT dw.word_id, dw.sequence_no
        FROM dictionary_word dw
        LEFT JOIN user_word_progress up ON up.word_id=dw.word_id AND up.user_id=?
-       WHERE dw.dictionary_id=? AND dw.is_active=1 ${mastered} ${chapterId ? 'AND dw.chapter_id=?' : ''}
+       WHERE dw.dictionary_id=? AND dw.is_active=1
+         ${mastered}
+         ${chapterId ? 'AND dw.chapter_id=?' : ''}
+         ${sequenceCursor}
        ORDER BY ${order}
        LIMIT ?`,
-      [userId, dictionaryId, ...(chapterId ? [chapterId] : []), Math.max(1, limit)]
+      params
     );
     return rows as Row[];
   }
