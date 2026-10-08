@@ -150,20 +150,20 @@ export class StatisticsService {
     logStep('get-word-progresses', stepStartedAt, { progressCount: progresses.length });
 
     stepStartedAt = Date.now();
-    const sentences = await db.getAllSentences();
-    logStep('get-all-sentences', stepStartedAt, { sentenceCount: sentences.length });
+    const totalSentences = await db.getSentenceCount();
+    logStep('count-total-sentences', stepStartedAt, { totalSentences });
 
     stepStartedAt = Date.now();
     const currentStreakDays = this.calculateStreakDays(records);
     const totalReviewedWords = progresses.reduce((acc, p) => acc + p.reviewCount, 0);
-    logStep('calculate-overview', stepStartedAt, { currentStreakDays, totalReviewedWords, totalSentences: sentences.length });
+    logStep('calculate-overview', stepStartedAt, { currentStreakDays, totalReviewedWords, totalSentences });
 
     logStep('total', startedAt);
 
     return {
       ...todayStats,
       totalReviewedWords,
-      totalSentences: sentences.length,
+      totalSentences,
       currentStreakDays
     };
   }
