@@ -329,7 +329,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
           learned={stats?.learnedWords || 0}
           mastered={stats?.masteredWords || 0}
           active={!!activeSession}
-          activeText="继续背单词"
+          activeText={activeSession?.phase === 'DICTATION' ? '继续强化听写' : '继续背单词'}
           reviewCount={reviewWords?.length || 0}
           onStart={() => handleStartWordStudy()}
           onContinue={() => navigate('/study/' + activeSession!.id)}
