@@ -155,111 +155,30 @@ export const HomeView: React.FC<HomeViewProps> = ({
         <LearningCard title="学句子" icon="💬" total={stats?.totalSentences || 0} learned={stats?.learnedSentences || 0} mastered={stats?.masteredSentences || 0} active={!!activeSentenceSession} activeText="继续学句子" onStart={() => onStartSentencePractice?.()} onContinue={() => navigate('/sentence-practice/' + activeSentenceSession!.id)} />
       </div>
 
-      {/* Auxiliary Learning Shortcuts (今日复习、单词听写、错词本、学习记录、设置) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        {/* Entry: 今日复习 (辅助入口) */}
+      <div className="flex flex-wrap gap-3">
         {reviewWords !== null && (
-          <button
-            type="button"
-            onClick={handleStartTodayReview}
-            disabled={reviewWords.length === 0}
-            className={`p-5 rounded-2xl bg-white border transition-all text-left flex items-center justify-between group shadow-2xs cursor-pointer ${
-              reviewWords.length > 0
-                ? 'border-amber-200 hover:border-amber-400 hover:bg-amber-50'
-                : 'border-[#E7EEF8] opacity-60 cursor-default'
-            }`}
-          >
-            <div className="flex items-center gap-3.5">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                reviewWords.length > 0 ? 'bg-amber-50 text-amber-600' : 'bg-[#F7FAFF] text-[#8BA0BD]'
-              }`}>
-                <GraduationCap className="w-5 h-5" />
-              </div>
-              <div>
-                <div className="font-bold text-[#29466F] text-sm">今日复习</div>
-                <div className="text-xs text-[#8BA0BD] mt-0.5">
-                  {reviewWords.length > 0
-                    ? `有 ${reviewWords.length} 个单词需要复习`
-                    : '✓ 今日暂无待复习'}
-                </div>
-              </div>
-            </div>
-            {reviewWords.length > 0 && (
-              <span className="text-xs text-[#8BA0BD] group-hover:text-amber-600 group-hover:translate-x-1 transition-transform">→</span>
-            )}
+          <button type="button" onClick={handleStartTodayReview} disabled={reviewWords.length === 0}
+            className="px-4 py-2.5 rounded-xl bg-white border border-[#E7EEF8] text-sm font-semibold text-[#29466F] hover:border-[#4F7DF3]/40 disabled:opacity-50">
+            今日复习{reviewWords.length > 0 ? ` · ${reviewWords.length}` : ''}
           </button>
         )}
-
-        {/* Entry: 单词听写 (辅助训练入口) */}
-        <button
-          type="button"
-          onClick={() => onOpenStudySetup(undefined, 'WRITE_ONLY')}
-          className="p-5 rounded-2xl bg-white border border-[#E7EEF8] hover:border-[#4F7DF3]/40 hover:bg-[#F7FAFF] transition-all text-left flex items-center justify-between group shadow-2xs cursor-pointer"
-        >
-          <div className="flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center">
-              <Headphones className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="font-bold text-[#29466F] text-sm">单词听写</div>
-              <div className="text-xs text-[#8BA0BD] mt-0.5">听发音 + 看释义，默写英文</div>
-            </div>
-          </div>
-          <span className="text-xs text-[#8BA0BD] group-hover:text-[#4F7DF3] group-hover:translate-x-1 transition-transform">→</span>
+        <button type="button" onClick={() => onOpenStudySetup(undefined, 'WRITE_ONLY')}
+          className="px-4 py-2.5 rounded-xl bg-white border border-[#E7EEF8] text-sm font-semibold text-[#29466F] hover:border-[#4F7DF3]/40">
+          单词听写
         </button>
-
-        <button
-          type="button"
-          onClick={() => navigate('/words/wrong')}
-          className="p-5 rounded-2xl bg-white border border-[#E7EEF8] hover:border-[#4F7DF3]/40 hover:bg-[#F7FAFF] transition-all text-left flex items-center justify-between group shadow-2xs cursor-pointer"
-        >
-          <div className="flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
-              <RotateCcw className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="font-bold text-[#29466F] text-sm">错词本复习</div>
-              <div className="text-xs text-[#8BA0BD] mt-0.5">自动收录易错难词优先巩固</div>
-            </div>
-          </div>
-          <span className="text-xs text-[#8BA0BD] group-hover:text-[#4F7DF3] group-hover:translate-x-1 transition-transform">→</span>
+        <button type="button" onClick={() => navigate('/words/wrong')}
+          className="px-4 py-2.5 rounded-xl bg-white border border-[#E7EEF8] text-sm font-semibold text-[#29466F] hover:border-[#4F7DF3]/40">
+          错词本
         </button>
-
-        <button
-          type="button"
-          onClick={() => navigate('/statistics')}
-          className="p-5 rounded-2xl bg-white border border-[#E7EEF8] hover:border-[#4F7DF3]/40 hover:bg-[#F7FAFF] transition-all text-left flex items-center justify-between group shadow-2xs cursor-pointer"
-        >
-          <div className="flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-[#EBF2FE] text-[#4F7DF3] flex items-center justify-center">
-              <BarChart3 className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="font-bold text-[#29466F] text-sm">学习记录</div>
-              <div className="text-xs text-[#8BA0BD] mt-0.5">每日背诵量与统计数据</div>
-            </div>
-          </div>
-          <span className="text-xs text-[#8BA0BD] group-hover:text-[#4F7DF3] group-hover:translate-x-1 transition-transform">→</span>
+        <button type="button" onClick={() => navigate('/statistics')}
+          className="px-4 py-2.5 rounded-xl bg-white border border-[#E7EEF8] text-sm font-semibold text-[#29466F] hover:border-[#4F7DF3]/40">
+          学习记录
         </button>
-
-        <button
-          type="button"
-          onClick={() => navigate('/settings')}
-          className="p-5 rounded-2xl bg-white border border-[#E7EEF8] hover:border-[#4F7DF3]/40 hover:bg-[#F7FAFF] transition-all text-left flex items-center justify-between group shadow-2xs cursor-pointer"
-        >
-          <div className="flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-[#F7FAFF] text-[#29466F] border border-[#E7EEF8] flex items-center justify-center">
-              <Settings className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="font-bold text-[#29466F] text-sm">设置中心</div>
-              <div className="text-xs text-[#8BA0BD] mt-0.5">默认辞书、音标与自然拼读配置</div>
-            </div>
-          </div>
-          <span className="text-xs text-[#8BA0BD] group-hover:text-[#4F7DF3] group-hover:translate-x-1 transition-transform">→</span>
+        <button type="button" onClick={() => navigate('/settings')}
+          className="px-4 py-2.5 rounded-xl bg-white border border-[#E7EEF8] text-sm font-semibold text-[#29466F] hover:border-[#4F7DF3]/40">
+          设置
         </button>
       </div>
-
     </div>
   );
 };
