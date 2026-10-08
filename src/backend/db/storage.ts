@@ -178,19 +178,19 @@ class MySQLStorage {
       return this.getUserRoles(userId);
     } catch(e){await conn.rollback();throw e} finally{conn.release()}
   }
-  async getAllDictionaries(userId?: string) { const [rows]=await pool.query(`SELECT d.*,COUNT(dw.id) word_count FROM dictionary d LEFT JOIN dictionary_word dw ON dw.dictionary_id=d.id AND dw.is_active=1 WHERE d.status='ACTIVE' AND (d.is_system=1 OR d.is_public=1 OR d.owner_user_id=?) GROUP BY d.id ORDER BY d.created_at`,[userId||'']); return (rows as Row[]).map(this.dict); }
-  async getUserDictionaries(userId:string){const [rows]=await pool.query(`SELECT d.*,COUNT(dw.id) word_count FROM dictionary d LEFT JOIN dictionary_word dw ON dw.dictionary_id=d.id AND dw.is_active=1 WHERE d.owner_type='USER' AND d.owner_user_id=? AND d.status<>'INACTIVE' GROUP BY d.id ORDER BY d.created_at`,[userId]);return(rows as Row[]).map(this.dict)}
+  async getAllDictionaries(userId?: string) { const [rows]=await pool.query(`SELECT d.* FROM dictionary d WHERE d.status='ACTIVE' AND (d.is_system=1 OR d.is_public=1 OR d.owner_user_id=?) ORDER BY d.created_at`,[userId||'']); return (rows as Row[]).map(this.dict); }
+  async getUserDictionaries(userId:string){const [rows]=await pool.query(`SELECT d.* FROM dictionary d WHERE d.owner_type='USER' AND d.owner_user_id=? AND d.status<>'INACTIVE' ORDER BY d.created_at`,[userId]);return(rows as Row[]).map(this.dict)}
   async getWordUserDictionaries(userId:string,wordId:string){const [rows]=await pool.query(`SELECT dw.dictionary_id FROM dictionary_word dw JOIN dictionary d ON d.id=dw.dictionary_id WHERE d.owner_type='USER' AND d.owner_user_id=? AND dw.word_id=? AND dw.is_active=1`,[userId,wordId]);return(rows as Row[]).map(r=>r.dictionary_id)}
-  async getAdminDictionaries(){const [rows]=await pool.query(`SELECT d.*,COUNT(dw.id) word_count FROM dictionary d LEFT JOIN dictionary_word dw ON dw.dictionary_id=d.id AND dw.is_active=1 GROUP BY d.id ORDER BY d.created_at`);return(rows as Row[]).map(this.dict)}
-  async findDictionaryById(id:string){const [rows]=await pool.execute(`SELECT d.*,COUNT(dw.id) word_count FROM dictionary d LEFT JOIN dictionary_word dw ON dw.dictionary_id=d.id AND dw.is_active=1 WHERE d.id=? GROUP BY d.id`,[id]);return this.dict((rows as Row[])[0])}
+  async getAdminDictionaries(){const [rows]=await pool.query(`SELECT * FROM dictionary ORDER BY created_at`);return(rows as Row[]).map(this.dict)}
+  async findDictionaryById(id:string){const [rows]=await pool.execute(`SELECT * FROM dictionary WHERE id=? LIMIT 1`,[id]);return this.dict((rows as Row[])[0])}
   private dict(r?:Row):any{if(!r)return;return{id:r.id,name:r.name,code:r.code,description:r.description||'',ownerType:r.owner_type,ownerUserId:r.owner_user_id,isSystem:Boolean(r.is_system),isPublic:Boolean(r.is_public),status:r.status,wordCount:Number(r.word_count||0),createdAt:iso(r.created_at)!,updatedAt:iso(r.updated_at)!}}
-  async createDictionary(d:Dictionary){await pool.query('INSERT INTO dictionary(id,name,code,description,owner_type,owner_user_id,is_system,is_public,status,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)',[d.id,d.name,d.code,d.description||'',d.ownerType,d.ownerUserId,d.isSystem,d.isPublic,d.status,mysqlDate(d.createdAt),mysqlDate(d.updatedAt)]);return d}
+  async createDictionary(d:Dictionary){await pool.query('INSERT INTO dictionary(id,name,code,description,owner_type,owner_user_id,is_system,is_public,status,word_count,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',[d.id,d.name,d.code,d.description||'',d.ownerType,d.ownerUserId,d.isSystem,d.isPublic,d.status,Number(d.wordCount||0),mysqlDate(d.createdAt),mysqlDate(d.updatedAt)]);return d}
   async updateDictionary(id:string,p:Partial<Dictionary>){const d=await this.findDictionaryById(id);if(!d)return;const x={...d,...p,updatedAt:new Date().toISOString()};await pool.query('UPDATE dictionary SET name=?,description=?,is_public=?,status=?,updated_at=? WHERE id=?',[x.name,x.description||'',x.isPublic,x.status,mysqlDate(x.updatedAt),id]);return x}
   async deleteDictionary(id:string){const [r]=await pool.query('DELETE FROM dictionary WHERE id=?',[id]);return Number((r as any).affectedRows)>0}
   async getDictionaryWords(dictionaryId:string){const [rows]=await pool.query(`SELECT dw.id AS dw_id,dw.dictionary_id,dw.word_id,dw.sequence_no,dw.is_active,dw.definition_source,dw.created_at,w.id AS word_ref_id FROM dictionary_word dw JOIN word w ON w.id=dw.word_id WHERE dw.dictionary_id=? AND dw.is_active=1 ORDER BY dw.sequence_no`,[dictionaryId]);return Promise.all((rows as Row[]).map(async r=>({id:r.dw_id,dictionaryId:r.dictionary_id,wordId:r.word_id,sequence:r.sequence_no,isActive:Boolean(r.is_active),definitionSource:r.definition_source||undefined,createdAt:iso(r.created_at)!,word:await this.findWordById(r.word_id)})))}
   private dw(r:Row):DictionaryWord{return{id:r.id,dictionaryId:r.dictionary_id,wordId:r.word_id,sequence:r.sequence_no,isActive:Boolean(r.is_active),definitionSource:r.definition_source||undefined,createdAt:iso(r.created_at)!}}
   async addWordToDictionary(dictionaryId:string,wordId:string,sequence?:number){const [rows]=await pool.query('SELECT * FROM dictionary_word WHERE dictionary_id=? AND word_id=?',[dictionaryId,wordId]);let r=(rows as Row[])[0];if(r){await pool.query('UPDATE dictionary_word SET is_active=1 WHERE id=?',[r.id]);return this.dw({...r,is_active:1})}const [[m]]:any=await pool.query('SELECT COALESCE(MAX(sequence_no),0)+1 n FROM dictionary_word WHERE dictionary_id=?',[dictionaryId]);const x={id:`dw-${Date.now()}-${Math.random().toString(36).slice(2,6)}`,dictionaryId,wordId,sequence:sequence??m.n,isActive:true,createdAt:new Date().toISOString()};await pool.query('INSERT INTO dictionary_word(id,dictionary_id,word_id,sequence_no,is_active,created_at) VALUES(?,?,?,?,?,?)',[x.id,dictionaryId,wordId,x.sequence,1,mysqlDate(x.createdAt)]);return x}
-  async removeWordFromDictionary(dictionaryId:string,wordId:string){const [r]=await pool.query('DELETE FROM dictionary_word WHERE dictionary_id=? AND word_id=?',[dictionaryId,wordId]);return Number((r as any).affectedRows)>0}
+  async removeWordFromDictionary(dictionaryId:string,wordId:string){const [r]=await pool.query('DELETE FROM dictionary_word WHERE dictionary_id=? AND word_id=? AND is_active=1',[dictionaryId,wordId]);const changed=Number((r as any).affectedRows)>0;if(changed) await pool.query('UPDATE dictionary SET word_count=GREATEST(word_count-1,0) WHERE id=?',[dictionaryId]);return changed}
   async batchAddWordsToDictionary(id:string,wids:string[]){const out=[];for(const w of wids){if(await this.findWordById(w))out.push(await this.addWordToDictionary(id,w))}return out}
   async getSettingsBundle(userId: string) {
     const [configRows] = await pool.query('SELECT * FROM user_dictionary_config WHERE user_id=? LIMIT 1', [userId]);
@@ -206,11 +206,8 @@ class MySQLStorage {
     }
 
     const [dictRows] = await pool.query(
-      `SELECT d.*, COUNT(dw.id) AS word_count
-       FROM dictionary d
-       LEFT JOIN dictionary_word dw ON dw.dictionary_id=d.id AND dw.is_active=1
+      `SELECT d.* FROM dictionary d
        WHERE d.status='ACTIVE' AND (d.is_system=1 OR d.is_public=1 OR d.owner_user_id=?)
-       GROUP BY d.id
        ORDER BY d.created_at`,
       [userId]
     );
