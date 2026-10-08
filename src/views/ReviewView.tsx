@@ -64,8 +64,16 @@ export const ReviewView: React.FC<ReviewViewProps> = ({ navigate, config }) => {
         mode: kind === 'DICTATION' ? 'WRITE_ONLY' : 'LEARN_AND_WRITE',
         writeSortMode: config.wordStudyWriteOrder || 'SEQUENCE',
         dictationSortMode: config.wordStudyDictationOrder || 'RANDOM',
-        includeWrite: kind !== 'DICTATION',
-        includeDictation: kind === 'DICTATION' ? true : false
+        includeWrite: kind === 'DICTATION'
+          ? false
+          : kind === 'TODAY'
+            ? config.wordStudyIncludeWrite !== false
+            : true,
+        includeDictation: kind === 'DICTATION'
+          ? true
+          : kind === 'TODAY'
+            ? config.wordStudyIncludeDictation !== false
+            : false
       });
       navigate('/study/' + session.id);
     } catch (e: any) {
