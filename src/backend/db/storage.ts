@@ -130,6 +130,11 @@ class MySQLStorage {
   }
 
   async getRolePermissions(roleId:string): Promise<string[]> {
+    // SUPER_ADMIN is a virtual full-access role: it does not need individual rows in role_permissions.
+    if (roleId === 'SUPER_ADMIN') {
+      const [rows] = await pool.query('SELECT id FROM permissions ORDER BY id');
+      return (rows as Row[]).map(r=>String(r.id));
+    }
     const [rows] = await pool.query('SELECT permission_id FROM role_permissions WHERE role_id=? ORDER BY permission_id',[roleId]);
     return (rows as Row[]).map(r=>String(r.permission_id));
   }
