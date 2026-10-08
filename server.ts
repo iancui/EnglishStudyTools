@@ -11,7 +11,7 @@ async function startServer() {
   const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
   const isProd = process.env.NODE_ENV === 'production';
 
-  app.use(express.json());
+  // Excel 导入会把解析后的行数据以 JSON 发送到后端，默认 100KB 太小。\n  // 提高请求体上限，同时仍保持一个合理上限，避免无限制的大请求。\n  app.use(express.json({ limit: '20mb' }));
 
   // Mount backend API routes
   app.use('/api', apiRouter);
