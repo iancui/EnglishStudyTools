@@ -3,6 +3,7 @@ import { Navbar } from './components/Navbar.tsx';
 import { HomeView } from './views/HomeView.tsx';
 import { StudySessionView } from './views/StudySessionView.tsx';
 import { StudySetupModal } from './views/StudySetupModal.tsx';
+import { SentencePracticeSetupModal } from './views/SentencePracticeSetupModal.tsx';
 import { SentencePracticeView } from './views/SentencePracticeView.tsx';
 import { DictionariesView } from './views/DictionariesView.tsx';
 import { AdminDictionariesView } from './views/AdminDictionariesView.tsx';
@@ -29,6 +30,7 @@ export default function App() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authRequired, setAuthRequired] = useState(false);
   const [isStudySetupOpen, setIsStudySetupOpen] = useState(false);
+  const [isSentenceSetupOpen, setIsSentenceSetupOpen] = useState(false);
   const [setupInitialDictId, setSetupInitialDictId] = useState<string | undefined>(undefined);
   const [setupInitialMode, setSetupInitialMode] = useState<SessionMode>('LEARN_AND_WRITE');
 
@@ -149,17 +151,10 @@ export default function App() {
     navigate(`/study/${sessionId}`);
   };
 
-  const handleStartSentencePractice = async () => {
-    try {
-      const session = await api.createSentencePracticeSession({
-        dictionaryId: config.sentenceDictionaryId || config.defaultDictionaryId
-      });
-      if (session?.id) {
-        navigate(`/sentence-practice/${session.id}`);
-      }
-    } catch (e: any) {
-      alert('开始句子练习失败：' + (e?.message || '未知错误'));
-    }
+  const handleStartSentencePractice = () => setIsSentenceSetupOpen(true);
+
+  const handleSentenceSessionStarted = (sessionId: string) => {
+    navigate('/sentence-practice/' + sessionId);
   };
 
   // Route parser for dynamic and nested routes
@@ -354,7 +349,14 @@ export default function App() {
           )}
         </main>
 
-        <StudySetupModal
+        <SentencePracticeSetupModal
+        isOpen={isSentenceSetupOpen}
+        onClose={() => setIsSentenceSetupOpen(false)}
+        onStarted={handleSentenceSessionStarted}
+        dictionaryId={config.sentenceDictionaryId || config.defaultDictionaryId}
+      />
+
+      <StudySetupModal
           isOpen={isStudySetupOpen}
           onClose={() => setIsStudySetupOpen(false)}
           onSessionStarted={handleSessionStarted}
