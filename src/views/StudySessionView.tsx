@@ -621,19 +621,18 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
             </div>
 
             {/* Input Form - Visual Center (Width 420-560px, Height 54-58px) */}
-            <form onSubmit={handleSubmitSpelling} className="max-w-lg w-full mx-auto space-y-5">
+            <form onSubmit={handleSubmitSpelling} autoComplete="off" className="max-w-lg w-full mx-auto space-y-5">
               <div className="relative">
                 <input
                   ref={inputRef}
                   type="text"
                   inputMode="text"
                   enterKeyHint="done"
-                  autoComplete="new-password"
+                  autoComplete="off"
                   autoCorrect="off"
                   autoCapitalize="none"
                   spellCheck={false}
                   autoFocus={wordStep === 'WRITE' && !hasSubmitted}
-                  name="spelling-answer"
                   data-form-type="other"
                   value={userInput}
                   onChange={e => setUserInput(e.target.value)}
