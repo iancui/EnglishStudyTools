@@ -105,6 +105,7 @@ model Dictionary {
   isSystem    Boolean             @default(false) @map("is_system")
   isPublic    Boolean             @default(true) @map("is_public")
   status      DictionaryStatus    @default(ACTIVE)
+  wordCount   Int                 @default(0) @map("word_count")
   createdAt   DateTime            @default(now()) @map("created_at")
   updatedAt   DateTime            @updatedAt @map("updated_at")
 
