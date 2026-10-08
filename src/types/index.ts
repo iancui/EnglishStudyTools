@@ -157,6 +157,8 @@ export interface StudySessionItem {
   sortMode: SessionSortMode;
   writeSortMode: StudyOrderMode;
   dictationSortMode: StudyOrderMode;
+  includeWrite: boolean;
+  includeDictation: boolean;
   phase: StudySessionPhase;
   status: SessionStatus;
   currentWordIndex: number;
@@ -217,6 +219,8 @@ export interface DictionaryConfig {
   wordStudySortMode?: 'RANDOM' | 'SEQUENCE' | 'REVIEW_FIRST';
   wordStudyWriteOrder?: StudyOrderMode;
   wordStudyDictationOrder?: StudyOrderMode;
+  wordStudyIncludeWrite?: boolean;
+  wordStudyIncludeDictation?: boolean;
   wordStudyExcludeMastered?: boolean;
   wordStudyMode?: 'LEARN_AND_WRITE' | 'WRITE_ONLY';
 }
