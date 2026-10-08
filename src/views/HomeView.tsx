@@ -34,8 +34,6 @@ const LearningCard: React.FC<{
   onStart: () => void;
   onContinue?: () => void;
   onRestart?: () => void;
-  reviewCount?: number;
-  onReview?: () => void;
   batchCompleted?: number;
   batchTotal?: number;
 }> = ({
@@ -49,8 +47,6 @@ const LearningCard: React.FC<{
   onStart,
   onContinue,
   onRestart,
-  reviewCount = 0,
-  onReview,
   batchCompleted = 0,
   batchTotal = 0
 }) => {
@@ -196,15 +192,6 @@ const LearningCard: React.FC<{
         )}
       </div>
 
-      {title === '背单词' && reviewCount > 0 && onReview && (
-        <button
-          type="button"
-          onClick={onReview}
-          className="w-full mt-2.5 py-2.5 px-4 rounded-xl bg-[#FFF8E8] hover:bg-[#FFF2D1] text-[#8A6412] text-sm font-semibold transition-all"
-        >
-          今日复习 · {reviewCount} 词
-        </button>
-      )}
     </div>
   );
 };
@@ -219,9 +206,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const [activeSentenceSession, setActiveSentenceSession] = useState<SentencePracticeSession | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // 今日复习：独立 state，加载成功才有值（避免闪烁先显示 0）
-  const [reviewWords, setReviewWords] = useState<any[] | null>(null);
-  const [reviewError, setReviewError] = useState<string | null>(null);
 
   useEffect(() => {
     loadHomeData();
@@ -242,8 +226,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
       console.error('Failed to load home data:', e);
     } finally {
       setLoading(false);
-      // 今日复习独立加载，失败不影响主数据
-      loadReviewWords();
     }
   };
 
@@ -271,7 +253,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
               sortMode: config.wordStudySortMode || 'RANDOM',
               writeSortMode: config.wordStudyWriteOrder || 'SEQUENCE',
               dictationSortMode: config.wordStudyDictationOrder || 'RANDOM',
-              mode: modeOverride || config.wordStudyMode || 'LEARN_AND_WRITE'
+              includeWrite: config.wordStudyIncludeWrite !== false,
+              includeDictation: config.wordStudyIncludeDictation !== false,
+              mode: modeOverride || 'LEARN_AND_WRITE'
             }
       );
       navigate('/study/' + session.id);
@@ -280,40 +264,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
     }
   };
 
-  const loadReviewWords = async () => {
-    try {
-      setReviewError(null);
-      const words = await api.getTodayReview();
-      setReviewWords(words || []);
-    } catch (e) {
-      console.error('Failed to load today review:', e);
-      setReviewError('复习数据加载失败');
-    }
-  };
 
-  // 开始今日复习：用到期词直接创建 StudySession，不走 SetupModal
-  const handleStartTodayReview = async () => {
-    if (!reviewWords || reviewWords.length === 0) return;
-
-    // 保护已有 IN_PROGRESS Session
-    if (activeSession) {
-      const ok = window.confirm(
-        '已有一个正在进行的学习任务，开始今日复习会结束当前任务，是否继续？'
-      );
-      if (!ok) return;
-    }
-
-    try {
-      const wordIds = reviewWords.map((w) => w.id).filter(Boolean);
-      const session = await api.createStudySession({
-        wordIds,
-        mode: 'LEARN_AND_WRITE'
-      });
-      navigate(`/study/${session.id}`);
-    } catch (e: any) {
-      alert('创建今日复习任务失败：' + (e?.message || '未知错误'));
-    }
-  };
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-8 py-8 sm:py-12 space-y-10 animate-fadeIn">
@@ -330,11 +281,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
           mastered={stats?.masteredWords || 0}
           active={!!activeSession}
           activeText={activeSession?.phase === 'DICTATION' ? '继续强化听写' : '继续背单词'}
-          reviewCount={reviewWords?.length || 0}
           onStart={() => handleStartWordStudy()}
           onContinue={() => navigate('/study/' + activeSession!.id)}
           onRestart={() => handleStartWordStudy(undefined, true)}
-          onReview={handleStartTodayReview}
           batchCompleted={activeSession?.completedCount || 0}
           batchTotal={activeSession?.totalCount || 0}
         />
@@ -352,24 +301,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
         />
       </div>
 
-      <div className="flex flex-wrap gap-3">
-        <button type="button" onClick={() => handleStartWordStudy('WRITE_ONLY', true)}
-          className="px-4 py-2.5 rounded-xl bg-white border border-[#E7EEF8] text-sm font-semibold text-[#29466F] hover:border-[#4F7DF3]/40">
-          单词听写
-        </button>
-        <button type="button" onClick={() => navigate('/words/wrong')}
-          className="px-4 py-2.5 rounded-xl bg-white border border-[#E7EEF8] text-sm font-semibold text-[#29466F] hover:border-[#4F7DF3]/40">
-          错词本
-        </button>
-        <button type="button" onClick={() => navigate('/statistics')}
-          className="px-4 py-2.5 rounded-xl bg-white border border-[#E7EEF8] text-sm font-semibold text-[#29466F] hover:border-[#4F7DF3]/40">
-          学习记录
-        </button>
-        <button type="button" onClick={() => navigate('/settings')}
-          className="px-4 py-2.5 rounded-xl bg-white border border-[#E7EEF8] text-sm font-semibold text-[#29466F] hover:border-[#4F7DF3]/40">
-          设置
-        </button>
-      </div>
+>
     </div>
   );
 };
