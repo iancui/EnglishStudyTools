@@ -26,6 +26,37 @@ const iso = (v: any) => v ? new Date(v).toISOString() : undefined;
 const mysqlDate = (v: any) => v ? new Date(v).toISOString().slice(0, 19).replace('T', ' ') : null;
 
 class MySQLStorage {
+  async createAuthSession(token: string, userId: string, expiresAt: Date): Promise<void> {
+    await pool.query(
+      'CREATE TABLE IF NOT EXISTS auth_session (token VARCHAR(128) PRIMARY KEY, user_id VARCHAR(128) NOT NULL, expires_at DATETIME NOT NULL, INDEX idx_auth_session_user (user_id), INDEX idx_auth_session_expiry (expires_at))'
+    );
+    await pool.query(
+      'INSERT INTO auth_session(token,user_id,expires_at) VALUES(?,?,?) ON DUPLICATE KEY UPDATE user_id=VALUES(user_id),expires_at=VALUES(expires_at)',
+      [token, userId, mysqlDate(expiresAt.toISOString())]
+    );
+  }
+
+  async findAuthSession(token: string): Promise<{ userId: string; expiresAt: Date } | undefined> {
+    await pool.query(
+      'CREATE TABLE IF NOT EXISTS auth_session (token VARCHAR(128) PRIMARY KEY, user_id VARCHAR(128) NOT NULL, expires_at DATETIME NOT NULL, INDEX idx_auth_session_user (user_id), INDEX idx_auth_session_expiry (expires_at))'
+    );
+    const [rows] = await pool.query(
+      'SELECT user_id, expires_at FROM auth_session WHERE token=? AND expires_at>NOW() LIMIT 1',
+      [token]
+    );
+    const row = (rows as Row[])[0];
+    if (!row) return undefined;
+    return { userId: row.user_id, expiresAt: new Date(row.expires_at) };
+  }
+
+  async revokeAuthSession(token: string): Promise<void> {
+    await pool.query('DELETE FROM auth_session WHERE token=?', [token]);
+  }
+
+  async purgeExpiredAuthSessions(): Promise<void> {
+    await pool.query('DELETE FROM auth_session WHERE expires_at<=NOW()');
+  }
+
   async findUserByEmail(email: string): Promise<User | undefined> {
     const [rows] = await pool.query('SELECT * FROM users WHERE LOWER(email)=LOWER(?) LIMIT 1', [email]);
     return this.user((rows as Row[])[0]);
