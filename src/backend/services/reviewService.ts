@@ -100,23 +100,6 @@ export class ReviewService {
    * Get words scheduled for review today or overdue
    */
   static async getTodayReviewWords(userId: string) {
-    const allProgress = await db.getAllWordProgresses(userId);
-    const now = new Date();
-
-    const dueWordIds = allProgress
-      .filter((p): p is UserWordProgress => Boolean(p))
-      .filter(p => !!p.nextReviewAt && new Date(p.nextReviewAt) <= now)
-      .map(p => p.wordId);
-
-    return (await Promise.all(dueWordIds.map(id => db.findWordById(id)))).filter(Boolean);
-
-    /*
-        if (!p.nextReviewAt) return false;
-        return new Date(p.nextReviewAt) <= now;
-      })
-      .map(p => p.wordId);
-
-    return (await Promise.all(dueWordIds.map(id => db.findWordById(id)))).filter(Boolean);
-    */
+    return db.getTodayReviewWords(userId);
   }
 }
