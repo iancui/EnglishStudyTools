@@ -149,6 +149,8 @@ export interface UserDictionaryConfig {
   wordStudySortMode?: 'RANDOM' | 'SEQUENCE' | 'REVIEW_FIRST';
   wordStudyWriteOrder?: StudyOrderMode;
   wordStudyDictationOrder?: StudyOrderMode;
+  wordStudyIncludeWrite?: boolean;
+  wordStudyIncludeDictation?: boolean;
   wordStudyExcludeMastered?: boolean;
   wordStudyMode?: 'LEARN_AND_WRITE' | 'WRITE_ONLY';
   createdAt: string;
