@@ -173,7 +173,7 @@ export const WrongWordsView: React.FC<WrongWordsViewProps> = ({ navigate, config
           </p>
           <div className="pt-2 flex justify-center gap-3">
             <button
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/review')}
               className="px-6 py-2.5 bg-[#4F7DF3] text-white rounded-xl text-sm font-semibold hover:bg-[#3D6CE5] transition-colors shadow-xs cursor-pointer"
             >
               返回首页
