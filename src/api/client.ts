@@ -193,6 +193,7 @@ export const api = {
   // Study Sessions (The Core Step-by-Step Learning Engine)
   previewStudySession: (params: {
     dictionaryId: string;
+    chapterId?: string;
     count?: number;
     excludeMastered?: boolean;
     sortMode?: string;
@@ -204,6 +205,7 @@ export const api = {
 
   createStudySession: (params: {
     dictionaryId?: string;
+    chapterId?: string;
     wordIds?: string[];
     count?: number;
     excludeMastered?: boolean;
