@@ -33,7 +33,10 @@ const LearningCard: React.FC<{
   activeText?: string;
   onStart: () => void;
   onContinue?: () => void;
-}> = ({ title, icon, total, learned, mastered, active, activeText, onStart, onContinue }) => {
+  onRestart?: () => void;
+  reviewCount?: number;
+  onReview?: () => void;
+}> = ({ title, icon, total, learned, mastered, active, activeText, onStart, onContinue, onRestart, reviewCount = 0, onReview }) => {
   const percent = total > 0 ? Math.min(100, Math.round((mastered / total) * 100)) : 0;
   const radius = 46;
   const circumference = 2 * Math.PI * radius;
@@ -63,10 +66,22 @@ const LearningCard: React.FC<{
           </div>
         </div>
       </div>
-      <button type="button" onClick={active && onContinue ? onContinue : onStart} className="w-full mt-6 py-3.5 px-5 bg-[#4F7DF3] hover:bg-[#3D6CE5] text-white font-bold rounded-2xl transition-all flex items-center justify-center gap-2 text-sm">
-        <span>{active ? (activeText || '继续学习') : '开始' + title}</span>
-        <ArrowRight className="w-4 h-4" />
-      </button>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-6">
+        <button type="button" onClick={active && onContinue ? onContinue : onStart} className="py-3.5 px-5 bg-[#4F7DF3] hover:bg-[#3D6CE5] text-white font-bold rounded-2xl transition-all flex items-center justify-center gap-2 text-sm">
+          <span>{active ? (activeText || '继续学习') : '开始' + title}</span>
+          <ArrowRight className="w-4 h-4" />
+        </button>
+        {active && onRestart && (
+          <button type="button" onClick={onRestart} className="py-3.5 px-5 bg-white hover:bg-[#F7F9FC] border border-[#DCE5F2] text-[#29466F] font-bold rounded-2xl transition-all text-sm">
+            重新开始
+          </button>
+        )}
+      </div>
+      {title === '背单词' && reviewCount > 0 && onReview && (
+        <button type="button" onClick={onReview} className="w-full mt-2.5 py-2.5 px-4 rounded-xl bg-[#FFF8E8] hover:bg-[#FFF2D1] text-[#8A6412] text-sm font-semibold transition-all">
+          今日复习 · {reviewCount} 词
+        </button>
+      )}
     </div>
   );
 };
@@ -109,8 +124,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
     }
   };
 
-  const handleStartWordStudy = async (modeOverride?: SessionMode) => {
-    if (activeSession) {
+  const handleStartWordStudy = async (modeOverride?: SessionMode, restart = false) => {
+    if (activeSession && !restart) {
       navigate('/study/' + activeSession.id);
       return;
     }
@@ -172,18 +187,36 @@ export const HomeView: React.FC<HomeViewProps> = ({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <LearningCard title="背单词" icon="📚" total={stats?.totalWords || 0} learned={stats?.learnedWords || 0} mastered={stats?.masteredWords || 0} active={!!activeSession} activeText="继续背单词" onStart={() => handleStartWordStudy()} onContinue={() => navigate('/study/' + activeSession!.id)} />
-        <LearningCard title="学句子" icon="💬" total={stats?.totalSentences || 0} learned={stats?.learnedSentences || 0} mastered={stats?.masteredSentences || 0} active={!!activeSentenceSession} activeText="继续学句子" onStart={() => onStartSentencePractice?.()} onContinue={() => navigate('/sentence-practice/' + activeSentenceSession!.id)} />
+        <LearningCard
+          title="背单词"
+          icon="📚"
+          total={stats?.totalWords || 0}
+          learned={stats?.learnedWords || 0}
+          mastered={stats?.masteredWords || 0}
+          active={!!activeSession}
+          activeText="继续背单词"
+          reviewCount={reviewWords?.length || 0}
+          onStart={() => handleStartWordStudy()}
+          onContinue={() => navigate('/study/' + activeSession!.id)}
+          onRestart={() => handleStartWordStudy(undefined, true)}
+          onReview={handleStartTodayReview}
+        />
+        <LearningCard
+          title="学句子"
+          icon="💬"
+          total={stats?.totalSentences || 0}
+          learned={stats?.learnedSentences || 0}
+          mastered={stats?.masteredSentences || 0}
+          active={!!activeSentenceSession}
+          activeText="继续学句子"
+          onStart={() => onStartSentencePractice?.()}
+          onContinue={() => navigate('/sentence-practice/' + activeSentenceSession!.id)}
+          onRestart={() => onStartSentencePractice?.()}
+        />
       </div>
 
       <div className="flex flex-wrap gap-3">
-        {reviewWords !== null && (
-          <button type="button" onClick={handleStartTodayReview} disabled={reviewWords.length === 0}
-            className="px-4 py-2.5 rounded-xl bg-white border border-[#E7EEF8] text-sm font-semibold text-[#29466F] hover:border-[#4F7DF3]/40 disabled:opacity-50">
-            今日复习{reviewWords.length > 0 ? ` · ${reviewWords.length}` : ''}
-          </button>
-        )}
-        <button type="button" onClick={() => handleStartWordStudy('WRITE_ONLY')}
+        <button type="button" onClick={() => handleStartWordStudy('WRITE_ONLY', true)}
           className="px-4 py-2.5 rounded-xl bg-white border border-[#E7EEF8] text-sm font-semibold text-[#29466F] hover:border-[#4F7DF3]/40">
           单词听写
         </button>
