@@ -22,7 +22,6 @@ export class StudySessionService {
     const dict = await db.findDictionaryById(dictionaryId);
     if (!dict) throw new Error('辞书不存在');
 
-    const [totalRows] = await (db as any).queryRaw?.('') || [];
     const matchingCount = await db.getStudyCandidateCount(dictionaryId, userId, excludeMastered);
     const totalInDict = await db.getStudyCandidateCount(dictionaryId, userId, false);
     return {
