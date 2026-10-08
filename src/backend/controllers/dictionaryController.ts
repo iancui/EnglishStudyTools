@@ -51,6 +51,8 @@ export class DictionaryController {
         (before.wordStudyChapterId || '') !== (req.body?.wordStudyChapterId || '') ||
         Number(before.wordStudyCount || 20) !== Number(req.body?.wordStudyCount || 20) ||
         (before.wordStudySortMode || 'RANDOM') !== (req.body?.wordStudySortMode || 'RANDOM') ||
+        (before.wordStudyWriteOrder || 'SEQUENCE') !== (req.body?.wordStudyWriteOrder || 'SEQUENCE') ||
+        (before.wordStudyDictationOrder || 'RANDOM') !== (req.body?.wordStudyDictationOrder || 'RANDOM') ||
         Boolean(before.wordStudyExcludeMastered !== false) !== Boolean(req.body?.wordStudyExcludeMastered !== false) ||
         (before.wordStudyMode || 'LEARN_AND_WRITE') !== (req.body?.wordStudyMode || 'LEARN_AND_WRITE');
 
