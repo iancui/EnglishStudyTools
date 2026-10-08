@@ -308,6 +308,11 @@ class MySQLStorage {
     return unique.map(id => result.get(id)).filter(Boolean) as Word[];
   }
 
+  async getWordCount(){
+    const [rows] = await pool.query('SELECT COUNT(*) AS total FROM word');
+    return Number((rows as Row[])[0]?.total || 0);
+  }
+
   async getAllWords(){const [rows]=await pool.query('SELECT * FROM word ORDER BY id');return Promise.all((rows as Row[]).map(r=>this.findWordById(r.id))) as any}
   async findWordById(id:string){const [rows]=await pool.execute('SELECT * FROM word WHERE id=?',[id]);return this.loadWord((rows as Row[])[0])}
   async findWordByText(text:string){const [rows]=await pool.query('SELECT * FROM word WHERE LOWER(text)=LOWER(?)',[text.trim()]);return this.loadWord((rows as Row[])[0])}
