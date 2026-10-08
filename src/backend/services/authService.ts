@@ -2,9 +2,6 @@ import crypto from 'node:crypto';
 import { db } from '../db/storage.ts';
 import { User, UserRole } from '../types/index.ts';
 
-interface SessionToken { userId: string; expiresAt: number; }
-const sessions = new Map<string, SessionToken>();
-
 export class AuthService {
   private static hashPassword(password: string): string {
     const salt = crypto.randomBytes(16).toString('hex');
@@ -20,9 +17,10 @@ export class AuthService {
     return crypto.timingSafeEqual(Buffer.from(actual, 'hex'), Buffer.from(expected, 'hex'));
   }
 
-  private static createToken(userId: string): string {
+  private static async createToken(userId: string): Promise<string> {
     const token = crypto.randomBytes(32).toString('hex');
-    sessions.set(token, { userId, expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000 });
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    await db.createAuthSession(token, userId, expiresAt);
     return token;
   }
 
@@ -46,7 +44,7 @@ export class AuthService {
       createdAt: now, updatedAt: now
     };
     await db.createUser(newUser);
-    return { user: await this.publicUser(newUser), token: this.createToken(newUser.id) };
+    return { user: await this.publicUser(newUser), token: await this.createToken(newUser.id) };
   }
 
   static async login(username: string, password: string, captchaId: string, captchaCode: string): Promise<{ user: Omit<User, 'passwordHash'>; token: string }> {
@@ -54,17 +52,19 @@ export class AuthService {
     username = String(username || '').trim();
     const user = await db.findUserByUsername(username);
     if (!user || !this.verifyPassword(password || '', user.passwordHash)) throw new Error('账户名或密码错误');
-    return { user: await this.publicUser(user), token: this.createToken(user.id) };
+    return { user: await this.publicUser(user), token: await this.createToken(user.id) };
   }
 
   static async getUserFromToken(token: string): Promise<User | undefined> {
-    const session = sessions.get(token || '');
+    if (!token) return undefined;
+    const session = await db.findAuthSession(token);
     if (!session) return undefined;
-    if (session.expiresAt <= Date.now()) { sessions.delete(token); return undefined; }
     return await db.findUserById(session.userId);
   }
 
-  static async revokeToken(token: string) { if (token) sessions.delete(token); }
+  static async revokeToken(token: string) {
+    if (token) await db.revokeAuthSession(token);
+  }
 
   private static async publicUser(user: User): Promise<Omit<User, 'passwordHash'>> {
     const access = await db.getUserAccess(user.id);
