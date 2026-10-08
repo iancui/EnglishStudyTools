@@ -34,7 +34,9 @@ export class StudySessionController {
   static async getActiveSession(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id || 'u-default';
+      const startedAt = Date.now();
       const session = await StudySessionService.getActiveSession(userId);
+      console.log('[perf:home/active-study-session]', { userId, elapsedMs: Date.now() - startedAt, hasSession: Boolean(session) });
       res.json({
         code: 200,
         message: 'success',
