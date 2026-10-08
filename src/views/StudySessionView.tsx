@@ -140,7 +140,7 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
     setWordStep(nextStep);
 
     if (nextStep === 'WRITE') {
-      setTimeout(() => inputRef.current?.focus(), 80);
+      requestAnimationFrame(() => inputRef.current?.focus());
     }
   }, [session?.currentWordIndex]);
 
@@ -160,7 +160,7 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
       await api.learnSessionWord(session.id, currentSessionWord.wordId);
       if (!isMountedRef.current) return;
       setWordStep('WRITE');
-      setTimeout(() => inputRef.current?.focus(), 80);
+      requestAnimationFrame(() => inputRef.current?.focus());
     } catch (e) {
       console.error(e);
       setWordStep('WRITE');
@@ -626,10 +626,15 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
                 <input
                   ref={inputRef}
                   type="text"
-                  autoComplete="off"
+                  inputMode="text"
+                  enterKeyHint="done"
+                  autoComplete="new-password"
                   autoCorrect="off"
-                  autoCapitalize="off"
-                  spellCheck="false"
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  autoFocus={wordStep === 'WRITE' && !hasSubmitted}
+                  name="spelling-answer"
+                  data-form-type="other"
                   value={userInput}
                   onChange={e => setUserInput(e.target.value)}
                   disabled={hasSubmitted}
