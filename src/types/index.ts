@@ -207,6 +207,11 @@ export interface DictionaryConfig {
   audioType: 'UK' | 'US';
   enablePhonics: boolean;
   sentencePracticeCount?: number;
+  wordStudyCount?: number;
+  wordStudyChapterId?: string;
+  wordStudySortMode?: 'RANDOM' | 'SEQUENCE' | 'REVIEW_FIRST';
+  wordStudyExcludeMastered?: boolean;
+  wordStudyMode?: 'LEARN_AND_WRITE' | 'WRITE_ONLY';
 }
 
 export interface StatisticsData {
