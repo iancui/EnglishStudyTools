@@ -336,6 +336,7 @@ export const api = {
 
   // Dictionary Config
   getDictionaryConfig: () => request<any>('/api/dictionary/config'),
+  getSettingsBundle: () => request<any>('/api/dictionary/settings-bundle'),
   updateDictionaryConfig: (data: any) =>
     request<any>('/api/dictionary/config', {
       method: 'PUT',
