@@ -33,9 +33,13 @@ export class DictionaryService {
   static async getDictionaryById(id: string) {
     const dict = await db.findDictionaryById(id);
     if (!dict) return null;
-    const wordsWithDetails = await db.getDictionaryWords(id);
+    const [wordsWithDetails, chapters] = await Promise.all([
+      db.getDictionaryWords(id),
+      db.getDictionaryChapters(id)
+    ]);
     return {
       ...dict,
+      chapters,
       words: wordsWithDetails
     };
   }
