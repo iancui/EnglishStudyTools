@@ -310,7 +310,11 @@ export const HomeView: React.FC<HomeViewProps> = ({
               <div className="bg-[#F7FAFF] border border-[#E7EEF8] rounded-2xl p-4.5 space-y-3">
                 <div className="flex items-center justify-between text-xs">
                   <div className="font-semibold text-[#29466F]">
-                    {activeSentenceSession.dictionaryId ? `词库：${activeSentenceSession.dictionaryId}` : '当前词库'}
+                    {activeSentenceSession.dictionary?.name
+                      ? `词库：${activeSentenceSession.dictionary.name}`
+                      : activeSentenceSession.dictionaryId
+                        ? `词库ID：${activeSentenceSession.dictionaryId}`
+                        : '当前词库未指定'}
                   </div>
                   <div className="font-mono font-bold text-[#4F7DF3]">
                     继续练习 {activeSentenceSession.currentSentenceIndex} / {activeSentenceSession.totalCount} 句
