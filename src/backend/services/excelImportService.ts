@@ -40,15 +40,6 @@ function splitWords(sentence: string): Array<{ text: string; punctAfter: string 
   return result;
 }
 
-function splitWords(sentence: string): Array<{ text: string; punctAfter: string }> {
-  const result: Array<{ text: string; punctAfter: string }> = [];
-  const regex = /([A-Za-z']+)([^A-Za-z']*)?/g;
-  let m: RegExpExecArray | null;
-  while ((m = regex.exec(sentence)) !== null) {
-    result.push({ text: m[1], punctAfter: m[2] || '' });
-  }
-  return result;
-}
 
 
 function chunk<T>(items: T[], size = 500): T[][] {
