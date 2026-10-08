@@ -68,6 +68,7 @@ apiRouter.post('/admin/dictionaries/:id/import', requirePermission('word.import'
 
 // Dictionary Config (Preferences)
 apiRouter.get('/dictionary/config', DictionaryController.getConfig);
+apiRouter.get('/dictionary/settings-bundle', DictionaryController.getSettingsBundle);
 apiRouter.post('/dictionary/config', DictionaryController.updateConfig);
 apiRouter.put('/dictionary/config', DictionaryController.updateConfig);
 
