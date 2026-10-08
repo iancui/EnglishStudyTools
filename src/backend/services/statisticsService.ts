@@ -59,10 +59,6 @@ export class StatisticsService {
     const records = await db.getLearningRecords(userId);
     logStep('get-learning-records', stepStartedAt, { recordCount: records.length });
 
-    stepStartedAt = Date.now();
-    const progresses = (await db.getAllWordProgresses(userId)).filter((p): p is import('../types/index.ts').UserWordProgress => Boolean(p));
-    logStep('get-word-progresses', stepStartedAt, { progressCount: progresses.length });
-
     // 首页词库进度必须以当前默认辞书为口径，不能把其他辞书的词汇混进来。
     stepStartedAt = Date.now();
     const config = await DictionaryService.getConfig(userId);
