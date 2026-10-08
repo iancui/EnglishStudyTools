@@ -1,5 +1,6 @@
 import { db } from '../db/storage.ts';
 import { LearningRecord } from '../types/index.ts';
+import { DictionaryService } from './dictionaryService.ts';
 
 export class StatisticsService {
   /**
@@ -62,11 +63,20 @@ export class StatisticsService {
     const progresses = (await db.getAllWordProgresses(userId)).filter((p): p is import('../types/index.ts').UserWordProgress => Boolean(p));
     logStep('get-word-progresses', stepStartedAt, { progressCount: progresses.length });
 
-    // Only the count is needed here. Loading every word with meanings/phonics
-    // creates thousands of DB queries and can block other homepage requests.
+    // 首页词库进度必须以当前默认辞书为口径，不能把其他辞书的词汇混进来。
     stepStartedAt = Date.now();
-    const totalWords = await db.getWordCount();
-    logStep('count-total-words', stepStartedAt, { totalWords });
+    const config = await DictionaryService.getConfig(userId);
+    const dictionaryId = config.defaultDictionaryId;
+    const dictionaryWordStats = dictionaryId
+      ? await db.getDictionaryWordProgressStats(userId, dictionaryId)
+      : { totalWords: 0, learnedWords: 0, masteredWords: 0 };
+    const totalWords = dictionaryWordStats.totalWords;
+    logStep('count-dictionary-word-progress', stepStartedAt, {
+      dictionaryId,
+      totalWords,
+      learnedWords: dictionaryWordStats.learnedWords,
+      masteredWords: dictionaryWordStats.masteredWords
+    });
 
     stepStartedAt = Date.now();
     const totalSentences = await db.getSentenceCount();
@@ -94,10 +104,11 @@ export class StatisticsService {
     const totalTimeSec = todayRecords.reduce((acc, r) => acc + (r.timeSpentSec || 0), 0);
     const studyTimeMinutes = Math.round(totalTimeSec / 60);
 
-    const masteredWords = progresses.filter(p => p.status === 'MASTERED').length;
-    const learningWords = progresses.filter(p => p.status === 'LEARNING' || p.status === 'REVIEW').length;
+    const masteredWords = dictionaryWordStats.masteredWords;
+    const learnedWords = dictionaryWordStats.learnedWords;
+    const learningWords = Math.max(0, learnedWords - masteredWords);
 
-    // Progress percentage strictly computed from mastered & learning words
+    // Progress percentage strictly computed from dictionary-scoped mastered & learned words.
     const progressPercent = totalWords > 0
       ? Math.min(100, Math.round(((masteredWords + learningWords * 0.5) / totalWords) * 100))
       : 0;
@@ -124,7 +135,7 @@ export class StatisticsService {
       studyTimeMinutes,
       masteredWords,
       learningWords,
-      learnedWords: masteredWords + learningWords,
+      learnedWords,
       totalWords,
       totalSentences,
       learnedSentences: sentenceProgress.learned,
