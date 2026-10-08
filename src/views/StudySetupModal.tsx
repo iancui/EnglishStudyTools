@@ -39,24 +39,19 @@ export const StudySetupModal: React.FC<StudySetupModalProps> = ({
   const selectedDictId = initialDictionaryId || latestConfig?.defaultDictionaryId || config?.defaultDictionaryId || '';
 
   useEffect(() => {
-    if (isOpen) {
-      loadDictionaries();
-      setLatestConfig(config);
-      api.getDictionaryConfig().then((freshConfig) => {
-        if (freshConfig) setLatestConfig(freshConfig);
-      }).catch((e) => console.warn('刷新辞书设置失败，使用当前配置:', e));
-      if (initialMode) setMode(initialMode);
-    }
-  }, [isOpen, initialMode, config]);
+    if (!isOpen) return;
 
-  const loadDictionaries = async () => {
-    try {
-      const list = await api.getDictionaries();
-      setDictionaries(list);
-    } catch (e) {
-      console.error(e);
-    }
-  };
+    setLatestConfig(config);
+    if (initialMode) setMode(initialMode);
+
+    // 合并辞书列表和最新配置请求，避免打开普通学习时连续发起两个请求。
+    api.getSettingsBundle()
+      .then((bundle) => {
+        if (bundle?.dictionaries) setDictionaries(bundle.dictionaries);
+        if (bundle?.config) setLatestConfig(bundle.config);
+      })
+      .catch((e) => console.warn('加载辞书设置失败，使用当前配置:', e));
+  }, [isOpen, initialMode, config]);
 
   useEffect(() => {
     if (!selectedDictId) return;
