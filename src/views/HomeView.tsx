@@ -36,7 +36,9 @@ const LearningCard: React.FC<{
   onRestart?: () => void;
   reviewCount?: number;
   onReview?: () => void;
-}> = ({ title, icon, total, learned, mastered, active, activeText, onStart, onContinue, onRestart, reviewCount = 0, onReview }) => {
+  batchCompleted?: number;
+  batchTotal?: number;
+}> = ({ title, icon, total, learned, mastered, active, activeText, onStart, onContinue, onRestart, reviewCount = 0, onReview, batchCompleted = 0, batchTotal = 0 }) => {
   const percent = total > 0 ? Math.min(100, Math.round((mastered / total) * 100)) : 0;
   const radius = 46;
   const circumference = 2 * Math.PI * radius;
@@ -60,6 +62,12 @@ const LearningCard: React.FC<{
             <h2 className="text-xl font-bold text-[#29466F]">{title}</h2>
           </div>
           <div className="flex gap-5 text-sm">
+            {active && batchTotal > 0 && (
+              <div>
+                <span className="font-bold text-[#4F7DF3]">{batchCompleted}</span>
+                <span className="text-[#8BA0BD]"> / {batchTotal} 本批次</span>
+              </div>
+            )}
             <div><span className="font-bold text-[#29466F]">{total}</span><span className="text-[#8BA0BD] ml-1">总数</span></div>
             <div><span className="font-bold text-[#4F7DF3]">{learned}</span><span className="text-[#8BA0BD] ml-1">已学</span></div>
             <div><span className="font-bold text-emerald-600">{mastered}</span><span className="text-[#8BA0BD] ml-1">已掌握</span></div>
@@ -200,6 +208,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
           onContinue={() => navigate('/study/' + activeSession!.id)}
           onRestart={() => handleStartWordStudy(undefined, true)}
           onReview={handleStartTodayReview}
+          batchCompleted={activeSession?.completedCount || 0}
+          batchTotal={activeSession?.totalCount || 0}
         />
         <LearningCard
           title="学句子"
