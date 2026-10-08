@@ -267,14 +267,35 @@ class MySQLStorage {
     if (sortMode === 'RANDOM') order = 'RAND()';
     else if (sortMode === 'REVIEW_FIRST') order = `CASE WHEN up.status='REVIEW' AND up.next_review_at IS NOT NULL AND up.next_review_at <= NOW() THEN 0 WHEN up.status='REVIEW' THEN 1 WHEN up.status='LEARNING' THEN 2 ELSE 3 END, dw.sequence_no ASC`;
     const mastered = excludeMastered ? "AND (up.word_id IS NULL OR (up.status <> 'MASTERED' AND COALESCE(up.mastery,0) <= 90))" : '';
+
+    // Prefer words that were not included in the user's immediately previous
+    // session for this dictionary. If there are not enough fresh words, the
+    // ORDER BY naturally falls back to recently studied words so a batch can
+    // still be filled to the requested size.
     const [rows] = await pool.query(
       `SELECT dw.word_id, dw.sequence_no
        FROM dictionary_word dw
        LEFT JOIN user_word_progress up ON up.word_id=dw.word_id AND up.user_id=?
+       LEFT JOIN study_session_word recent_sw
+         ON recent_sw.word_id=dw.word_id
+        AND recent_sw.session_id=(
+          SELECT ss.id
+          FROM study_session ss
+          WHERE ss.user_id=? AND ss.dictionary_id=?
+          ORDER BY ss.created_at DESC, ss.id DESC
+          LIMIT 1
+        )
        WHERE dw.dictionary_id=? AND dw.is_active=1 ${mastered} ${chapterId ? 'AND dw.chapter_id=?' : ''}
-       ORDER BY ${order}
+       ORDER BY CASE WHEN recent_sw.word_id IS NULL THEN 0 ELSE 1 END, ${order}
        LIMIT ?`,
-      [userId, dictionaryId, ...(chapterId ? [chapterId] : []), Math.max(1, limit)]
+      [
+        userId,
+        userId,
+        dictionaryId,
+        dictionaryId,
+        ...(chapterId ? [chapterId] : []),
+        Math.max(1, limit)
+      ]
     );
     return rows as Row[];
   }
