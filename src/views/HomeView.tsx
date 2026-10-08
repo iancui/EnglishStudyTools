@@ -38,58 +38,181 @@ const LearningCard: React.FC<{
   onReview?: () => void;
   batchCompleted?: number;
   batchTotal?: number;
-}> = ({ title, icon, total, learned, mastered, active, activeText, onStart, onContinue, onRestart, reviewCount = 0, onReview, batchCompleted = 0, batchTotal = 0 }) => {
-  const percent = total > 0 ? Math.min(100, Math.round((mastered / total) * 100)) : 0;
-  const learnedPercent = total > 0 ? Math.min(100, Math.round((learned / total) * 100)) : 0;
-  const radius = 46;
+}> = ({
+  title,
+  icon,
+  total,
+  learned,
+  mastered,
+  active,
+  activeText,
+  onStart,
+  onContinue,
+  onRestart,
+  reviewCount = 0,
+  onReview,
+  batchCompleted = 0,
+  batchTotal = 0
+}) => {
+  const safeTotal = Math.max(0, total);
+  const safeLearned = Math.min(safeTotal, Math.max(0, learned));
+  const safeMastered = Math.min(safeLearned, Math.max(0, mastered));
+  const learnedUnmastered = Math.max(0, safeLearned - safeMastered);
+  const unlearned = Math.max(0, safeTotal - safeLearned);
+
+  const radius = 50;
   const circumference = 2 * Math.PI * radius;
-  const dashOffset = circumference * (1 - percent / 100);
+  const gap = safeTotal > 0 ? 2 : 0;
+  const usableCircumference = Math.max(0, circumference - gap * 3);
+  const masteredLength = safeTotal > 0 ? usableCircumference * (safeMastered / safeTotal) : 0;
+  const learnedLength = safeTotal > 0 ? usableCircumference * (learnedUnmastered / safeTotal) : 0;
+  const unlearnedLength = safeTotal > 0 ? usableCircumference * (unlearned / safeTotal) : 0;
+
+  let offset = 0;
+  const masteredOffset = -offset;
+  offset += masteredLength + gap;
+  const learnedOffset = -offset;
+  offset += learnedLength + gap;
+  const unlearnedOffset = -offset;
+
   return (
     <div className="bg-white border border-[#E7EEF8] rounded-3xl p-6 sm:p-7 shadow-xs">
-      <div className="flex items-center gap-5">
-        <div className="relative w-28 h-28 shrink-0">
-          <svg viewBox="0 0 112 112" className="w-full h-full -rotate-90">
-            <circle cx="56" cy="56" r={radius} fill="none" stroke="currentColor" strokeWidth="8" className="text-[#E7EEF8]" />
-            <circle cx="56" cy="56" r={radius} fill="none" stroke="currentColor" strokeWidth="8" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={circumference * (1 - learnedPercent / 100)} className="text-[#4F7DF3] transition-all duration-500" />
-            <circle cx="56" cy="56" r={radius} fill="none" stroke="currentColor" strokeWidth="8" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={dashOffset} className="text-emerald-500 transition-all duration-500" />
+      <div className="flex flex-col sm:flex-row sm:items-center gap-6">
+        <div className="relative w-36 h-36 shrink-0 mx-auto sm:mx-0">
+          <svg viewBox="0 0 120 120" className="w-full h-full -rotate-90">
+            <circle
+              cx="60"
+              cy="60"
+              r={radius}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="10"
+              className="text-[#EEF2F7]"
+            />
+            {safeTotal > 0 && (
+              <>
+                <circle
+                  cx="60"
+                  cy="60"
+                  r={radius}
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="10"
+                  strokeLinecap="butt"
+                  strokeDasharray={`${masteredLength} ${circumference - masteredLength}`}
+                  strokeDashoffset={masteredOffset}
+                  className="text-emerald-500 transition-all duration-700"
+                />
+                <circle
+                  cx="60"
+                  cy="60"
+                  r={radius}
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="10"
+                  strokeLinecap="butt"
+                  strokeDasharray={`${learnedLength} ${circumference - learnedLength}`}
+                  strokeDashoffset={learnedOffset}
+                  className="text-[#4F7DF3] transition-all duration-700"
+                />
+                <circle
+                  cx="60"
+                  cy="60"
+                  r={radius}
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="10"
+                  strokeLinecap="butt"
+                  strokeDasharray={`${unlearnedLength} ${circumference - unlearnedLength}`}
+                  strokeDashoffset={unlearnedOffset}
+                  className="text-[#DCE5F2] transition-all duration-700"
+                />
+              </>
+            )}
           </svg>
+
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-2xl font-extrabold text-[#29466F]">{learnedPercent}%</span>
-            <span className="text-[10px] text-[#4F7DF3]">已学</span>
-            <span className="text-[10px] text-emerald-600">已掌握 {percent}%</span>
+            <span className="text-3xl font-extrabold text-[#29466F] leading-none">{safeTotal}</span>
+            <span className="text-[11px] text-[#8BA0BD] mt-1">总单词</span>
           </div>
         </div>
+
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center gap-2 mb-4">
             <span className="text-xl">{icon}</span>
-            <h2 className="text-xl font-bold text-[#29466F]">{title}</h2>
+            <div>
+              <h2 className="text-xl font-bold text-[#29466F]">{title}</h2>
+              <p className="text-xs text-[#8BA0BD] mt-0.5">词库总体进度</p>
+            </div>
           </div>
-          <div className="flex gap-5 text-sm">
-            {active && batchTotal > 0 && (
-              <div>
-                <span className="font-bold text-[#4F7DF3]">{batchCompleted}</span>
-                <span className="text-[#8BA0BD]"> / {batchTotal} 本批次</span>
-              </div>
-            )}
-            <div><span className="font-bold text-[#29466F]">{total}</span><span className="text-[#8BA0BD] ml-1">总数</span></div>
-            <div><span className="font-bold text-[#4F7DF3]">{learned}</span><span className="text-[#8BA0BD] ml-1">已学</span></div>
-            <div><span className="font-bold text-emerald-600">{mastered}</span><span className="text-[#8BA0BD] ml-1">已掌握</span></div>
+
+          <div className="space-y-2.5 text-sm">
+            <div className="flex items-center justify-between">
+              <span className="flex items-center gap-2 text-[#29466F]">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                已掌握
+              </span>
+              <span className="font-bold text-emerald-600">{safeMastered}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="flex items-center gap-2 text-[#29466F]">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#4F7DF3]" />
+                已学未掌握
+              </span>
+              <span className="font-bold text-[#4F7DF3]">{learnedUnmastered}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="flex items-center gap-2 text-[#8BA0BD]">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#DCE5F2]" />
+                未学习
+              </span>
+              <span className="font-bold text-[#8BA0BD]">{unlearned}</span>
+            </div>
           </div>
         </div>
       </div>
+
+      {active && batchTotal > 0 && (
+        <div className="mt-6 rounded-2xl bg-[#F5F8FE] border border-[#E5ECF7] px-4 py-3">
+          <div className="flex items-center justify-between text-sm">
+            <span className="font-semibold text-[#29466F]">当前批次</span>
+            <span className="font-bold text-[#4F7DF3]">{batchCompleted} / {batchTotal}</span>
+          </div>
+          <div className="mt-2 h-2 rounded-full bg-[#DCE5F2] overflow-hidden">
+            <div
+              className="h-full rounded-full bg-[#4F7DF3] transition-all duration-500"
+              style={{ width: `${Math.min(100, Math.max(0, (batchCompleted / batchTotal) * 100))}%` }}
+            />
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-6">
-        <button type="button" onClick={active && onContinue ? onContinue : onStart} className="py-3.5 px-5 bg-[#4F7DF3] hover:bg-[#3D6CE5] text-white font-bold rounded-2xl transition-all flex items-center justify-center gap-2 text-sm">
+        <button
+          type="button"
+          onClick={active && onContinue ? onContinue : onStart}
+          className="py-3.5 px-5 bg-[#4F7DF3] hover:bg-[#3D6CE5] text-white font-bold rounded-2xl transition-all flex items-center justify-center gap-2 text-sm"
+        >
           <span>{active ? (activeText || '继续学习') : '开始' + title}</span>
           <ArrowRight className="w-4 h-4" />
         </button>
         {active && onRestart && (
-          <button type="button" onClick={onRestart} className="py-3.5 px-5 bg-white hover:bg-[#F7F9FC] border border-[#DCE5F2] text-[#29466F] font-bold rounded-2xl transition-all text-sm">
+          <button
+            type="button"
+            onClick={onRestart}
+            className="py-3.5 px-5 bg-white hover:bg-[#F7F9FC] border border-[#DCE5F2] text-[#29466F] font-bold rounded-2xl transition-all text-sm"
+          >
             重新开始
           </button>
         )}
       </div>
+
       {title === '背单词' && reviewCount > 0 && onReview && (
-        <button type="button" onClick={onReview} className="w-full mt-2.5 py-2.5 px-4 rounded-xl bg-[#FFF8E8] hover:bg-[#FFF2D1] text-[#8A6412] text-sm font-semibold transition-all">
+        <button
+          type="button"
+          onClick={onReview}
+          className="w-full mt-2.5 py-2.5 px-4 rounded-xl bg-[#FFF8E8] hover:bg-[#FFF2D1] text-[#8A6412] text-sm font-semibold transition-all"
+        >
           今日复习 · {reviewCount} 词
         </button>
       )}
