@@ -317,6 +317,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 <p className="text-xs text-stone-500 mt-0.5">首页点击“开始背单词”后直接按这里的配置开始，不再弹出设置窗口。</p>
               </div>
 
+              <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3.5">
+                <Sparkles className="w-4 h-4 text-amber-700 mt-0.5 shrink-0" />
+                <div className="text-xs leading-relaxed text-amber-900">
+                  <div className="font-bold">学习配置变更提醒</div>
+                  <div className="mt-0.5 text-amber-800">保存后，当前正在进行的学习批次会重置，需要重新开始；已经学过或掌握的单词状态不会被清除。</div>
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-semibold text-stone-600 block mb-1.5">学习章节</label>
@@ -344,12 +352,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                {[
-                  ['RANDOM', '随机乱序'],
-                  ['SEQUENCE', '教材顺序'],
-                  ['REVIEW_FIRST', '优先复习']
-                ].map(([value, label]) => (
+              <div>
+                <label className="text-xs font-semibold text-stone-600 block mb-1.5">选词规则</label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  {[
+                    ['RANDOM', '随机选词'],
+                    ['SEQUENCE', '教材顺序'],
+                    ['REVIEW_FIRST', '优先复习']
+                  ].map(([value, label]) => (
                   <button
                     key={value}
                     type="button"
@@ -363,6 +373,50 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 ))}
               </div>
 
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-stone-600 block mb-1.5">背写顺序</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      ['SEQUENCE', '顺序'],
+                      ['RANDOM', '随机']
+                    ].map(([value, label]) => (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => setConfig(prev => ({ ...prev, wordStudyWriteOrder: value as any }))}
+                        className={`py-3 rounded-xl border text-sm font-semibold transition-all ${
+                          (config.wordStudyWriteOrder || 'SEQUENCE') === value
+                            ? 'border-amber-400 bg-amber-50 text-stone-900 ring-2 ring-amber-200'
+                            : 'border-stone-200 bg-white hover:bg-stone-50 text-stone-700'
+                        }`}
+                      >{label}</button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-stone-600 block mb-1.5">强化听写顺序</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      ['RANDOM', '随机'],
+                      ['SEQUENCE', '顺序']
+                    ].map(([value, label]) => (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => setConfig(prev => ({ ...prev, wordStudyDictationOrder: value as any }))}
+                        className={`py-3 rounded-xl border text-sm font-semibold transition-all ${
+                          (config.wordStudyDictationOrder || 'RANDOM') === value
+                            ? 'border-amber-400 bg-amber-50 text-stone-900 ring-2 ring-amber-200'
+                            : 'border-stone-200 bg-white hover:bg-stone-50 text-stone-700'
+                        }`}
+                      >{label}</button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {[
                   ['LEARN_AND_WRITE', '普通学习：学 + 背写'],
