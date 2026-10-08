@@ -85,6 +85,7 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
 
         const currentWordItem = data.words[data.currentWordIndex];
         const initialStep: 'LEARN' | 'WRITE' =
+          data.phase === 'DICTATION' ||
           data.mode === 'WRITE_ONLY' ||
           (currentWordItem?.learnStatus === 'LEARNED' && !currentWordItem.completed)
             ? 'WRITE' : 'LEARN';
@@ -114,7 +115,7 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
 
   useEffect(() => {
     if (!session || !wordData) return;
-    if (session.mode === 'WRITE_ONLY') {
+    if (session.phase === 'DICTATION' || session.mode === 'WRITE_ONLY') {
       playWordAudio('normal');
     } else if (wordStep === 'LEARN') {
       playWordAudio('normal');
@@ -134,6 +135,7 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
 
     const cw = session.words[idx];
     const nextStep: 'LEARN' | 'WRITE' =
+      session.phase === 'DICTATION' ||
       session.mode === 'WRITE_ONLY' ||
       (cw?.learnStatus === 'LEARNED' && !cw.completed)
         ? 'WRITE' : 'LEARN';
@@ -192,6 +194,18 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
     try {
       const res = await api.writeSessionWord(session.id, wordId, userInput.trim());
       if (!isMountedRef.current) return;
+
+      if (res.phaseChanged && res.session) {
+        // The write stage has just completed. The same batch now enters
+        // reinforcement dictation without creating a new batch.
+        setSession(res.session);
+        setWordStep('WRITE');
+        setUserInput('');
+        setHasSubmitted(false);
+        setWriteResult(null);
+        setShowCompletionScreen(false);
+        return;
+      }
 
       setWriteResult({
         isCorrect: res.isCorrect,
@@ -313,14 +327,14 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
     return (
       <div className="min-h-screen bg-[#F7FAFF] flex flex-col">
         <ImmersionHeader
-          title={session.mode === 'WRITE_ONLY' ? '单词听写完成' : '背单词完成'}
+          title={session.phase === 'DICTATION' || session.mode === 'WRITE_ONLY' ? '强化听写完成' : '背单词完成'}
           currentIndex={session.totalCount}
           totalCount={session.totalCount}
           onExit={() => navigate('/')}
         />
         <main className="flex-1 max-w-xl mx-auto px-4 py-16 text-center space-y-8 animate-fadeIn flex flex-col justify-center">
           <div className="w-20 h-20 rounded-3xl bg-[#EBF2FE] text-[#4F7DF3] flex items-center justify-center mx-auto shadow-xs">
-            {session.mode === 'WRITE_ONLY' ? (
+            {session.phase === 'DICTATION' || session.mode === 'WRITE_ONLY' ? (
               <Headphones className="w-10 h-10 text-[#4F7DF3]" />
             ) : (
               <Trophy className="w-10 h-10 text-[#4F7DF3]" />
@@ -329,12 +343,12 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
 
           <div className="space-y-2">
             <h1 className="text-3xl sm:text-4xl font-extrabold text-[#29466F]">
-              {session.mode === 'WRITE_ONLY' ? '🎉 听写完成！' : '恭喜！学习任务顺利完成'}
+              {session.phase === 'DICTATION' || session.mode === 'WRITE_ONLY' ? '🎉 强化听写完成！' : '恭喜！学习任务顺利完成'}
             </h1>
             <p className="text-[#8BA0BD] text-sm">
-              {session.mode === 'WRITE_ONLY'
-                ? `本次单词听写共 ${session.totalCount} 个，正确 ${correctWords} 个，错误 ${wrongWords} 个。`
-                : `你已完整攻克本次设定的全部 ${session.totalCount} 个单词的音形认知与汉译英背写。`}
+              {session.phase === 'DICTATION' || session.mode === 'WRITE_ONLY'
+                ? `本次强化听写共 ${session.totalCount} 个，正确 ${correctWords} 个，错误 ${wrongWords} 个。`
+                : `你已完成本批次 ${session.totalCount} 个单词的学习与背写，接下来将进行强化听写。`}
             </p>
           </div>
 
@@ -407,9 +421,11 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
     <div className="min-h-screen bg-[#F7FAFF] flex flex-col text-[#29466F]">
       {/* Immersive Learning Header */}
       <ImmersionHeader
-        title={session.mode === 'WRITE_ONLY' ? '单词听写' : (session.dictionary?.name || '背单词')}
+        title={session.phase === 'DICTATION' ? '强化听写' : session.mode === 'WRITE_ONLY' ? '单词听写' : (session.dictionary?.name || '背单词')}
         subtitle={
-          session.mode === 'WRITE_ONLY'
+          session.phase === 'DICTATION'
+            ? '阶段三：听音回忆 · 强化拼写'
+            : session.mode === 'WRITE_ONLY'
             ? '听音看释义 · 默写拼写'
             : wordStep === 'LEARN'
             ? '阶段一：认知学习'
@@ -419,7 +435,14 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
         totalCount={session.totalCount}
         onExit={() => navigate('/')}
         rightExtra={
-          session.mode === 'WRITE_ONLY' ? (
+          session.phase === 'DICTATION' ? (
+            <div className="flex items-center gap-1.5 text-xs font-semibold mr-1">
+              <span className="px-3 py-1 rounded-lg bg-[#EBF2FE] text-[#4F7DF3] flex items-center gap-1.5">
+                <Headphones className="w-3.5 h-3.5" />
+                <span>强化听写</span>
+              </span>
+            </div>
+          ) : session.mode === 'WRITE_ONLY' ? (
             <div className="flex items-center gap-1.5 text-xs font-semibold mr-1">
               <span className="px-3 py-1 rounded-lg bg-[#EBF2FE] text-[#4F7DF3] flex items-center gap-1.5">
                 <Headphones className="w-3.5 h-3.5" />
@@ -592,7 +615,7 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
             {/* Chinese Prompt & POS */}
             <div className="space-y-3">
               <span className="text-xs uppercase font-bold tracking-widest text-[#4F7DF3] bg-[#EBF2FE] px-3.5 py-1 rounded-full">
-                {primaryMeaning?.pos || wordData.pos || '请写出这个单词'}
+                {session.phase === 'DICTATION' ? '强化听写' : (primaryMeaning?.pos || wordData.pos || '请写出这个单词')}
               </span>
 
               {/* Chinese Meaning as Dominant Prompt */}
@@ -602,9 +625,11 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
 
               {/* Phonetic & Audio beside it directly */}
               <div className="flex items-center justify-center gap-3 pt-1">
-                <span className="text-base sm:text-lg font-mono text-[#8BA0BD]">
-                  {activePhonetic}
-                </span>
+                {session.phase !== 'DICTATION' && (
+                  <span className="text-base sm:text-lg font-mono text-[#8BA0BD]">
+                    {activePhonetic}
+                  </span>
+                )}
 
                 <button
                   type="button"
@@ -637,7 +662,7 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
                   value={userInput}
                   onChange={e => setUserInput(e.target.value)}
                   disabled={hasSubmitted}
-                  placeholder="输入对应英文单词..."
+                  placeholder={session.phase === 'DICTATION' ? '听音输入英文单词...' : '输入对应英文单词...'}
                   className={`w-full h-14 text-center text-xl sm:text-2xl font-medium px-5 rounded-2xl border-2 transition-all outline-none tracking-wide ${
                     !hasSubmitted
                       ? 'border-[#E7EEF8] focus:border-[#4F7DF3] focus:ring-4 focus:ring-[#4F7DF3]/10 bg-white text-[#29466F]'
