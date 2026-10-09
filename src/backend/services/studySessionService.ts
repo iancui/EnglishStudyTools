@@ -358,7 +358,7 @@ export class StudySessionService {
 
     if (completedWordsCount >= session.totalCount && session.totalCount > 0) {
       if (session.phase === 'LEARN_WRITE' && session.mode === 'LEARN_AND_WRITE' && session.includeWrite) {
-        nextSession = await db.startStudyExtraWritePhase(session.id, session.writeSortMode || 'SEQUENCE');
+        nextSession = await db.startStudyExtraWritePhase(session.id);
         phaseChanged = true;
       } else if (
         (session.phase === 'LEARN_WRITE' || session.phase === 'EXTRA_WRITE') &&
