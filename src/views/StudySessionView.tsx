@@ -56,7 +56,7 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const isMountedRef = useRef(true);
   const isPendingRef = useRef(false);
-  const lastHandledIdxRef = useRef<number | null>(null);
+  const lastHandledIdxRef = useRef<string | null>(null);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -98,7 +98,7 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
           setShowCompletionScreen(true);
         }
 
-        lastHandledIdxRef.current = data.currentWordIndex;
+        lastHandledIdxRef.current = data.words[data.currentWordIndex]?.wordId || null;
       } catch (e) {
         if (!cancelled && isMountedRef.current) {
           setLoading(false);
@@ -120,13 +120,14 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
     } else if (wordStep === 'LEARN') {
       playWordAudio('normal');
     }
-  }, [session?.currentWordIndex]);
+  }, [session?.words[session.currentWordIndex]?.wordId]);
 
   useEffect(() => {
     if (!session) return;
     const idx = session.currentWordIndex;
-    if (idx === lastHandledIdxRef.current) return;
-    lastHandledIdxRef.current = idx;
+    const currentWordId = session.words[idx]?.wordId || null;
+    if (currentWordId === lastHandledIdxRef.current) return;
+    lastHandledIdxRef.current = currentWordId;
 
     setUserInput('');
     setHasSubmitted(false);
@@ -144,7 +145,7 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
     if (nextStep === 'WRITE') {
       requestAnimationFrame(() => inputRef.current?.focus());
     }
-  }, [session?.currentWordIndex]);
+  }, [session?.words[session.currentWordIndex]?.wordId]);
 
   const playWordAudio = useCallback(async (speed: 'normal' | 'slow' = audioSpeed) => {
     if (!wordData) return;
