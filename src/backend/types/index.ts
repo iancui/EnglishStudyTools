@@ -213,6 +213,7 @@ export interface StudySessionWord {
   writeStatus: SessionWordStatus;
   completed: boolean;
   isCorrect?: boolean | null;
+  wrongAttemptCount?: number;
   userInput?: string | null;
   learnedAt?: string | null;
   writtenAt?: string | null;
@@ -274,6 +275,8 @@ export interface SentencePracticeSession {
 export interface LearningRecord {
   id: string;
   userId: string;
+  sessionId?: string;
+  phase?: StudySessionPhase;
   itemType: 'WORD' | 'SENTENCE';
   itemId: string;
   action: 'LEARN' | 'MEMORIZE' | 'REVIEW' | 'STEP_COMPLETE';
