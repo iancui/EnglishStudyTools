@@ -51,7 +51,7 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
     correctAnswer: string;
     phonetic?: string;
   } | null>(null);
-  const [wrongAttemptCount, setWrongAttemptCount] = useState(0);
+  const [showDictationMeaning, setShowDictationMeaning] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const isMountedRef = useRef(true);
@@ -133,6 +133,7 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
     setHasSubmitted(false);
     setWriteResult(null);
     setShowPhonics(false);
+    setShowDictationMeaning(false);
 
     const cw = session.words[idx];
     const nextStep: 'LEARN' | 'WRITE' =
@@ -242,7 +243,6 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
         correctAnswer: res.correctAnswer,
         phonetic: res.phonetic
       });
-      if (!res.isCorrect) setWrongAttemptCount(count => count + 1);
       setHasSubmitted(true);
 
       const lang = config?.audioType === 'US' ? 'en-US' : 'en-GB';
@@ -303,13 +303,17 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
       if (e.code !== 'Space') return;
       if (!session || showCompletionScreen) return;
       const t = e.target as HTMLElement;
-      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
+      const isEditable = !!t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable);
+      const canUseSpaceAfterAnswer = wordStep === 'WRITE' && hasSubmitted && !!writeResult;
+      if (isEditable && !canUseSpaceAfterAnswer) return;
+      if (wordStep === 'WRITE' && !hasSubmitted) return;
+      if (wordStep !== 'LEARN' && !canUseSpaceAfterAnswer) return;
 
       e.preventDefault();
 
       if (wordStep === 'LEARN') {
         handleProceedToWrite();
-      } else if (wordStep === 'WRITE' && hasSubmitted && writeResult) {
+      } else if (canUseSpaceAfterAnswer) {
         const usesDeferredRetry = session.mode === 'WRITE_ONLY' || session.phase === 'DICTATION';
         if (!writeResult.isCorrect && !usesDeferredRetry) {
           setHasSubmitted(false);
@@ -356,21 +360,25 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
     (session.status === 'COMPLETED' && (!hasSubmitted || !writeResult));
 
   if (isSessionFullyCompleted) {
-    const correctWords = session.words.filter(w => w.completed && w.isCorrect).length;
-    const wrongWords = session.words.filter(w => w.isCorrect === false).length;
+    const correctWords = session.words.filter(w => w.completed && (w.wrongAttemptCount || 0) === 0).length;
+    const wrongWords = session.words.filter(w => (w.wrongAttemptCount || 0) > 0).length;
+    const totalWrongAttempts = session.words.reduce((sum, w) => sum + (w.wrongAttemptCount || 0), 0);
+    const finalPassedWords = session.words.filter(w => w.completed).length;
     const accuracy = session.totalCount > 0 ? Math.round((correctWords / session.totalCount) * 100) : 100;
+    const isStandaloneDictation = session.mode === 'WRITE_ONLY';
+    const isReinforcementDictation = session.phase === 'DICTATION' && !isStandaloneDictation;
 
     return (
       <div className="min-h-screen bg-[#F7FAFF] flex flex-col">
         <ImmersionHeader
-          title={session.phase === 'DICTATION' || session.mode === 'WRITE_ONLY' ? '强化听写完成' : '背单词完成'}
+          title={isReinforcementDictation ? '强化听写完成' : isStandaloneDictation ? '单词听写完成' : '背单词完成'}
           currentIndex={session.totalCount}
           totalCount={session.totalCount}
           onExit={() => navigate('/')}
         />
         <main className="flex-1 max-w-xl mx-auto px-4 py-16 text-center space-y-8 animate-fadeIn flex flex-col justify-center">
           <div className="w-20 h-20 rounded-3xl bg-[#EBF2FE] text-[#4F7DF3] flex items-center justify-center mx-auto shadow-xs">
-            {session.phase === 'DICTATION' || session.mode === 'WRITE_ONLY' ? (
+            {isReinforcementDictation || isStandaloneDictation ? (
               <Headphones className="w-10 h-10 text-[#4F7DF3]" />
             ) : (
               <Trophy className="w-10 h-10 text-[#4F7DF3]" />
@@ -379,22 +387,24 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
 
           <div className="space-y-2">
             <h1 className="text-3xl sm:text-4xl font-extrabold text-[#29466F]">
-              {session.phase === 'DICTATION' || session.mode === 'WRITE_ONLY' ? '🎉 强化听写完成！' : '恭喜！学习任务顺利完成'}
+              {isReinforcementDictation ? '🎉 强化听写完成！' : isStandaloneDictation ? '🎉 单词听写完成！' : '恭喜！学习任务顺利完成'}
             </h1>
             <p className="text-[#8BA0BD] text-sm">
-              {session.phase === 'DICTATION' || session.mode === 'WRITE_ONLY'
-                ? `本次强化听写共 ${session.totalCount} 个，最终过关 ${correctWords} 个。`
-                : `你已完成本批次 ${session.totalCount} 个单词的学习与背写，接下来将进行强化听写。`}
+              {isReinforcementDictation
+                ? `本次强化听写共 ${session.totalCount} 个，最终通过 ${finalPassedWords} 个。`
+                : isStandaloneDictation
+                ? `本次独立听写共 ${session.totalCount} 个，最终通过 ${finalPassedWords} 个。`
+                : '你已完成本批次单词的学习与背写。'}
             </p>
-            {wrongAttemptCount > 0 && (
+            {wrongWords > 0 && (
               <p className="text-rose-600 text-sm font-semibold">
-                本次累计拼写错误 {wrongAttemptCount} 次；错词已安排延后重练，直到最终拼写正确。
+                本次有 {wrongWords} 个单词曾答错，共错误 {totalWrongAttempts} 次；错词已安排重练。
               </p>
             )}
           </div>
 
           {/* Results summary stats */}
-          <div className="grid grid-cols-3 gap-3 bg-white border border-[#E7EEF8] rounded-2xl p-6 shadow-2xs text-left">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-white border border-[#E7EEF8] rounded-2xl p-5 shadow-2xs text-left">
             <div className="text-center">
               <div className="text-xs text-[#8BA0BD]">
                 {session.mode === 'WRITE_ONLY' ? '听写总词数' : '学习总词数'}
@@ -403,11 +413,15 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
                 {session.totalCount}
               </div>
             </div>
-            <div className="text-center border-x border-[#E7EEF8]">
-              <div className="text-xs text-[#8BA0BD]">拼写正确</div>
+            <div className="text-center border-l border-[#E7EEF8] sm:border-x">
+              <div className="text-xs text-[#8BA0BD]">拼写正确（未错）</div>
               <div className="text-2xl font-bold font-mono text-emerald-600 mt-1">
                 {correctWords}
               </div>
+            </div>
+            <div className="text-center sm:border-r border-[#E7EEF8]">
+              <div className="text-xs text-[#8BA0BD]">拼写错误（单词数）</div>
+              <div className="text-2xl font-bold font-mono text-rose-600 mt-1">{wrongWords}</div>
             </div>
             <div className="text-center">
               <div className="text-xs text-[#8BA0BD]">正确率</div>
@@ -417,6 +431,28 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
             </div>
           </div>
 
+           <section className="w-full bg-white border border-[#E7EEF8] rounded-2xl p-4 text-left shadow-2xs">
+            <div className="font-bold text-[#29466F] mb-3">本次词语一览（{session.totalCount} 个）</div>
+            <div className="max-h-80 overflow-y-auto divide-y divide-[#EEF2F8]">
+              {session.words.map((item, index) => {
+                const attempts = item.wrongAttemptCount || 0;
+                const meanings = item.word?.meanings?.map(m => m.definitionCn).filter(Boolean).join('；') || '暂无中文释义';
+                return (
+                  <div key={item.id || item.wordId} className="py-3 flex items-start gap-3">
+                    <span className="text-xs text-[#8BA0BD] font-mono pt-0.5">{index + 1}.</span>
+                    <div className="min-w-0 flex-1">
+                      <div className="font-semibold text-[#29466F]">{item.word?.text || item.wordId}</div>
+                      <div className="text-sm text-[#7184A1] mt-1">{meanings}</div>
+                    </div>
+                    <span className={`shrink-0 text-xs font-semibold ${attempts > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
+                      {attempts > 0 ? `错误 ${attempts} 次` : '全程未答错'}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+          <div className="text-xs text-[#8BA0BD]">最终通过：{finalPassedWords}/{session.totalCount} 个单词</div>
           <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
             <button
               onClick={() => navigate('/')}
@@ -656,13 +692,31 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
             {/* Chinese Prompt & POS */}
             <div className="space-y-3">
               <span className="text-xs uppercase font-bold tracking-widest text-[#4F7DF3] bg-[#EBF2FE] px-3.5 py-1 rounded-full">
-                {session.phase === 'DICTATION' ? '强化听写' : (primaryMeaning?.pos || wordData.pos || '请写出这个单词')}
+                {session.phase === 'DICTATION' && session.mode !== 'WRITE_ONLY' ? '强化听写' : session.mode === 'WRITE_ONLY' ? '单词听写' : (primaryMeaning?.pos || wordData.pos || '请写出这个单词')}
               </span>
 
-              {/* Chinese Meaning as Dominant Prompt */}
-              <h2 className="text-4xl sm:text-5xl font-extrabold text-[#29466F] tracking-tight leading-snug">
-                {primaryMeaning?.definitionCn || '根据释义回忆拼写'}
-              </h2>
+              {/* Reinforcement dictation hides Chinese by default, with an explicit reveal control. */}
+              {session.phase === 'DICTATION' && session.mode !== 'WRITE_ONLY' ? (
+                <div className="space-y-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowDictationMeaning(value => !value)}
+                    className="inline-flex items-center gap-2 text-sm font-semibold text-[#4F7DF3] hover:text-[#3D6CE5]"
+                  >
+                    <Eye className="w-4 h-4" />
+                    {showDictationMeaning ? '隐藏中文释义' : '显示中文释义'}
+                  </button>
+                  {showDictationMeaning && (
+                    <h2 className="text-3xl sm:text-4xl font-extrabold text-[#29466F] tracking-tight leading-snug">
+                      {primaryMeaning?.definitionCn || '暂无中文释义'}
+                    </h2>
+                  )}
+                </div>
+              ) : (
+                <h2 className="text-4xl sm:text-5xl font-extrabold text-[#29466F] tracking-tight leading-snug">
+                  {primaryMeaning?.definitionCn || '根据释义回忆拼写'}
+                </h2>
+              )}
 
               {/* Phonetic & Audio beside it directly */}
               <div className="flex items-center justify-center gap-3 pt-1">
