@@ -271,6 +271,8 @@ export class StudySessionService {
     await db.addLearningRecord({
       id: `lr-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       userId,
+      sessionId,
+      phase: session.phase,
       itemType: 'WORD',
       itemId: wordId,
       action: 'LEARN',
@@ -379,6 +381,7 @@ export class StudySessionService {
       sw.writeStatus = 'WRITE_PENDING';
       sw.completed = false;
       sw.isCorrect = false;
+      sw.wrongAttemptCount = (sw.wrongAttemptCount || 0) + 1;
     }
 
     await db.updateStudySessionWord(sw);
@@ -390,6 +393,8 @@ export class StudySessionService {
     await db.addLearningRecord({
       id: `lr-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       userId,
+      sessionId,
+      phase: session.phase,
       itemType: 'WORD',
       itemId: wordId,
       action: 'MEMORIZE',
@@ -450,7 +455,8 @@ export class StudySessionService {
   }
 
   /**
-   * Advance current word index in the session
+   * Advance to the next unfinished word. Deferred wrong answers are moved to
+   * the end of the active phase queue, but completed words are never repeated.
    */
   static async nextWord(sessionId: string, userId: string) {
     const session = await db.findStudySessionById(sessionId);
@@ -459,21 +465,33 @@ export class StudySessionService {
     const currentWord = session.words[session.currentWordIndex];
     if (!currentWord) throw new Error('当前单词不存在');
 
+    const oldIndex = session.currentWordIndex;
     if (!currentWord.completed) {
-      // Incorrect answers are deferred to the end of the current phase's queue.
-      // The learner can continue now, but this word cannot be passed permanently
-      // until a later attempt is correct.
       await db.rotateStudySessionWordToEnd(sessionId, currentWord.wordId, session.phase);
-      session.currentWordIndex =
-        session.currentWordIndex >= session.totalCount - 1
-          ? 0
-          : session.currentWordIndex;
-    } else if (session.currentWordIndex < session.totalCount - 1) {
-      session.currentWordIndex += 1;
     }
 
-    session.updatedAt = new Date().toISOString();
-    await db.updateStudySession(session);
+    const freshSession = await db.findStudySessionById(sessionId);
+    if (!freshSession) throw new Error('学习任务不存在');
+
+    // After a rotation, the word now occupying oldIndex is the next queued
+    // item. If no unfinished word follows it, wrap to the first unfinished.
+    const startAt = currentWord.completed ? oldIndex + 1 : oldIndex;
+    let nextIndex = freshSession.words.findIndex((word, index) => index >= startAt && !word.completed);
+    if (nextIndex < 0) nextIndex = freshSession.words.findIndex(word => !word.completed);
+
+    if (nextIndex < 0) {
+      freshSession.completedCount = freshSession.totalCount;
+      freshSession.status = 'COMPLETED';
+      freshSession.completedAt = new Date().toISOString();
+    } else {
+      freshSession.currentWordIndex = nextIndex;
+      freshSession.completedCount = freshSession.words.filter(word => word.completed).length;
+      freshSession.status = 'IN_PROGRESS';
+      delete freshSession.completedAt;
+    }
+
+    freshSession.updatedAt = new Date().toISOString();
+    await db.updateStudySession(freshSession);
     return await db.findStudySessionById(sessionId);
   }
 
