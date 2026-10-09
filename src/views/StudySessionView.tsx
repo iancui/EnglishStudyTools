@@ -274,6 +274,13 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
       const nextSession = await api.nextSessionWord(session.id);
       if (!isMountedRef.current) return;
       setSession(nextSession);
+      setWordStep('WRITE');
+      setUserInput('');
+      setHasSubmitted(false);
+      setWriteResult(null);
+      setShowPhonics(false);
+      setShowCompletionScreen(nextSession.status === 'COMPLETED');
+      requestAnimationFrame(() => inputRef.current?.focus());
     } catch (err) {
       console.error(err);
     } finally {
