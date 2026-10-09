@@ -179,7 +179,7 @@ export type SessionMode = 'LEARN_AND_WRITE' | 'WRITE_ONLY';
 export type SessionStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
 export type SessionSortMode = 'RANDOM' | 'SEQUENCE' | 'REVIEW_FIRST';
 export type StudyOrderMode = 'RANDOM' | 'SEQUENCE';
-export type StudySessionPhase = 'LEARN_WRITE' | 'DICTATION';
+export type StudySessionPhase = 'LEARN_WRITE' | 'EXTRA_WRITE' | 'DICTATION';
 export type SessionWordStatus = 'LEARN_PENDING' | 'LEARNED' | 'WRITE_PENDING' | 'WRITTEN' | 'COMPLETED';
 
 export interface StudySession {
