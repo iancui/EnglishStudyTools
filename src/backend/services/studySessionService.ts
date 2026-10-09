@@ -282,66 +282,7 @@ export class StudySessionService {
       createdAt: now
     });
 
-    // If 背写 is disabled, 学习阶段直接进入下一阶段。
-    if (!session.includeWrite) {
-      const freshSession = await db.findStudySessionById(sessionId);
-      const allLearned = freshSession
-        ? freshSession.words.every(w => w.learnStatus === 'LEARNED')
-        : false;
-
-      if (allLearned && session.includeDictation) {
-        const nextSession = await db.startStudyDictationPhase(
-          session.id,
-          session.dictationSortMode || 'RANDOM'
-        );
-        return {
-          sessionWord: sw,
-          phaseChanged: true,
-          sessionCompleted: false,
-          sessionPhase: nextSession?.phase || 'DICTATION',
-          session: await this.getSessionById(session.id, userId)
-        };
-      }
-
-      if (allLearned && !session.includeDictation) {
-        const completedNow = new Date().toISOString();
-        if (freshSession) {
-          for (const item of freshSession.words) {
-            if (!item.completed) {
-              item.completed = true;
-              item.writeStatus = 'WRITTEN';
-              item.isCorrect = true;
-              await db.updateStudySessionWord(item);
-            }
-          }
-          freshSession.completedCount = freshSession.totalCount;
-          freshSession.status = 'COMPLETED';
-          freshSession.completedAt = completedNow;
-          await db.updateStudySession(freshSession);
-        }
-        return {
-          sessionWord: sw,
-          phaseChanged: false,
-          sessionCompleted: true,
-          sessionPhase: 'LEARN_WRITE',
-          session: await this.getSessionById(session.id, userId)
-        };
-      }
-
-      if (freshSession && freshSession.currentWordIndex < freshSession.totalCount - 1) {
-        freshSession.currentWordIndex += 1;
-        freshSession.updatedAt = new Date().toISOString();
-        await db.updateStudySession(freshSession);
-      }
-
-      return {
-        sessionWord: sw,
-        phaseChanged: false,
-        sessionCompleted: false,
-        sessionPhase: 'LEARN_WRITE',
-        session: await this.getSessionById(session.id, userId)
-      };
-    }
+    // 基础流程固定为“学 -> 背写”；includeWrite 仅控制后续的“额外背写”。
 
     return sw;
   }
@@ -416,13 +357,15 @@ export class StudySessionService {
     let nextSession: any = null;
 
     if (completedWordsCount >= session.totalCount && session.totalCount > 0) {
-      if (session.phase === 'LEARN_WRITE' && session.mode === 'LEARN_AND_WRITE' && session.includeDictation) {
-        // The learning/write stage is complete. Keep the same wordIds and
-        // immediately enter the reinforcement dictation stage when enabled.
-        nextSession = await db.startStudyDictationPhase(
-          session.id,
-          session.dictationSortMode || 'RANDOM'
-        );
+      if (session.phase === 'LEARN_WRITE' && session.mode === 'LEARN_AND_WRITE' && session.includeWrite) {
+        nextSession = await db.startStudyExtraWritePhase(session.id, session.writeSortMode || 'SEQUENCE');
+        phaseChanged = true;
+      } else if (
+        (session.phase === 'LEARN_WRITE' || session.phase === 'EXTRA_WRITE') &&
+        session.mode === 'LEARN_AND_WRITE' &&
+        session.includeDictation
+      ) {
+        nextSession = await db.startStudyDictationPhase(session.id, session.dictationSortMode || 'RANDOM');
         phaseChanged = true;
       } else {
         session.status = 'COMPLETED';
