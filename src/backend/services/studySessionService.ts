@@ -457,16 +457,24 @@ export class StudySessionService {
     if (!session || session.userId !== userId) throw new Error('学习任务不存在');
 
     const currentWord = session.words[session.currentWordIndex];
-    if (currentWord && !currentWord.completed) {
-      throw new Error('当前单词尚未拼写正确，不能进入下一个单词');
-    }
+    if (!currentWord) throw new Error('当前单词不存在');
 
-    if (session.currentWordIndex < session.totalCount - 1) {
+    if (!currentWord.completed) {
+      // Incorrect answers are deferred to the end of the current phase's queue.
+      // The learner can continue now, but this word cannot be passed permanently
+      // until a later attempt is correct.
+      await db.rotateStudySessionWordToEnd(sessionId, currentWord.wordId, session.phase);
+      session.currentWordIndex =
+        session.currentWordIndex >= session.totalCount - 1
+          ? 0
+          : session.currentWordIndex;
+    } else if (session.currentWordIndex < session.totalCount - 1) {
       session.currentWordIndex += 1;
-      await db.updateStudySession(session);
     }
 
-    return session;
+    session.updatedAt = new Date().toISOString();
+    await db.updateStudySession(session);
+    return await db.findStudySessionById(sessionId);
   }
 
   /**
