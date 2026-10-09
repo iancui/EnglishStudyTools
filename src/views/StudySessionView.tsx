@@ -46,6 +46,7 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
   const [userInput, setUserInput] = useState('');
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [showCompletionScreen, setShowCompletionScreen] = useState(false);
+  const [showPhaseTransition, setShowPhaseTransition] = useState(false);
   const [writeResult, setWriteResult] = useState<{
     isCorrect: boolean;
     correctAnswer: string;
@@ -114,13 +115,13 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
   const wordData = currentSessionWord?.word;
 
   useEffect(() => {
-    if (!session || !wordData) return;
+    if (!session || !wordData || showPhaseTransition) return;
     if (session.phase === 'DICTATION' || session.mode === 'WRITE_ONLY') {
       playWordAudio('normal');
     } else if (wordStep === 'LEARN') {
       playWordAudio('normal');
     }
-  }, [session?.words[session.currentWordIndex]?.wordId]);
+  }, [session?.phase, session?.words[session.currentWordIndex]?.wordId, showPhaseTransition]);
 
   useEffect(() => {
     if (!session) return;
@@ -164,6 +165,7 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
       const res = await api.learnSessionWord(session.id, currentSessionWord.wordId);
       if (!isMountedRef.current) return;
       if (res?.phaseChanged && res?.session) {
+        setShowPhaseTransition(true);
         setSession(res.session);
         setWordStep('WRITE');
         setUserInput('');
@@ -227,8 +229,9 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
       if (!isMountedRef.current) return;
 
       if (res.phaseChanged && res.session) {
-        // The write stage has just completed. The same batch now enters
-        // reinforcement dictation without creating a new batch.
+        const lang = config?.audioType === 'US' ? 'en-US' : 'en-GB';
+        await SpeechPlayer.speak(res.correctAnswer, { lang });
+        setShowPhaseTransition(true);
         setSession(res.session);
         setWordStep('WRITE');
         setUserInput('');
@@ -356,8 +359,8 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
 
   // Session Completed Summary Screen: shown when explicitly reached end or when opening an already completed session
   const isSessionFullyCompleted =
-    showCompletionScreen ||
-    (session.status === 'COMPLETED' && (!hasSubmitted || !writeResult));
+    !showPhaseTransition && (showCompletionScreen ||
+    (session.status === 'COMPLETED' && (!hasSubmitted || !writeResult)));
 
   if (isSessionFullyCompleted) {
     const correctWords = session.words.filter(w => w.completed && (w.wrongAttemptCount || 0) === 0).length;
@@ -472,6 +475,31 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
     );
   }
 
+  if (showPhaseTransition && session.phase !== 'LEARN_WRITE') {
+    const nextTitle = session.phase === 'EXTRA_WRITE' ? '额外背写' : session.mode === 'WRITE_ONLY' ? '单词听写' : '强化听写';
+    const nextDescription = session.phase === 'EXTRA_WRITE'
+      ? '基础背写已完成，接下来再巩固一轮拼写。'
+      : session.mode === 'WRITE_ONLY'
+      ? '准备好后开始听音拼写。'
+      : '上一阶段已结束。稍作停顿，再开始强化听写，避免单词发音连在一起。';
+    return (
+      <div className="min-h-screen bg-[#F7FAFF] flex flex-col">
+        <ImmersionHeader title="阶段切换" subtitle="休息一下，再继续学习" currentIndex={session.totalCount} totalCount={session.totalCount} onExit={() => navigate('/')} />
+        <main className="flex-1 flex flex-col items-center justify-center px-5 py-12 text-center">
+          <div className="w-20 h-20 rounded-3xl bg-[#EBF2FE] text-[#4F7DF3] flex items-center justify-center mb-6">
+            <Headphones className="w-10 h-10" />
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-[#29466F]">{nextTitle}</h1>
+          <p className="max-w-md text-sm sm:text-base text-[#7184A1] leading-7 mt-4 mb-8">{nextDescription}</p>
+          <button type="button" onClick={() => setShowPhaseTransition(false)} className="px-8 py-4 rounded-2xl bg-[#4F7DF3] hover:bg-[#3D6CE5] text-white font-bold shadow-xs transition-colors">
+            {session.phase === 'EXTRA_WRITE' ? '开始额外背写' : session.mode === 'WRITE_ONLY' ? '开始听写' : '开始强化听写'}
+            <ArrowRight className="inline-block w-4 h-4 ml-2" />
+          </button>
+        </main>
+      </div>
+    );
+  }
+
   if (!wordData) {
     return (
       <div className="min-h-screen bg-[#F7FAFF] flex flex-col items-center justify-center p-4">
@@ -498,10 +526,12 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
     <div className="min-h-screen bg-[#F7FAFF] flex flex-col text-[#29466F]">
       {/* Immersive Learning Header */}
       <ImmersionHeader
-        title={session.phase === 'DICTATION' && session.mode !== 'WRITE_ONLY' ? '强化听写' : session.mode === 'WRITE_ONLY' ? '单词听写' : (session.dictionary?.name || '背单词')}
+        title={session.phase === 'DICTATION' && session.mode !== 'WRITE_ONLY' ? '强化听写' : session.phase === 'EXTRA_WRITE' ? '额外背写' : session.mode === 'WRITE_ONLY' ? '单词听写' : (session.dictionary?.name || '背单词')}
         subtitle={
           session.phase === 'DICTATION' && session.mode !== 'WRITE_ONLY'
             ? '阶段三：听音回忆 · 强化拼写'
+            : session.phase === 'EXTRA_WRITE'
+            ? '额外阶段：再次巩固拼写'
             : session.mode === 'WRITE_ONLY'
             ? '听音看释义 · 默写拼写'
             : wordStep === 'LEARN'
@@ -690,9 +720,9 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
         {wordStep === 'WRITE' && (
           <div className="w-full text-center space-y-8 sm:space-y-10">
             {/* Chinese Prompt & POS */}
-            <div className="space-y-3">
-              <span className="text-xs uppercase font-bold tracking-widest text-[#4F7DF3] bg-[#EBF2FE] px-3.5 py-1 rounded-full">
-                {session.phase === 'DICTATION' && session.mode !== 'WRITE_ONLY' ? '强化听写' : session.mode === 'WRITE_ONLY' ? '单词听写' : (primaryMeaning?.pos || wordData.pos || '请写出这个单词')}
+            <div className="space-y-5 sm:space-y-6 mb-4">
+              <span className="inline-flex text-xs uppercase font-bold tracking-widest text-[#4F7DF3] bg-[#EBF2FE] px-3.5 py-1.5 rounded-full mb-2">
+                {session.phase === 'DICTATION' && session.mode !== 'WRITE_ONLY' ? '强化听写' : session.phase === 'EXTRA_WRITE' ? '额外背写' : session.mode === 'WRITE_ONLY' ? '单词听写' : (primaryMeaning?.pos || wordData.pos || '请写出这个单词')}
               </span>
 
               {/* Reinforcement dictation hides Chinese by default, with an explicit reveal control. */}
