@@ -419,24 +419,20 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
               <div>
                 <label className="text-xs font-semibold text-stone-600 block mb-1.5">学习完成后进入</label>
-                <p className="text-[11px] text-stone-400 mb-2">可组合选择“背写”和“强化听写”。至少保留一个阶段。</p>
+                <p className="text-[11px] text-stone-400 mb-2">基础“学 → 背写”固定开启；可选是否追加一轮额外背写，以及是否进入强化听写。</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {[
-                    ['wordStudyIncludeWrite', '背写', '学习中文释义后输入英文拼写'],
+                    ['wordStudyIncludeWrite', '额外背写', '基础背写完成后，再追加一轮中文释义拼写'],
                     ['wordStudyIncludeDictation', '强化听写', '播放发音后听音输入英文拼写']
                   ].map(([key, label, desc]) => {
                     const enabled = key === 'wordStudyIncludeWrite'
                       ? config.wordStudyIncludeWrite !== false
                       : config.wordStudyIncludeDictation !== false;
-                    const otherEnabled = key === 'wordStudyIncludeWrite'
-                      ? config.wordStudyIncludeDictation !== false
-                      : config.wordStudyIncludeWrite !== false;
                     return (
                       <button
                         key={key}
                         type="button"
                         onClick={() => {
-                          if (enabled && !otherEnabled) return;
                           setConfig(prev => ({ ...prev, [key]: !enabled } as DictionaryConfig));
                         }}
                         className={`p-4 rounded-2xl border text-left transition-all ${
