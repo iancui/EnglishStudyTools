@@ -139,6 +139,7 @@ export interface StudySessionWordItem {
   writeStatus: SessionWordStatus;
   completed: boolean;
   isCorrect?: boolean | null;
+  wrongAttemptCount?: number;
   userInput?: string | null;
   learnedAt?: string | null;
   writtenAt?: string | null;
