@@ -244,7 +244,7 @@ export const api = {
       sessionWord: any;
       sessionCompleted: boolean;
       phaseChanged?: boolean;
-      sessionPhase?: 'LEARN_WRITE' | 'DICTATION';
+      sessionPhase?: 'LEARN_WRITE' | 'EXTRA_WRITE' | 'DICTATION';
       completedCount: number;
       totalCount: number;
       progress?: any;
