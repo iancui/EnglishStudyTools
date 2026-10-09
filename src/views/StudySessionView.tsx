@@ -9,7 +9,6 @@ import {
   XCircle,
   Snail,
   ArrowRight,
-  RotateCcw,
   Sparkles,
   Trophy,
   BookOpen,
@@ -52,6 +51,7 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
     correctAnswer: string;
     phonetic?: string;
   } | null>(null);
+  const [wrongAttemptCount, setWrongAttemptCount] = useState(0);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const isMountedRef = useRef(true);
@@ -197,13 +197,10 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
     if (e) e.preventDefault();
 
     if (hasSubmitted) {
-      if (writeResult?.isCorrect) {
-        await handleNextWord();
-      } else {
-        setHasSubmitted(false);
-        setUserInput('');
-        setTimeout(() => inputRef.current?.focus(), 50);
-      }
+      // The feedback remains visible until the learner chooses to continue.
+      // Incorrect words are queued for a later retry instead of forcing an
+      // immediate repetition of the same word.
+      await handleNextWord();
       return;
     }
 
@@ -234,6 +231,7 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
         correctAnswer: res.correctAnswer,
         phonetic: res.phonetic
       });
+      if (!res.isCorrect) setWrongAttemptCount(count => count + 1);
       setHasSubmitted(true);
 
       const lang = config?.audioType === 'US' ? 'en-US' : 'en-GB';
@@ -268,12 +266,8 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
   };
 
   const handleNextWord = async () => {
-    if (!session || !writeResult?.isCorrect) return;
+    if (!session || !writeResult) return;
     if (isPendingRef.current) return;
-    if (session.currentWordIndex >= session.totalCount - 1) {
-      setShowCompletionScreen(true);
-      return;
-    }
     isPendingRef.current = true;
     try {
       const nextSession = await api.nextSessionWord(session.id);
@@ -298,13 +292,7 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
       if (wordStep === 'LEARN') {
         handleProceedToWrite();
       } else if (wordStep === 'WRITE' && hasSubmitted && writeResult) {
-        if (writeResult.isCorrect) {
-          handleNextWord();
-        } else {
-          setHasSubmitted(false);
-          setUserInput('');
-          setTimeout(() => inputRef.current?.focus(), 50);
-        }
+        handleNextWord();
       }
     };
     window.addEventListener('keydown', onKeyDown);
@@ -369,7 +357,7 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
             </h1>
             <p className="text-[#8BA0BD] text-sm">
               {session.phase === 'DICTATION' || session.mode === 'WRITE_ONLY'
-                ? `本次强化听写共 ${session.totalCount} 个，正确 ${correctWords} 个，错误 ${wrongWords} 个。`
+                ? `本次强化听写共 ${session.totalCount} 个，最终过关 ${correctWords} 个，累计错误尝试 ${wrongAttemptCount} 次。`
                 : `你已完成本批次 ${session.totalCount} 个单词的学习与背写，接下来将进行强化听写。`}
             </p>
           </div>
@@ -707,13 +695,16 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
                     <div className="p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl text-xs space-y-2">
                       <div className="flex items-center justify-center gap-1.5 font-bold text-rose-700 text-sm">
                         <XCircle className="w-4 h-4" />
-                        <span>拼写错误，请重新输入本词</span>
+                        <span>拼写错误，已安排稍后重练</span>
+                      </div>
+                      <div className="text-stone-600">
+                        你的输入：<span className="font-mono font-semibold ml-1">{userInput || '（空）'}</span>
                       </div>
                       <div className="text-stone-600">
                         正确英文拼写：<span className="font-bold text-[#29466F] font-mono text-base ml-1">{writeResult.correctAnswer}</span>
                       </div>
                       <div className="text-[11px] text-[#8BA0BD]">
-                        请认真记忆正确拼写，必须重新输入正确后方可进入下一词。
+                        请记住正确拼写并继续后面的单词；本词会在本轮稍后再次出现，答对后才算过关。
                       </div>
                     </div>
                   )}
@@ -735,15 +726,11 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
                     {!writeResult?.isCorrect ? (
                       <button
                         type="button"
-                        onClick={() => {
-                          setHasSubmitted(false);
-                          setUserInput('');
-                          setTimeout(() => inputRef.current?.focus(), 50);
-                        }}
+                        onClick={handleNextWord}
                         className="py-3.5 px-6 bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-bold rounded-2xl transition-all text-xs sm:text-sm flex items-center gap-2 shadow-xs cursor-pointer"
                       >
-                        <RotateCcw className="w-4 h-4" />
-                        <span>重新输入本词 (Enter / Space)</span>
+                        <ArrowRight className="w-4 h-4" />
+                        <span>记住答案，稍后再练 (Enter / Space)</span>
                       </button>
                     ) : (
                       <button
