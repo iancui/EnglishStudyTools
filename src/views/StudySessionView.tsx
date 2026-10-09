@@ -498,9 +498,9 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
     <div className="min-h-screen bg-[#F7FAFF] flex flex-col text-[#29466F]">
       {/* Immersive Learning Header */}
       <ImmersionHeader
-        title={session.phase === 'DICTATION' ? '强化听写' : session.mode === 'WRITE_ONLY' ? '单词听写' : (session.dictionary?.name || '背单词')}
+        title={session.phase === 'DICTATION' && session.mode !== 'WRITE_ONLY' ? '强化听写' : session.mode === 'WRITE_ONLY' ? '单词听写' : (session.dictionary?.name || '背单词')}
         subtitle={
-          session.phase === 'DICTATION'
+          session.phase === 'DICTATION' && session.mode !== 'WRITE_ONLY'
             ? '阶段三：听音回忆 · 强化拼写'
             : session.mode === 'WRITE_ONLY'
             ? '听音看释义 · 默写拼写'
@@ -512,7 +512,7 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
         totalCount={session.totalCount}
         onExit={() => navigate('/')}
         rightExtra={
-          session.phase === 'DICTATION' ? (
+          session.phase === 'DICTATION' && session.mode !== 'WRITE_ONLY' ? (
             <div className="flex items-center gap-1.5 text-xs font-semibold mr-1">
               <span className="px-3 py-1 rounded-lg bg-[#EBF2FE] text-[#4F7DF3] flex items-center gap-1.5">
                 <Headphones className="w-3.5 h-3.5" />
