@@ -230,9 +230,31 @@ export const HomeView: React.FC<HomeViewProps> = ({
   };
 
   const handleStartWordStudy = async (modeOverride?: SessionMode, restart = false) => {
+    const configuredIncludeWrite = config.wordStudyIncludeWrite !== false;
+    const configuredIncludeDictation = config.wordStudyIncludeDictation !== false;
+
+    // An in-progress session keeps the settings it was created with. If the
+    // learner changed the write/dictation settings afterward, don't silently
+    // resume that old session and make it look as if the new settings failed.
+    const activeSettingsMismatch = !!activeSession && (
+      activeSession.includeWrite !== configuredIncludeWrite ||
+      activeSession.includeDictation !== configuredIncludeDictation
+    );
+
     if (activeSession && !restart) {
-      navigate('/study/' + activeSession.id);
-      return;
+      if (!activeSettingsMismatch) {
+        navigate('/study/' + activeSession.id);
+        return;
+      }
+
+      const restartWithCurrentSettings = window.confirm(
+        '当前未完成的学习任务使用的是旧配置。是否保留本批次单词，按当前“背写 / 强化听写”配置重新开始？取消则继续旧任务。'
+      );
+      if (!restartWithCurrentSettings) {
+        navigate('/study/' + activeSession.id);
+        return;
+      }
+      restart = true;
     }
 
     try {
@@ -241,9 +263,11 @@ export const HomeView: React.FC<HomeViewProps> = ({
         isSameBatchRestart
           ? {
               wordIds: activeSession!.words.map((w) => w.wordId),
-              mode: activeSession!.mode,
-              writeSortMode: activeSession!.writeSortMode,
-              dictationSortMode: activeSession!.dictationSortMode
+              mode: modeOverride || activeSession!.mode,
+              writeSortMode: config.wordStudyWriteOrder || activeSession!.writeSortMode || 'SEQUENCE',
+              dictationSortMode: config.wordStudyDictationOrder || activeSession!.dictationSortMode || 'RANDOM',
+              includeWrite: configuredIncludeWrite,
+              includeDictation: configuredIncludeDictation
             }
           : {
               dictionaryId: config.defaultDictionaryId,
@@ -253,8 +277,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
               sortMode: config.wordStudySortMode || 'RANDOM',
               writeSortMode: config.wordStudyWriteOrder || 'SEQUENCE',
               dictationSortMode: config.wordStudyDictationOrder || 'RANDOM',
-              includeWrite: config.wordStudyIncludeWrite !== false,
-              includeDictation: config.wordStudyIncludeDictation !== false,
+              includeWrite: configuredIncludeWrite,
+              includeDictation: configuredIncludeDictation,
               mode: modeOverride || 'LEARN_AND_WRITE'
             }
       );
