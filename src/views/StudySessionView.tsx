@@ -529,9 +529,9 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
         title={session.phase === 'DICTATION' && session.mode !== 'WRITE_ONLY' ? '强化听写' : session.phase === 'EXTRA_WRITE' ? '额外背写' : session.mode === 'WRITE_ONLY' ? '单词听写' : (session.dictionary?.name || '背单词')}
         subtitle={
           session.phase === 'DICTATION' && session.mode !== 'WRITE_ONLY'
-            ? '阶段三：听音回忆 · 强化拼写'
+            ? (session.includeWrite ? '阶段三：听音回忆 · 强化拼写' : '阶段二：听音回忆 · 强化拼写')
             : session.phase === 'EXTRA_WRITE'
-            ? '额外阶段：再次巩固拼写'
+            ? '阶段二：额外背写 · 再次巩固拼写'
             : session.mode === 'WRITE_ONLY'
             ? '听音看释义 · 默写拼写'
             : wordStep === 'LEARN'
@@ -542,7 +542,11 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
         totalCount={session.totalCount}
         onExit={() => navigate('/')}
         rightExtra={
-          session.phase === 'DICTATION' && session.mode !== 'WRITE_ONLY' ? (
+          session.phase === 'EXTRA_WRITE' ? (
+            <div className="flex items-center gap-1.5 text-xs font-semibold mr-1">
+              <span className="px-3 py-1 rounded-lg bg-[#EBF2FE] text-[#4F7DF3]">额外背写</span>
+            </div>
+          ) : session.phase === 'DICTATION' && session.mode !== 'WRITE_ONLY' ? (
             <div className="flex items-center gap-1.5 text-xs font-semibold mr-1">
               <span className="px-3 py-1 rounded-lg bg-[#EBF2FE] text-[#4F7DF3] flex items-center gap-1.5">
                 <Headphones className="w-3.5 h-3.5" />
