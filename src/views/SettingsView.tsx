@@ -376,7 +376,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-semibold text-stone-600 block mb-1.5">背写顺序</label>
+                  <label className="text-xs font-semibold text-stone-600 block mb-1.5">背写与额外背写顺序</label>
                   <div className="grid grid-cols-2 gap-2">
                     {[
                       ['SEQUENCE', '顺序'],
