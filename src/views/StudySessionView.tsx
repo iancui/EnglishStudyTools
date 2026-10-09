@@ -365,9 +365,14 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
             </h1>
             <p className="text-[#8BA0BD] text-sm">
               {session.phase === 'DICTATION' || session.mode === 'WRITE_ONLY'
-                ? `本次强化听写共 ${session.totalCount} 个，最终过关 ${correctWords} 个，累计错误尝试 ${wrongAttemptCount} 次。`
+                ? `本次强化听写共 ${session.totalCount} 个，最终过关 ${correctWords} 个。`
                 : `你已完成本批次 ${session.totalCount} 个单词的学习与背写，接下来将进行强化听写。`}
             </p>
+            {wrongAttemptCount > 0 && (
+              <p className="text-rose-600 text-sm font-semibold">
+                本次累计拼写错误 {wrongAttemptCount} 次；错词已安排延后重练，直到最终拼写正确。
+              </p>
+            )}
           </div>
 
           {/* Results summary stats */}
