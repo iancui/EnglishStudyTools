@@ -198,9 +198,19 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
     if (e) e.preventDefault();
 
     if (hasSubmitted) {
-      // The feedback remains visible until the learner chooses to continue.
-      // Incorrect words are queued for a later retry instead of forcing an
-      // immediate repetition of the same word.
+      const usesDeferredRetry = session?.mode === 'WRITE_ONLY' || session?.phase === 'DICTATION';
+
+      // In the normal learn-and-write flow, let the learner immediately retry
+      // the same word after seeing the correct answer. Only standalone writing
+      // and reinforcement dictation defer incorrect words to the queue.
+      if (writeResult && !writeResult.isCorrect && !usesDeferredRetry) {
+        setHasSubmitted(false);
+        setWriteResult(null);
+        setUserInput('');
+        requestAnimationFrame(() => inputRef.current?.focus());
+        return;
+      }
+
       await handleNextWord();
       return;
     }
@@ -300,7 +310,15 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
       if (wordStep === 'LEARN') {
         handleProceedToWrite();
       } else if (wordStep === 'WRITE' && hasSubmitted && writeResult) {
-        handleNextWord();
+        const usesDeferredRetry = session.mode === 'WRITE_ONLY' || session.phase === 'DICTATION';
+        if (!writeResult.isCorrect && !usesDeferredRetry) {
+          setHasSubmitted(false);
+          setWriteResult(null);
+          setUserInput('');
+          requestAnimationFrame(() => inputRef.current?.focus());
+        } else {
+          handleNextWord();
+        }
       }
     };
     window.addEventListener('keydown', onKeyDown);
@@ -708,7 +726,11 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
                     <div className="p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl text-xs space-y-2">
                       <div className="flex items-center justify-center gap-1.5 font-bold text-rose-700 text-sm">
                         <XCircle className="w-4 h-4" />
-                        <span>拼写错误，已安排稍后重练</span>
+                        <span>
+                          {session.mode === 'WRITE_ONLY' || session.phase === 'DICTATION'
+                            ? '拼写错误，已安排稍后重练'
+                            : '拼写错误，请记住答案后再试一次'}
+                        </span>
                       </div>
                       <div className="text-stone-600">
                         你的输入：<span className="font-mono font-semibold ml-1">{userInput || '（空）'}</span>
@@ -717,7 +739,9 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
                         正确英文拼写：<span className="font-bold text-[#29466F] font-mono text-base ml-1">{writeResult.correctAnswer}</span>
                       </div>
                       <div className="text-[11px] text-[#8BA0BD]">
-                        请记住正确拼写并继续后面的单词；本词会在本轮稍后再次出现，答对后才算过关。
+                        {session.mode === 'WRITE_ONLY' || session.phase === 'DICTATION'
+                          ? '请记住正确拼写并继续后面的单词；本词会在本轮稍后再次出现，答对后才算过关。'
+                          : '请记住正确拼写，点击“再试一次”后重新输入；本词拼写正确后才能继续。'}
                       </div>
                     </div>
                   )}
@@ -739,11 +763,22 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
                     {!writeResult?.isCorrect ? (
                       <button
                         type="button"
-                        onClick={handleNextWord}
+                        onClick={() => {
+                          const usesDeferredRetry = session.mode === 'WRITE_ONLY' || session.phase === 'DICTATION';
+                          if (usesDeferredRetry) {
+                            handleNextWord();
+                          } else {
+                            handleSubmitSpelling();
+                          }
+                        }}
                         className="py-3.5 px-6 bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-bold rounded-2xl transition-all text-xs sm:text-sm flex items-center gap-2 shadow-xs cursor-pointer"
                       >
                         <ArrowRight className="w-4 h-4" />
-                        <span>记住答案，稍后再练 (Enter / Space)</span>
+                        <span>
+                          {session.mode === 'WRITE_ONLY' || session.phase === 'DICTATION'
+                            ? '记住答案，稍后再练 (Enter / Space)'
+                            : '记住答案，再试一次 (Enter)'}
+                        </span>
                       </button>
                     ) : (
                       <button
