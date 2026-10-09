@@ -424,6 +424,24 @@ class MySQLStorage {
   async startStudyDictationPhase(sessionId:string, sortMode:'RANDOM'|'SEQUENCE'){const c=await pool.getConnection();try{await c.beginTransaction();const [rows]=await c.query('SELECT id FROM study_session WHERE id=? AND status=\'IN_PROGRESS\' LIMIT 1',[sessionId]);if(!(rows as Row[]).length)throw new Error('学习任务不存在');const [words]=await c.query('SELECT id FROM study_session_word WHERE session_id=? ORDER BY sequence_no',[sessionId]);let ids=(words as Row[]).map(r=>String(r.id));if(sortMode==='RANDOM'){for(let i=ids.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[ids[i],ids[j]]=[ids[j],ids[i]];}}for(let i=0;i<ids.length;i++)await c.query('UPDATE study_session_word SET dictation_sequence_no=?,completed=FALSE,is_correct=NULL,user_input=NULL WHERE id=?',[i+1,ids[i]]);await c.query("UPDATE study_session SET phase='DICTATION',completed_count=0,current_word_index=0,status='IN_PROGRESS',completed_at=NULL,updated_at=NOW() WHERE id=?",[sessionId]);await c.commit();}catch(e){await c.rollback();throw e}finally{c.release()}return this.findStudySessionById(sessionId)}
   async updateStudySession(s:StudySession){await pool.query('UPDATE study_session SET completed_count=?,status=?,current_word_index=?,completed_at=?,updated_at=? WHERE id=?',[s.completedCount,s.status,s.currentWordIndex,mysqlDate(s.completedAt),mysqlDate(s.updatedAt),s.id]);return s}
   async updateStudySessionWord(w:StudySessionWord){await pool.query('UPDATE study_session_word SET learn_status=?,write_status=?,completed=?,is_correct=?,user_input=?,learned_at=?,written_at=? WHERE id=?',[w.learnStatus,w.writeStatus,w.completed,w.isCorrect,w.userInput,mysqlDate(w.learnedAt),mysqlDate(w.writtenAt),w.id]);return w}
+  async rotateStudySessionWordToEnd(sessionId:string, wordId:string, phase:'LEARN_WRITE'|'DICTATION'){
+    const column=phase==='DICTATION'?'dictation_sequence_no':'sequence_no';
+    const c=await pool.getConnection();
+    try{
+      await c.beginTransaction();
+      const [currentRows]=await c.query(`SELECT ${column} AS seq FROM study_session_word WHERE session_id=? AND word_id=? LIMIT 1`,[sessionId,wordId]);
+      const current=(currentRows as Row[])[0];
+      if(!current)throw new Error('当前单词不属于此学习任务');
+      const [maxRows]=await c.query(`SELECT MAX(${column}) AS max_seq FROM study_session_word WHERE session_id=?`,[sessionId]);
+      const maxSeq=Number((maxRows as Row[])[0]?.max_seq||0);
+      const currentSeq=Number(current.seq||0);
+      if(currentSeq<maxSeq){
+        await c.query(`UPDATE study_session_word SET ${column}=${column}-1 WHERE session_id=? AND ${column}>?`,[sessionId,currentSeq]);
+        await c.query(`UPDATE study_session_word SET ${column}=? WHERE session_id=? AND word_id=?`,[maxSeq,sessionId,wordId]);
+      }
+      await c.commit();
+    }catch(e){await c.rollback();throw e}finally{c.release()}
+  }
 
   async getAllSentences(){const [r]=await pool.query('SELECT id FROM sentence ORDER BY id');return Promise.all((r as Row[]).map(x=>this.findSentenceById(x.id))) as any}
   async getSentenceCount(){const [rows]=await pool.query('SELECT COUNT(*) AS total FROM sentence');return Number((rows as Row[])[0]?.total || 0)}
