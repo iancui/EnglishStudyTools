@@ -79,6 +79,14 @@ export const api = {
   getDictionaryChapters: (id: string) => request<any[]>(`/api/dictionaries/${id}/chapters`),
   createDictionaryChapter: (id: string, data: { name: string; code?: string; description?: string }) =>
     request<any>(`/api/dictionaries/${id}/chapters`, { method: 'POST', body: JSON.stringify(data) }),
+  updateDictionaryChapter: (id: string, chapterId: string, data: { name: string; sequence?: number }) =>
+    request<any>(`/api/dictionaries/${id}/chapters/${chapterId}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteDictionaryChapter: (id: string, chapterId: string) =>
+    request<any>(`/api/dictionaries/${id}/chapters/${chapterId}`, { method: 'DELETE' }),
+  assignWordToChapter: (id: string, wordId: string, chapterId?: string) =>
+    request<any>(`/api/dictionaries/${id}/words/${wordId}/chapter`, { method: 'PUT', body: JSON.stringify({ chapterId }) }),
+  assignSentenceToChapter: (id: string, sentenceId: string, chapterId?: string, sequence?: number) =>
+    request<any>(`/api/dictionaries/${id}/sentences/${sentenceId}/chapter`, { method: 'PUT', body: JSON.stringify({ chapterId, sequence }) }),
   createDictionary: (data: { name: string; description?: string }) =>
     request<any>('/api/dictionaries', {
       method: 'POST',
@@ -131,7 +139,7 @@ export const api = {
   importAISentences: (dictionaryId: string, sentences: any[]) =>
     request<any>('/api/admin/ai-sentence-tool/import', {
       method: 'POST',
-      body: JSON.stringify({ dictionaryId, sentences })
+      body: JSON.stringify({ dictionaryId, sentences, chapterId })
     }),
   importExcelWorkbook: (data: { file: File; wordDictionaryId: string; sentenceDictionaryId: string; wordSheetName: string; sentenceSheetName: string; wordMapping: Record<string, number>; sentenceMapping: Record<string, number> }) => {
     const form = new FormData();
@@ -184,10 +192,10 @@ export const api = {
     request<any>(`/api/admin/dictionaries/${id}`, {
       method: 'DELETE'
     }),
-  importAdminWords: (dictId: string, words: any[]) =>
+  importAdminWords: (dictId: string, words: any[], chapterId?: string) =>
     request<any>(`/api/admin/dictionaries/${dictId}/import`, {
       method: 'POST',
-      body: JSON.stringify({ words })
+      body: JSON.stringify({ words, chapterId })
     }),
 
   // Study Sessions (The Core Step-by-Step Learning Engine)
