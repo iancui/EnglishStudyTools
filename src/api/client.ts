@@ -136,7 +136,7 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ sentences, model })
     }),
-  importAISentences: (dictionaryId: string, sentences: any[]) =>
+  importAISentences: (dictionaryId: string, sentences: any[], chapterId?: string) =>
     request<any>('/api/admin/ai-sentence-tool/import', {
       method: 'POST',
       body: JSON.stringify({ dictionaryId, sentences, chapterId })
