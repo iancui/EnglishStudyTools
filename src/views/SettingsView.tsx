@@ -232,9 +232,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   };
 
   const handleAssignSentenceChapter = async (item: any, chapterId: string) => {
+    const targetSequence = chapterId && chapterId !== item.chapterId
+      ? Math.max(0, ...chapterSentences.filter(sentence => sentence.chapterId === chapterId && sentence.sentenceId !== item.sentenceId).map(sentence => Number(sentence.sequence) || 0)) + 1
+      : Math.max(1, Number(item.sequence) || 1);
     try {
-      await api.assignSentenceToChapter(selectedChapterDictId, item.sentenceId, chapterId || undefined, Number(item.sequence) || 1);
-      setChapterSentences(prev => prev.map(sentence => sentence.sentenceId === item.sentenceId ? { ...sentence, chapterId: chapterId || undefined } : sentence));
+      await api.assignSentenceToChapter(selectedChapterDictId, item.sentenceId, chapterId || undefined, targetSequence);
+      setChapterSentences(prev => prev.map(sentence => sentence.sentenceId === item.sentenceId ? { ...sentence, chapterId: chapterId || undefined, sequence: targetSequence } : sentence));
     } catch (e:any) { alert(e.message || '调整句子所属章节失败'); }
   };
 
