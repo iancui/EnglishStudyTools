@@ -111,6 +111,7 @@ model Dictionary {
 
   ownerUser       User?            @relation("UserOwnedDictionaries", fields: [ownerUserId], references: [id], onDelete: SetNull)
   dictionaryWords DictionaryWord[]
+  chapters      DictionaryChapter[]
   studySessions      StudySession[]
   sentenceDictionaries DictionarySentence[]
 
@@ -119,17 +120,38 @@ model Dictionary {
   @@map("dictionary")
 }
 
+model DictionaryChapter {
+  id           String   @id @db.VarChar(36)
+  dictionaryId String   @map("dictionary_id") @db.VarChar(36)
+  name         String   @db.VarChar(255)
+  code         String?  @db.VarChar(100)
+  description  String?  @db.Text
+  sequenceNo   Int      @default(1) @map("sequence_no")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  dictionary Dictionary           @relation(fields: [dictionaryId], references: [id], onDelete: Cascade)
+  words      DictionaryWord[]
+  sentences  DictionarySentence[]
+
+  @@index([dictionaryId, sequenceNo])
+  @@map("dictionary_chapter")
+}
+
 model DictionaryWord {
   id               String   @id @default(uuid()) @db.VarChar(36)
   dictionaryId     String   @map("dictionary_id") @db.VarChar(36)
+  chapterId        String?  @map("chapter_id") @db.VarChar(36)
   wordId           String   @map("word_id") @db.VarChar(36)
-  sequence         Int      @default(1)
+  sequence         Int      @default(1) @map("sequence_no")
   isActive         Boolean  @default(true) @map("is_active")
   definitionSource String?  @map("definition_source") @db.VarChar(255)
   createdAt        DateTime @default(now()) @map("created_at")
 
-  dictionary Dictionary @relation(fields: [dictionaryId], references: [id], onDelete: Cascade)
-  word       Word       @relation(fields: [wordId], references: [id], onDelete: Cascade)
+  dictionary Dictionary           @relation(fields: [dictionaryId], references: [id], onDelete: Cascade)
+  chapter    DictionaryChapter?   @relation(fields: [chapterId], references: [id], onDelete: SetNull)
+  word       Word                 @relation(fields: [wordId], references: [id], onDelete: Cascade)
 
   @@unique([dictionaryId, wordId])
   @@index([dictionaryId, sequence])
@@ -217,13 +239,15 @@ model Sentence {
 model DictionarySentence {
   id           String     @id @default(uuid()) @db.VarChar(36)
   dictionaryId String     @map("dictionary_id") @db.VarChar(36)
+  chapterId    String?    @map("chapter_id") @db.VarChar(36)
   sentenceId   String     @map("sentence_id") @db.VarChar(36)
   sequenceNo   Int        @default(1) @map("sequence_no")
   isActive     Boolean    @default(true) @map("is_active")
   createdAt    DateTime   @default(now()) @map("created_at")
 
-  dictionary Dictionary @relation(fields: [dictionaryId], references: [id], onDelete: Cascade)
-  sentence   Sentence   @relation(fields: [sentenceId], references: [id], onDelete: Cascade)
+  dictionary Dictionary           @relation(fields: [dictionaryId], references: [id], onDelete: Cascade)
+  chapter    DictionaryChapter?   @relation(fields: [chapterId], references: [id], onDelete: SetNull)
+  sentence   Sentence             @relation(fields: [sentenceId], references: [id], onDelete: Cascade)
 
   @@unique([dictionaryId, sentenceId])
   @@index([dictionaryId, sequenceNo])
