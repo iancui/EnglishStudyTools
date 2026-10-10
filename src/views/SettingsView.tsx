@@ -61,6 +61,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [chapterWordQuery, setChapterWordQuery] = useState('');
   const [chapterSentenceQuery, setChapterSentenceQuery] = useState('');
   const [chapterImportText, setChapterImportText] = useState('');
+  const [chapterImportTargetId, setChapterImportTargetId] = useState('');
   const [importingChapterWords, setImportingChapterWords] = useState(false);
   const [wordStudyChapters, setWordStudyChapters] = useState<DictionaryChapter[]>([]);
   const [newChapterName, setNewChapterName] = useState('');
@@ -155,13 +156,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   };
 
   const loadChapters = async (dictId: string) => {
-    if (!dictId) { setChapters([]); setChapterWords([]); setChapterSentences([]); return; }
+    if (!dictId) { setChapters([]); setChapterWords([]); setChapterSentences([]); setChapterImportTargetId(''); return; }
     try {
       const [loadedChapters, dictionary] = await Promise.all([
         api.getDictionaryChapters(dictId),
         api.getDictionaryById(dictId)
       ]);
       setChapters(loadedChapters);
+      setChapterImportTargetId(prev => loadedChapters.some(ch => ch.id === prev) ? prev : (loadedChapters[0]?.id || ''));
       setChapterWords(dictionary?.words || []);
       setChapterSentences(dictionary?.sentences || []);
     } catch (e) {
@@ -178,6 +180,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       setCreatingChapter(true);
       const chapter = await api.createDictionaryChapter(selectedChapterDictId, { name: newChapterName.trim() });
       setChapters(prev => [...prev, chapter].sort((a,b) => a.sequence-b.sequence));
+      setChapterImportTargetId(prev => prev || chapter.id);
       if (config.defaultDictionaryId === selectedChapterDictId) setWordStudyChapters(prev => [...prev, chapter].sort((a,b) => a.sequence-b.sequence));
       setNewChapterName('');
     } catch (e:any) { alert(e.message || '创建章节失败'); }
@@ -200,6 +203,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       await api.deleteDictionaryChapter(selectedChapterDictId, chapter.id);
       setChapters(prev => prev.filter(ch => ch.id !== chapter.id));
       setChapterWords(prev => prev.map(item => item.chapterId === chapter.id ? { ...item, chapterId: undefined } : item));
+      setChapterSentences(prev => prev.map(item => item.chapterId === chapter.id ? { ...item, chapterId: undefined } : item));
+      setChapterImportTargetId(prev => prev === chapter.id ? (chapters.find(ch => ch.id !== chapter.id)?.id || '') : prev);
       setWordStudyChapters(prev => prev.filter(ch => ch.id !== chapter.id));
       if (config.wordStudyChapterId === chapter.id) setConfig(prev => ({ ...prev, wordStudyChapterId: undefined }));
     } catch (e:any) { alert(e.message || '删除章节失败'); }
@@ -248,10 +253,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
   const handleImportChapterWords = async () => {
     if (!selectedChapterDictId || !chapterImportText.trim()) return;
-    const targetChapter = window.prompt('请输入要导入的章节名称（必须是上方已有章节的名称）', chapters[0]?.name || '');
-    if (!targetChapter) return;
-    const chapter = chapters.find(ch => ch.name.toLowerCase() === targetChapter.trim().toLowerCase());
-    if (!chapter) { alert('找不到该章节，请先创建章节并输入完全一致的名称。'); return; }
+    const chapter = chapters.find(ch => ch.id === chapterImportTargetId);
+    if (!chapter) { alert('请先选择要导入的章节。'); return; }
     const words = chapterImportText.split(/\r?\n/).map(line => line.trim()).filter(Boolean).map(line => {
       const parts = line.split(/\t|,/).map(part => part.trim());
       return { text: parts[0], phoneticUk: parts[1] || undefined, pos: parts[2] || undefined, definitionCn: parts[3] || undefined };
@@ -435,6 +438,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               {isAdmin && <div className="border-t border-stone-200 pt-4 space-y-2">
                 <h3 className="font-bold text-stone-800">批量导入到章节</h3>
                 <p className="text-xs text-stone-500">每行一个单词；也支持“单词、音标、词性、中文释义”四列，用 Tab 或英文逗号分隔。导入时会归入所选章节。</p>
+                <select value={chapterImportTargetId} onChange={e=>setChapterImportTargetId(e.target.value)} className="w-full border border-stone-200 rounded-xl px-3 py-2.5 text-sm">
+                  {chapters.map(ch=><option key={ch.id} value={ch.id}>{ch.sequence}. {ch.name}</option>)}
+                </select>
                 <textarea value={chapterImportText} onChange={e=>setChapterImportText(e.target.value)} rows={5} placeholder={'apple\t/ˈæp.əl/\tn.\t苹果\nbook\t/bʊk/\tn.\t书'} className="w-full px-4 py-3 rounded-xl border border-stone-200 text-sm" />
                 <button type="button" disabled={importingChapterWords || !chapters.length || !chapterImportText.trim()} onClick={handleImportChapterWords} className="px-4 py-2.5 rounded-xl bg-amber-700 text-white text-sm font-bold disabled:opacity-50">{importingChapterWords?'正在导入…':'导入到章节'}</button>
               </div>}
