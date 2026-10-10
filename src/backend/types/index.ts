@@ -49,9 +49,22 @@ export interface Dictionary {
   updatedAt: string;
 }
 
+export interface DictionaryChapter {
+  id: string;
+  dictionaryId: string;
+  name: string;
+  code?: string;
+  description?: string;
+  sequence: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface DictionaryWord {
   id: string;
   dictionaryId: string;
+  chapterId?: string;
   wordId: string;
   sequence: number;
   isActive: boolean;
