@@ -19,7 +19,7 @@ export class StudySessionService {
     params: { dictionaryId: string; chapterId?: string; count?: number; excludeMastered?: boolean; sortMode?: SessionSortMode }
   ) {
     const { dictionaryId, chapterId, count = 20, excludeMastered = true } = params;
-    const preview = await db.getStudyPreview(dictionaryId, userId);
+    const preview = await db.getStudyPreview(dictionaryId, userId, chapterId);
     if (!preview) throw new Error('辞书不存在');
 
     const totalInDict = Number(preview.total_in_dict || 0);
