@@ -30,8 +30,13 @@ export class DictionaryService {
     return await db.getAllDictionaries(userId);
   }
 
-  static async getDictionaryChapters(dictionaryId:string){return await db.getDictionaryChapters(dictionaryId)}
-  static async createDictionaryChapter(userId:string,dictionaryId:string,input:any){const dict=await db.findDictionaryById(dictionaryId);if(!dict)throw new Error('辞书不存在');if(dict.ownerType==='USER'&&dict.ownerUserId!==userId)throw new Error('无权操作该辞书');const chapters=await db.getDictionaryChapters(dictionaryId);return await db.createDictionaryChapter({id:`dc-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,dictionaryId,name:String(input.name||'').trim(),code:String(input.code||'').trim()||undefined,description:String(input.description||'').trim()||undefined,sequence:chapters.length+1})}
+  static async getDictionaryChapters(dictionaryId:string){const dict=await db.findDictionaryById(dictionaryId);if(!dict)throw new Error('辞书不存在');return await db.getDictionaryChapters(dictionaryId)}
+  private static async assertCanManageDictionary(userId:string,dictionaryId:string){const dict=await db.findDictionaryById(dictionaryId);if(!dict)throw new Error('辞书不存在');if(dict.ownerType==='USER'&&dict.ownerUserId!==userId)throw new Error('无权操作该辞书');return dict}
+  static async createDictionaryChapter(userId:string,dictionaryId:string,input:any){await this.assertCanManageDictionary(userId,dictionaryId);const name=String(input.name||'').trim();if(!name)throw new Error('章节名称不能为空');const chapters=await db.getDictionaryChapters(dictionaryId);return await db.createDictionaryChapter({id:`dc-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,dictionaryId,name,code:String(input.code||'').trim()||undefined,description:String(input.description||'').trim()||undefined,sequence:chapters.length+1})}
+  static async updateDictionaryChapter(userId:string,dictionaryId:string,chapterId:string,input:any){await this.assertCanManageDictionary(userId,dictionaryId);const name=String(input.name||'').trim();if(!name)throw new Error('章节名称不能为空');const chapter=await db.updateDictionaryChapter(dictionaryId,chapterId,{name,code:String(input.code||'').trim()||undefined,description:String(input.description||'').trim()||undefined,sequence:input.sequence===undefined?undefined:Math.max(1,Number(input.sequence)||1)});if(!chapter)throw new Error('章节不存在');return chapter}
+  static async deleteDictionaryChapter(userId:string,dictionaryId:string,chapterId:string){await this.assertCanManageDictionary(userId,dictionaryId);const deleted=await db.deleteDictionaryChapter(dictionaryId,chapterId);if(!deleted)throw new Error('章节不存在');return {success:true}}
+  static async assignWordToChapter(userId:string,dictionaryId:string,wordId:string,chapterId?:string){await this.assertCanManageDictionary(userId,dictionaryId);if(chapterId){const chapter=(await db.getDictionaryChapters(dictionaryId)).find(c=>c.id===chapterId);if(!chapter)throw new Error('所选章节不属于该辞书或已停用')}const changed=await db.updateDictionaryWordChapter(dictionaryId,wordId,chapterId);if(!changed)throw new Error('该单词不在当前辞书中');return {success:true,dictionaryId,wordId,chapterId:chapterId||undefined}}
+  static async assignSentenceToChapter(userId:string,dictionaryId:string,sentenceId:string,chapterId?:string,sequence?:number){await this.assertCanManageDictionary(userId,dictionaryId);if(chapterId){const chapter=(await db.getDictionaryChapters(dictionaryId)).find(c=>c.id===chapterId);if(!chapter)throw new Error('所选章节不属于该辞书或已停用')}const changed=await db.updateDictionarySentenceChapter(dictionaryId,sentenceId,chapterId,sequence);if(!changed)throw new Error('该句子不在当前辞书中');return {success:true,dictionaryId,sentenceId,chapterId:chapterId||undefined}}
   static async getDictionaryById(id: string) {
     const dict = await db.findDictionaryById(id);
     if (!dict) return null;
@@ -220,7 +225,7 @@ export class DictionaryService {
     return await db.deleteDictionary(id);
   }
 
-  static async importWordsToDictionary(dictionaryId: string, words: Array<{ text: string; phoneticUk?: string; pos?: string; definitionCn?: string }>) {
+  static async importWordsToDictionary(dictionaryId: string, words: Array<{ text: string; phoneticUk?: string; pos?: string; definitionCn?: string }>, chapterId?: string) {
     const dict = await db.findDictionaryById(dictionaryId);
     if (!dict) throw new Error('辞书不存在');
 
@@ -266,6 +271,7 @@ export class DictionaryService {
       }
 
       const dw = await db.addWordToDictionary(dictionaryId, word.id);
+      if (chapterId) await db.updateDictionaryWordChapter(dictionaryId, word.id, chapterId);
       addedDictWords.push(dw);
     }
 
