@@ -67,18 +67,22 @@ export class SentencePracticeService {
 
     let candidates = [...all];
 
-    // 有明确的辞书时，优先使用辞书自己的句子顺序；没有句子关联数据时再按句子库顺序。
+    // 有明确的辞书时，严格使用辞书关联的句子及其章节顺序。
+    // 一旦指定章节，绝不回退到整本句子库，避免章节筛选看似生效、实际却学到其他章节。
     if (dictionaryId) {
       const dictionarySentences = await db.getDictionarySentences(dictionaryId);
-      if (dictionarySentences.length > 0) {
-        const sentenceMap = new Map(all.map((s: Sentence) => [s.id, s]));
+      const sentenceMap = new Map(all.map((s: Sentence) => [s.id, s]));
+      if (chapterId) {
         candidates = dictionarySentences
-          .filter(r => !chapterId || String(r.chapter_id || '') === chapterId)
+          .filter(r => String(r.chapter_id || '') === chapterId)
+          .map(r => sentenceMap.get(String(r.sentence_id))).filter(Boolean) as typeof all;
+      } else if (dictionarySentences.length > 0) {
+        candidates = dictionarySentences
           .map(r => sentenceMap.get(String(r.sentence_id))).filter(Boolean) as typeof all;
       }
     }
 
-    if (dictionaryId && dictWordSet.size > 0 && candidates.length === all.length) {
+    if (dictionaryId && !chapterId && dictWordSet.size > 0 && candidates.length === all.length) {
       candidates = candidates.filter(s => {
         const words = s.content.toLowerCase().match(/[a-z']+/g) || [];
         return words.some((w: string) => dictWordSet.has(w));
