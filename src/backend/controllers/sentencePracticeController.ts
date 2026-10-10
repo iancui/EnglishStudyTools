@@ -30,9 +30,10 @@ export class SentencePracticeController {
   static async createSession(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id || 'u-default';
-      const { dictionaryId } = req.body;
+      const { dictionaryId, chapterId } = req.body;
       const session = await SentencePracticeService.createSession(userId, {
-        dictionaryId
+        dictionaryId,
+        chapterId: chapterId || undefined
       });
       res.json({
         code: 200,
