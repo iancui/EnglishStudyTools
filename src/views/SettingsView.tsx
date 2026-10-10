@@ -352,28 +352,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 </div>
               </div>
 
-              <div>
-                <label className="text-xs font-semibold text-stone-600 block mb-1.5">选词规则</label>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  {[
-                    ['RANDOM', '随机选词'],
-                    ['SEQUENCE', '教材顺序'],
-                    ['REVIEW_FIRST', '优先复习']
-                  ].map(([value, label]) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => setConfig(prev => ({ ...prev, wordStudySortMode: value as any }))}
-                    className={`py-3 rounded-xl border text-sm font-semibold transition-all ${
-                      (config.wordStudySortMode || 'RANDOM') === value
-                        ? 'border-amber-400 bg-amber-50 text-stone-900 ring-2 ring-amber-200'
-                        : 'border-stone-200 bg-white hover:bg-stone-50 text-stone-700'
-                    }`}
-                  >{label}</button>
-                ))}
-                </div>
-              </div>
-
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-semibold text-stone-600 block mb-1.5">背写与额外背写顺序</label>
@@ -452,23 +430,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 </div>
               </div>
 
-              <label className="flex items-center justify-between p-3.5 rounded-xl bg-stone-50 border border-stone-100">
-                <div>
-                  <div className="text-sm font-semibold text-stone-800">排除已掌握单词</div>
-                  <div className="text-xs text-stone-500 mt-0.5">已经掌握的词默认不再进入新学习任务。</div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setConfig(prev => ({ ...prev, wordStudyExcludeMastered: prev.wordStudyExcludeMastered === false }))}
-                  className={`w-12 h-7 rounded-full transition-colors relative shrink-0 p-1 ${
-                    config.wordStudyExcludeMastered !== false ? 'bg-stone-900' : 'bg-stone-300'
-                  }`}
-                >
-                  <div className={`w-5 h-5 rounded-full bg-white transition-transform ${
-                    config.wordStudyExcludeMastered !== false ? 'translate-x-5' : 'translate-x-0'
-                  }`} />
-                </button>
-              </label>
             </div>
 
             {/* 2. 句子专用辞书 */}
