@@ -311,7 +311,7 @@ class MySQLStorage {
   async getStudyPreview(dictionaryId: string, userId: string, chapterId?: string) {
     const chapterFilter = chapterId ? ' AND dw.chapter_id=?' : '';
     const [rows] = await pool.query(
-      `SELECT d.name AS dictionary_name, COUNT(dw.word_id) AS total_in_dict, SUM(CASE WHEN up.word_id IS NULL THEN 1 ELSE 0 END) AS matching_count
+      `SELECT d.name AS dictionary_name, COUNT(dw.word_id) AS total_in_dict, SUM(CASE WHEN dw.word_id IS NOT NULL AND up.word_id IS NULL THEN 1 ELSE 0 END) AS matching_count
        FROM dictionary d
        LEFT JOIN dictionary_word dw ON dw.dictionary_id=d.id AND dw.is_active=1${chapterFilter}
        LEFT JOIN user_word_progress up ON up.word_id=dw.word_id AND up.user_id=?
