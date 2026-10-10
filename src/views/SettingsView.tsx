@@ -56,6 +56,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [creatingDict, setCreatingDict] = useState(false);
   const [selectedChapterDictId, setSelectedChapterDictId] = useState('');
   const [chapters, setChapters] = useState<DictionaryChapter[]>([]);
+  const [chapterWords, setChapterWords] = useState<any[]>([]);
+  const [chapterWordQuery, setChapterWordQuery] = useState('');
+  const [chapterImportText, setChapterImportText] = useState('');
+  const [importingChapterWords, setImportingChapterWords] = useState(false);
   const [wordStudyChapters, setWordStudyChapters] = useState<DictionaryChapter[]>([]);
   const [newChapterName, setNewChapterName] = useState('');
   const [creatingChapter, setCreatingChapter] = useState(false);
@@ -149,8 +153,19 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   };
 
   const loadChapters = async (dictId: string) => {
-    if (!dictId) { setChapters([]); return; }
-    try { setChapters(await api.getDictionaryChapters(dictId)); } catch { setChapters([]); }
+    if (!dictId) { setChapters([]); setChapterWords([]); return; }
+    try {
+      const [loadedChapters, dictionary] = await Promise.all([
+        api.getDictionaryChapters(dictId),
+        api.getDictionaryById(dictId)
+      ]);
+      setChapters(loadedChapters);
+      setChapterWords(dictionary?.words || []);
+    } catch (e) {
+      console.error('加载章节内容失败:', e);
+      setChapters([]);
+      setChapterWords([]);
+    }
   };
 
   const handleCreateChapter = async () => {
@@ -158,10 +173,73 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     try {
       setCreatingChapter(true);
       const chapter = await api.createDictionaryChapter(selectedChapterDictId, { name: newChapterName.trim() });
-      setChapters(prev => [...prev, chapter]);
+      setChapters(prev => [...prev, chapter].sort((a,b) => a.sequence-b.sequence));
+      if (config.defaultDictionaryId === selectedChapterDictId) setWordStudyChapters(prev => [...prev, chapter].sort((a,b) => a.sequence-b.sequence));
       setNewChapterName('');
     } catch (e:any) { alert(e.message || '创建章节失败'); }
     finally { setCreatingChapter(false); }
+  };
+
+  const handleRenameChapter = async (chapter: DictionaryChapter) => {
+    const name = window.prompt('请输入新的章节名称', chapter.name)?.trim();
+    if (!name || name === chapter.name) return;
+    try {
+      const updated = await api.updateDictionaryChapter(selectedChapterDictId, chapter.id, { name, sequence: chapter.sequence });
+      setChapters(prev => prev.map(ch => ch.id === chapter.id ? updated : ch));
+      setWordStudyChapters(prev => prev.map(ch => ch.id === chapter.id ? updated : ch));
+    } catch (e:any) { alert(e.message || '修改章节失败'); }
+  };
+
+  const handleDeleteChapter = async (chapter: DictionaryChapter) => {
+    if (!window.confirm(`确定删除章节“${chapter.name}”吗？章节中的单词和句子不会删除，只会变为未分章内容。`)) return;
+    try {
+      await api.deleteDictionaryChapter(selectedChapterDictId, chapter.id);
+      setChapters(prev => prev.filter(ch => ch.id !== chapter.id));
+      setChapterWords(prev => prev.map(item => item.chapterId === chapter.id ? { ...item, chapterId: undefined } : item));
+      setWordStudyChapters(prev => prev.filter(ch => ch.id !== chapter.id));
+      if (config.wordStudyChapterId === chapter.id) setConfig(prev => ({ ...prev, wordStudyChapterId: undefined }));
+    } catch (e:any) { alert(e.message || '删除章节失败'); }
+  };
+
+  const handleMoveChapter = async (chapter: DictionaryChapter, direction: -1 | 1) => {
+    const index = chapters.findIndex(ch => ch.id === chapter.id);
+    const target = chapters[index + direction];
+    if (!target) return;
+    try {
+      await api.updateDictionaryChapter(selectedChapterDictId, chapter.id, { name: chapter.name, sequence: target.sequence });
+      await api.updateDictionaryChapter(selectedChapterDictId, target.id, { name: target.name, sequence: chapter.sequence });
+      await loadChapters(selectedChapterDictId);
+      if (config.defaultDictionaryId === selectedChapterDictId) {
+        setWordStudyChapters(await api.getDictionaryChapters(selectedChapterDictId));
+      }
+    } catch (e:any) { alert(e.message || '调整章节顺序失败'); }
+  };
+
+  const handleAssignWordChapter = async (wordId: string, chapterId: string) => {
+    try {
+      await api.assignWordToChapter(selectedChapterDictId, wordId, chapterId || undefined);
+      setChapterWords(prev => prev.map(item => item.wordId === wordId ? { ...item, chapterId: chapterId || undefined } : item));
+    } catch (e:any) { alert(e.message || '调整单词所属章节失败'); }
+  };
+
+  const handleImportChapterWords = async () => {
+    if (!selectedChapterDictId || !chapterImportText.trim()) return;
+    const targetChapter = window.prompt('请输入要导入的章节名称（必须是上方已有章节的名称）', chapters[0]?.name || '');
+    if (!targetChapter) return;
+    const chapter = chapters.find(ch => ch.name.toLowerCase() === targetChapter.trim().toLowerCase());
+    if (!chapter) { alert('找不到该章节，请先创建章节并输入完全一致的名称。'); return; }
+    const words = chapterImportText.split(/\r?\n/).map(line => line.trim()).filter(Boolean).map(line => {
+      const parts = line.split(/\t|,/).map(part => part.trim());
+      return { text: parts[0], phoneticUk: parts[1] || undefined, pos: parts[2] || undefined, definitionCn: parts[3] || undefined };
+    });
+    try {
+      setImportingChapterWords(true);
+      const result = await api.importAdminWords(selectedChapterDictId, words, chapter.id);
+      setChapterImportText('');
+      await loadChapters(selectedChapterDictId);
+      alert(`导入完成：新增到辞书 ${result.importedCount || 0} 个单词，其中新建词条 ${result.newWordsCount || 0} 个。`);
+    } catch (e:any) { alert(e.message || '导入单词失败；请确认当前账号有词库导入权限。'); }
+    finally { setImportingChapterWords(false); }
   };
 
   const handleDeleteMyDict = async (dictId: string) => {
@@ -253,16 +331,54 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               <option value="">选择一本辞书</option>
               {allDictionaries.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}
             </select>
-            {selectedChapterDictId && <div className="mt-4 space-y-2">
-              {chapters.map((ch,i)=><div key={ch.id} className="flex items-center justify-between px-4 py-3 rounded-xl bg-stone-50 border border-stone-100">
-                <div><span className="text-xs text-stone-400 mr-2">Chapter {i+1}</span><span className="font-semibold text-stone-800">{ch.name}</span></div>
-                <span className="text-xs text-stone-400">顺序 {ch.sequence}</span>
+            {selectedChapterDictId && <div className="mt-4 space-y-3">
+              {chapters.map((ch,i)=><div key={ch.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 rounded-xl bg-stone-50 border border-stone-100">
+                <div className="min-w-0"><span className="text-xs text-stone-400 mr-2">Chapter {i+1}</span><span className="font-semibold text-stone-800">{ch.name}</span><span className="ml-2 text-xs text-stone-400">顺序 {ch.sequence}</span></div>
+                <div className="flex items-center gap-1">
+                  <button type="button" disabled={i===0} onClick={()=>handleMoveChapter(ch,-1)} className="px-2 py-1 rounded border border-stone-200 text-xs disabled:opacity-30" title="上移">↑</button>
+                  <button type="button" disabled={i===chapters.length-1} onClick={()=>handleMoveChapter(ch,1)} className="px-2 py-1 rounded border border-stone-200 text-xs disabled:opacity-30" title="下移">↓</button>
+                  <button type="button" onClick={()=>handleRenameChapter(ch)} className="px-2 py-1 rounded border border-stone-200 text-xs">重命名</button>
+                  <button type="button" onClick={()=>handleDeleteChapter(ch)} className="px-2 py-1 rounded border border-red-200 text-red-600 text-xs">删除</button>
+                </div>
               </div>)}
               {chapters.length===0 && <div className="text-xs text-stone-400 py-3">还没有章节</div>}
               <div className="flex gap-2 pt-2">
-                <input value={newChapterName} onChange={e=>setNewChapterName(e.target.value)} placeholder="例如：Chapter 1 / Unit 1" className="flex-1 px-4 py-3 rounded-xl border border-stone-200 bg-white text-sm" />
-                <button type="button" disabled={creatingChapter} onClick={handleCreateChapter} className="px-5 py-3 rounded-xl bg-stone-900 text-white text-sm font-bold disabled:opacity-50">{creatingChapter?'创建中…':'新增章节'}</button>
+                <input value={newChapterName} onChange={e=>setNewChapterName(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();void handleCreateChapter();}}} placeholder="例如：Chapter 1 / Unit 1" className="flex-1 px-4 py-3 rounded-xl border border-stone-200 bg-white text-sm" />
+                <button type="button" disabled={creatingChapter || !newChapterName.trim()} onClick={handleCreateChapter} className="px-5 py-3 rounded-xl bg-stone-900 text-white text-sm font-bold disabled:opacity-50">{creatingChapter?'创建中…':'新增章节'}</button>
               </div>
+              <div className="border-t border-stone-200 pt-4 mt-4 space-y-3">
+                <div>
+                  <h3 className="font-bold text-stone-800">章节单词归属</h3>
+                  <p className="text-xs text-stone-500 mt-1">把辞书已有的单词分配到章节；选择“未分章”会将单词放回整本辞书的未分章范围。</p>
+                </div>
+                <input value={chapterWordQuery} onChange={e=>setChapterWordQuery(e.target.value)} placeholder="搜索单词或中文释义…" className="w-full px-4 py-2.5 rounded-xl border border-stone-200 text-sm" />
+                <div className="max-h-80 overflow-y-auto divide-y divide-stone-100 rounded-xl border border-stone-100">
+                  {chapterWords.filter(item => {
+                    const word = item.word || {};
+                    const query = chapterWordQuery.trim().toLowerCase();
+                    return !query || String(word.text || '').toLowerCase().includes(query) || (word.meanings || []).some((m:any)=>String(m.definitionCn || '').toLowerCase().includes(query));
+                  }).slice(0,200).map(item => (
+                    <div key={item.wordId} className="flex items-center gap-3 px-3 py-2.5">
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm font-semibold text-stone-800">{item.word?.text || item.wordId}</div>
+                        <div className="text-xs text-stone-500 truncate">{(item.word?.meanings || []).map((m:any)=>m.definitionCn).filter(Boolean).join('；') || '暂无释义'}</div>
+                      </div>
+                      <select value={item.chapterId || ''} onChange={e=>handleAssignWordChapter(item.wordId,e.target.value)} className="max-w-[48%] rounded-lg border border-stone-200 bg-white px-2 py-2 text-xs">
+                        <option value="">未分章</option>
+                        {chapters.map(ch=><option key={ch.id} value={ch.id}>{ch.sequence}. {ch.name}</option>)}
+                      </select>
+                    </div>
+                  ))}
+                  {chapterWords.length===0 && <div className="px-3 py-5 text-xs text-stone-400">这本辞书还没有单词。</div>}
+                </div>
+                {chapterWords.length>200 && <p className="text-xs text-stone-400">仅显示前 200 个匹配单词，请使用搜索缩小范围。</p>}
+              </div>
+              {isAdmin && <div className="border-t border-stone-200 pt-4 space-y-2">
+                <h3 className="font-bold text-stone-800">批量导入到章节</h3>
+                <p className="text-xs text-stone-500">每行一个单词；也支持“单词、音标、词性、中文释义”四列，用 Tab 或英文逗号分隔。导入时会归入所选章节。</p>
+                <textarea value={chapterImportText} onChange={e=>setChapterImportText(e.target.value)} rows={5} placeholder={'apple\t/ˈæp.əl/\tn.\t苹果\nbook\t/bʊk/\tn.\t书'} className="w-full px-4 py-3 rounded-xl border border-stone-200 text-sm" />
+                <button type="button" disabled={importingChapterWords || !chapters.length || !chapterImportText.trim()} onClick={handleImportChapterWords} className="px-4 py-2.5 rounded-xl bg-amber-700 text-white text-sm font-bold disabled:opacity-50">{importingChapterWords?'正在导入…':'导入到章节'}</button>
+              </div>}
             </div>}
           </div>
         </div>
