@@ -27,7 +27,7 @@ function getPool() {
 }
 
 export class MysqlSentenceImporter {
-  static async importSentences(dictionaryId: string, sentences: GeminiSentenceResult[]): Promise<SentenceImportSummary> {
+  static async importSentences(dictionaryId: string, sentences: GeminiSentenceResult[], chapterId?: string): Promise<SentenceImportSummary> {
     if (!dictionaryId) throw new Error('dictionaryId 不能为空');
     if (!sentences.length) return { imported: 0, skipped: 0, sentenceIds: [] };
 
@@ -44,6 +44,12 @@ export class MysqlSentenceImporter {
       if (!(dictRows as any[]).length) {
         throw new Error('目标句子辞书不存在或已停用');
       }
+      if (chapterId) {
+        const [chapterRows] = await conn.query('SELECT id FROM dictionary_chapter WHERE id=? AND dictionary_id=? AND is_active=1', [chapterId, dictionaryId]);
+        if (!(chapterRows as any[]).length) throw new Error('所选章节不属于该辞书或已停用');
+      }
+      const [sequenceRows] = await conn.query('SELECT COALESCE(MAX(sequence_no),0)+1 AS next_sequence FROM dictionary_sentence WHERE dictionary_id=? AND chapter_id <=> ? AND is_active=1', [dictionaryId, chapterId || null]);
+      let nextSequence = Number((sequenceRows as any[])[0]?.next_sequence || 1);
 
       for (const item of sentences) {
         const content = item.content.trim();
@@ -172,10 +178,11 @@ export class MysqlSentenceImporter {
         }
 
         await conn.execute(
-          `INSERT IGNORE INTO dictionary_sentence
-            (id, dictionary_id, sentence_id, sequence_no, is_active)
-           VALUES (?, ?, ?, ?, 1)`,
-          [randomUUID(), dictionaryId, sentenceId, Date.now() % 2147483647]
+          `INSERT INTO dictionary_sentence
+            (id, dictionary_id, chapter_id, sentence_id, sequence_no, is_active)
+           VALUES (?, ?, ?, ?, ?, 1)
+           ON DUPLICATE KEY UPDATE chapter_id=VALUES(chapter_id), sequence_no=VALUES(sequence_no), is_active=1`,
+          [randomUUID(), dictionaryId, chapterId || null, sentenceId, nextSequence++]
         );
 
         sentenceIds.push(sentenceId);
