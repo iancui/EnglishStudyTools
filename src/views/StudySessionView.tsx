@@ -808,7 +808,7 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
                   {writeResult.isCorrect ? (
                     <div className="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2">
                       <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-                      <span>✓ 拼写正确！认知闭环达成</span>
+                      <span>✓ 拼写正确！</span>
                     </div>
                   ) : (
                     <div className="p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl text-xs space-y-2">
@@ -821,15 +821,7 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
                         </span>
                       </div>
                       <div className="text-stone-600">
-                        你的输入：<span className="font-mono font-semibold ml-1">{userInput || '（空）'}</span>
-                      </div>
-                      <div className="text-stone-600">
                         正确英文拼写：<span className="font-bold text-[#29466F] font-mono text-base ml-1">{writeResult.correctAnswer}</span>
-                      </div>
-                      <div className="text-[11px] text-[#8BA0BD]">
-                        {session.mode === 'WRITE_ONLY' || session.phase === 'DICTATION'
-                          ? '请记住正确拼写并继续后面的单词；本词会在本轮稍后再次出现，答对后才算过关。'
-                          : '请记住正确拼写，点击“再试一次”后重新输入；本词拼写正确后才能继续。'}
                       </div>
                     </div>
                   )}
@@ -864,8 +856,8 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
                         <ArrowRight className="w-4 h-4" />
                         <span>
                           {session.mode === 'WRITE_ONLY' || session.phase === 'DICTATION'
-                            ? '记住答案，稍后再练 (Enter / Space)'
-                            : '记住答案，再试一次 (Enter)'}
+                            ? '记住答案，稍后再练 (Space)'
+                            : '记住答案，再试一次 (Space)'}
                         </span>
                       </button>
                     ) : (
@@ -892,7 +884,11 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
             <div className="pt-8 flex items-center justify-center gap-6 text-[11px] text-[#8BA0BD] select-none">
               <span className="flex items-center gap-1.5">
                 <kbd className="px-1.5 py-0.5 bg-white border border-[#E7EEF8] rounded font-mono text-[10px] text-[#29466F]">Enter</kbd>
-                <span>检查 / 下一个</span>
+                <span>检查</span>
+              </span>
+              <span className="flex items-center gap-1.5">
+                <kbd className="px-1.5 py-0.5 bg-white border border-[#E7EEF8] rounded font-mono text-[10px] text-[#29466F]">Space</kbd>
+                <span>下一个</span>
               </span>
               <span className="flex items-center gap-1.5">
                 <span>点击 🔊 播放发音</span>
