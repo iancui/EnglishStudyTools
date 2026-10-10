@@ -309,10 +309,7 @@ class MySQLStorage {
   }
 
   async getStudyPreview(dictionaryId: string, userId: string, chapterId?: string) {
-    const params: any[] = [userId];
     const chapterFilter = chapterId ? ' AND dw.chapter_id=?' : '';
-    if (chapterId) params.push(chapterId);
-    params.push(dictionaryId);
     const [rows] = await pool.query(
       `SELECT d.name AS dictionary_name, COUNT(dw.word_id) AS total_in_dict, SUM(CASE WHEN up.word_id IS NULL THEN 1 ELSE 0 END) AS matching_count
        FROM dictionary d
