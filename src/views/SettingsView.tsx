@@ -206,7 +206,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       setChapterSentences(prev => prev.map(item => item.chapterId === chapter.id ? { ...item, chapterId: undefined } : item));
       setChapterImportTargetId(prev => prev === chapter.id ? (chapters.find(ch => ch.id !== chapter.id)?.id || '') : prev);
       setWordStudyChapters(prev => prev.filter(ch => ch.id !== chapter.id));
-      if (config.wordStudyChapterId === chapter.id) setConfig(prev => ({ ...prev, wordStudyChapterId: undefined }));
+      if (config.wordStudyChapterId === chapter.id) setConfig(prev => { const updated = { ...prev, wordStudyChapterId: undefined }; onConfigUpdated(updated); return updated; });
     } catch (e:any) { alert(e.message || '删除章节失败'); }
   };
 
