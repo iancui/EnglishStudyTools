@@ -11,7 +11,7 @@ export class AdminSentenceAIToolController {
   }
 
   static async import(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-    MysqlSentenceImporter.importSentences(req.body?.dictionaryId, req.body?.sentences || [])
+    MysqlSentenceImporter.importSentences(req.body?.dictionaryId, req.body?.sentences || [], req.body?.chapterId || undefined)
       .then(data => res.json({ code: 200, message: 'success', data }))
       .catch(next);
   }
