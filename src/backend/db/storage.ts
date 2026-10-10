@@ -284,42 +284,10 @@ class MySQLStorage {
   private config(r:Row):UserDictionaryConfig{return{id:r.id,userId:r.user_id,defaultDictionaryId:r.default_dictionary_id||undefined,sentenceDictionaryId:r.sentence_dictionary_id||undefined,phoneticType:r.phonetic_type,audioType:r.audio_type,enablePhonics:Boolean(r.enable_phonics),sentencePracticeCount:Number(r.sentence_practice_count||5),wordStudyCount:Number(r.word_study_count||20),wordStudyChapterId:r.word_study_chapter_id||undefined,wordStudySortMode:r.word_study_sort_mode||'RANDOM',wordStudyWriteOrder:r.word_study_write_order||'SEQUENCE',wordStudyDictationOrder:r.word_study_dictation_order||'RANDOM',wordStudyIncludeWrite:r.word_study_include_write === undefined ? true : Boolean(r.word_study_include_write),wordStudyIncludeDictation:r.word_study_include_dictation === undefined ? true : Boolean(r.word_study_include_dictation),wordStudyExcludeMastered:r.word_study_exclude_mastered === undefined ? true : Boolean(r.word_study_exclude_mastered),wordStudyMode:r.word_study_mode||'LEARN_AND_WRITE',createdAt:iso(r.created_at)!,updatedAt:iso(r.updated_at)!}}
   async saveDictionaryConfig(userId:string,p:Partial<UserDictionaryConfig>){const c=await this.getDictionaryConfig(userId);const x={...c,...p,updatedAt:new Date().toISOString()};await pool.query('UPDATE user_dictionary_config SET default_dictionary_id=?,sentence_dictionary_id=?,phonetic_type=?,audio_type=?,enable_phonics=?,sentence_practice_count=?,word_study_count=?,word_study_chapter_id=?,word_study_sort_mode=?,word_study_write_order=?,word_study_dictation_order=?,word_study_include_write=?,word_study_include_dictation=?,word_study_exclude_mastered=?,word_study_mode=?,updated_at=? WHERE user_id=?',[x.defaultDictionaryId||null,x.sentenceDictionaryId||null,x.phoneticType,x.audioType,x.enablePhonics,x.sentencePracticeCount||5,x.wordStudyCount||20,x.wordStudyChapterId||null,x.wordStudySortMode||'RANDOM',x.wordStudyWriteOrder||'SEQUENCE',x.wordStudyDictationOrder||'RANDOM',x.wordStudyIncludeWrite !== false,x.wordStudyIncludeDictation !== false,x.wordStudyExcludeMastered !== false,x.wordStudyMode||'LEARN_AND_WRITE',mysqlDate(x.updatedAt),userId]);return x}
 
-  async getStudyCandidates(dictionaryId: string, userId: string, excludeMastered: boolean, sortMode: string, limit: number, chapterId?: string) {
-    let order = 'dw.sequence_no ASC';
-    if (sortMode === 'RANDOM') order = 'RAND()';
-    else if (sortMode === 'REVIEW_FIRST') order = `CASE WHEN up.status='REVIEW' AND up.next_review_at IS NOT NULL AND up.next_review_at <= NOW() THEN 0 WHEN up.status='REVIEW' THEN 1 WHEN up.status='LEARNING' THEN 2 ELSE 3 END, dw.sequence_no ASC`;
-
-    const mastered = excludeMastered
-      ? "AND (up.word_id IS NULL OR (up.status <> 'MASTERED' AND COALESCE(up.mastery,0) <= 90))"
-      : '';
-
-    // 顺序学习是“批次游标”，而不是每天重新从第 1 个单词开始。
-    // 只有已经完成的 SEQUENCE 批次才会推进游标；未完成/取消的批次不会推进。
-    // 如果指定章节，只参考同一章节的历史顺序批次。
-    const sequenceCursor = sortMode === 'SEQUENCE'
-      ? `AND dw.sequence_no > COALESCE((
-          SELECT MAX(dw2.sequence_no)
-          FROM study_session ss2
-          JOIN study_session_word ssw2 ON ssw2.session_id=ss2.id
-          JOIN dictionary_word dw2
-            ON dw2.word_id=ssw2.word_id
-           AND dw2.dictionary_id=ss2.dictionary_id
-          WHERE ss2.user_id=?
-            AND ss2.dictionary_id=?
-            AND ss2.status='COMPLETED'
-            AND ss2.sort_mode='SEQUENCE'
-            ${chapterId ? 'AND dw2.chapter_id=?' : ''}
-        ),0)`
-      : '';
-
+  async getStudyCandidates(dictionaryId: string, userId: string, _excludeMastered: boolean, _sortMode: string, limit: number, chapterId?: string) {
+    // 新词学习只选从未产生过学习进度的单词。已经学过但未掌握的单词也进入复习体系，不再回到新词队列。
     const params: any[] = [userId, dictionaryId];
     if (chapterId) params.push(chapterId);
-
-    if (sortMode === 'SEQUENCE') {
-      params.push(userId, dictionaryId);
-      if (chapterId) params.push(chapterId);
-    }
-
     params.push(Math.max(1, limit));
 
     const [rows] = await pool.query(
@@ -327,10 +295,9 @@ class MySQLStorage {
        FROM dictionary_word dw
        LEFT JOIN user_word_progress up ON up.word_id=dw.word_id AND up.user_id=?
        WHERE dw.dictionary_id=? AND dw.is_active=1
-         ${mastered}
+         AND up.word_id IS NULL
          ${chapterId ? 'AND dw.chapter_id=?' : ''}
-         ${sequenceCursor}
-       ORDER BY ${order}
+       ORDER BY dw.sequence_no ASC
        LIMIT ?`,
       params
     );
@@ -339,19 +306,18 @@ class MySQLStorage {
 
   async getStudyPreview(dictionaryId: string, userId: string) {
     const [rows] = await pool.query(
-      "SELECT d.name AS dictionary_name, COUNT(dw.word_id) AS total_in_dict, SUM(CASE WHEN up.word_id IS NULL OR (up.status <> 'MASTERED' AND COALESCE(up.mastery,0) <= 90) THEN 1 ELSE 0 END) AS matching_count FROM dictionary d LEFT JOIN dictionary_word dw ON dw.dictionary_id=d.id AND dw.is_active=1 LEFT JOIN user_word_progress up ON up.word_id=dw.word_id AND up.user_id=? WHERE d.id=? AND d.status='ACTIVE' GROUP BY d.id, d.name",
+      "SELECT d.name AS dictionary_name, COUNT(dw.word_id) AS total_in_dict, SUM(CASE WHEN up.word_id IS NULL THEN 1 ELSE 0 END) AS matching_count FROM dictionary d LEFT JOIN dictionary_word dw ON dw.dictionary_id=d.id AND dw.is_active=1 LEFT JOIN user_word_progress up ON up.word_id=dw.word_id AND up.user_id=? WHERE d.id=? AND d.status='ACTIVE' GROUP BY d.id, d.name",
       [userId, dictionaryId]
     );
     return (rows as Row[])[0];
   }
 
-  async getStudyCandidateCount(dictionaryId: string, userId: string, excludeMastered: boolean) {
-    const mastered = excludeMastered ? "AND (up.word_id IS NULL OR (up.status <> 'MASTERED' AND COALESCE(up.mastery,0) <= 90))" : '';
+  async getStudyCandidateCount(dictionaryId: string, userId: string, _excludeMastered: boolean) {
     const [rows] = await pool.query(
       `SELECT COUNT(*) AS total
        FROM dictionary_word dw
        LEFT JOIN user_word_progress up ON up.word_id=dw.word_id AND up.user_id=?
-       WHERE dw.dictionary_id=? AND dw.is_active=1 ${mastered}`,
+       WHERE dw.dictionary_id=? AND dw.is_active=1 AND up.word_id IS NULL`,
       [userId, dictionaryId]
     );
     return Number((rows as Row[])[0]?.total || 0);
