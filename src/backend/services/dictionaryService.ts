@@ -40,13 +40,11 @@ export class DictionaryService {
   static async getDictionaryById(id: string) {
     const dict = await db.findDictionaryById(id);
     if (!dict) return null;
-    const [wordsWithDetails, chapters, dictionarySentences, allSentences] = await Promise.all([
+    const [wordsWithDetails, chapters, dictionarySentences] = await Promise.all([
       db.getDictionaryWords(id),
       db.getDictionaryChapters(id),
-      db.getDictionarySentences(id),
-      db.getAllSentences()
+      db.getDictionarySentences(id)
     ]);
-    const sentenceMap = new Map(allSentences.map((sentence: any) => [String(sentence.id), sentence]));
     return {
       ...dict,
       chapters,
@@ -58,7 +56,11 @@ export class DictionaryService {
         sentenceId: String(relation.sentence_id),
         sequence: Number(relation.sequence_no || 0),
         isActive: Boolean(relation.is_active),
-        sentence: sentenceMap.get(String(relation.sentence_id))
+        sentence: {
+          id: String(relation.sentence_id),
+          content: String(relation.sentence_content || ''),
+          translation: String(relation.sentence_translation || '')
+        }
       }))
     };
   }
