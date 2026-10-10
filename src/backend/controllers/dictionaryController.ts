@@ -123,6 +123,18 @@ export class DictionaryController {
   static async createDictionaryChapter(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try { const data=await DictionaryService.createDictionaryChapter(req.user?.id||'u-default',req.params.id,req.body); res.json({code:200,message:'success',data}); } catch(e){next(e);}
   }
+  static async updateDictionaryChapter(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try { const data=await DictionaryService.updateDictionaryChapter(req.user?.id||'u-default',req.params.id,req.params.chapterId,req.body); res.json({code:200,message:'success',data}); } catch(e){next(e);}
+  }
+  static async deleteDictionaryChapter(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try { const data=await DictionaryService.deleteDictionaryChapter(req.user?.id||'u-default',req.params.id,req.params.chapterId); res.json({code:200,message:'success',data}); } catch(e){next(e);}
+  }
+  static async assignWordToChapter(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try { const data=await DictionaryService.assignWordToChapter(req.user?.id||'u-default',req.params.id,req.params.wordId,req.body?.chapterId || undefined); res.json({code:200,message:'success',data}); } catch(e){next(e);}
+  }
+  static async assignSentenceToChapter(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try { const data=await DictionaryService.assignSentenceToChapter(req.user?.id||'u-default',req.params.id,req.params.sentenceId,req.body?.chapterId || undefined,req.body?.sequence===undefined?undefined:Number(req.body.sequence)); res.json({code:200,message:'success',data}); } catch(e){next(e);}
+  }
 
   static async getDictionaryById(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
@@ -332,8 +344,8 @@ export class DictionaryController {
   static async importAdminWords(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const { words } = req.body;
-      const result = await DictionaryService.importWordsToDictionary(id, words || []);
+      const { words, chapterId } = req.body;
+      const result = await DictionaryService.importWordsToDictionary(id, words || [], chapterId || undefined);
       res.json({
         code: 200,
         message: 'success',
