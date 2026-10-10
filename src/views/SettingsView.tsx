@@ -57,7 +57,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [selectedChapterDictId, setSelectedChapterDictId] = useState('');
   const [chapters, setChapters] = useState<DictionaryChapter[]>([]);
   const [chapterWords, setChapterWords] = useState<any[]>([]);
+  const [chapterSentences, setChapterSentences] = useState<any[]>([]);
   const [chapterWordQuery, setChapterWordQuery] = useState('');
+  const [chapterSentenceQuery, setChapterSentenceQuery] = useState('');
   const [chapterImportText, setChapterImportText] = useState('');
   const [importingChapterWords, setImportingChapterWords] = useState(false);
   const [wordStudyChapters, setWordStudyChapters] = useState<DictionaryChapter[]>([]);
@@ -153,7 +155,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   };
 
   const loadChapters = async (dictId: string) => {
-    if (!dictId) { setChapters([]); setChapterWords([]); return; }
+    if (!dictId) { setChapters([]); setChapterWords([]); setChapterSentences([]); return; }
     try {
       const [loadedChapters, dictionary] = await Promise.all([
         api.getDictionaryChapters(dictId),
@@ -161,10 +163,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       ]);
       setChapters(loadedChapters);
       setChapterWords(dictionary?.words || []);
+      setChapterSentences(dictionary?.sentences || []);
     } catch (e) {
       console.error('加载章节内容失败:', e);
       setChapters([]);
       setChapterWords([]);
+      setChapterSentences([]);
     }
   };
 
@@ -222,6 +226,26 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     } catch (e:any) { alert(e.message || '调整单词所属章节失败'); }
   };
 
+  const handleAssignSentenceChapter = async (item: any, chapterId: string) => {
+    try {
+      await api.assignSentenceToChapter(selectedChapterDictId, item.sentenceId, chapterId || undefined, Number(item.sequence) || 1);
+      setChapterSentences(prev => prev.map(sentence => sentence.sentenceId === item.sentenceId ? { ...sentence, chapterId: chapterId || undefined } : sentence));
+    } catch (e:any) { alert(e.message || '调整句子所属章节失败'); }
+  };
+
+  const handleSentenceSequenceChange = (sentenceId: string, value: string) => {
+    const sequence = Math.max(1, Number(value) || 1);
+    setChapterSentences(prev => prev.map(item => item.sentenceId === sentenceId ? { ...item, sequence } : item));
+  };
+
+  const handleSaveSentenceSequence = async (item: any) => {
+    try {
+      await api.assignSentenceToChapter(selectedChapterDictId, item.sentenceId, item.chapterId || undefined, Math.max(1, Number(item.sequence) || 1));
+      const refreshed = await api.getDictionaryById(selectedChapterDictId);
+      setChapterSentences(refreshed?.sentences || []);
+    } catch (e:any) { alert(e.message || '保存句子顺序失败'); }
+  };
+
   const handleImportChapterWords = async () => {
     if (!selectedChapterDictId || !chapterImportText.trim()) return;
     const targetChapter = window.prompt('请输入要导入的章节名称（必须是上方已有章节的名称）', chapters[0]?.name || '');
@@ -259,6 +283,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   if (loading) return null;
 
   const isAdmin = user?.role === 'ADMIN';
+  const selectedChapterDictionary = allDictionaries.find(d => d.id === selectedChapterDictId);
+  const canManageSelectedDictionary = isAdmin || (selectedChapterDictionary?.ownerType === 'USER' && selectedChapterDictionary.ownerUserId === user?.id);
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
@@ -335,17 +361,19 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               {chapters.map((ch,i)=><div key={ch.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 rounded-xl bg-stone-50 border border-stone-100">
                 <div className="min-w-0"><span className="text-xs text-stone-400 mr-2">Chapter {i+1}</span><span className="font-semibold text-stone-800">{ch.name}</span><span className="ml-2 text-xs text-stone-400">顺序 {ch.sequence}</span></div>
                 <div className="flex items-center gap-1">
-                  <button type="button" disabled={i===0} onClick={()=>handleMoveChapter(ch,-1)} className="px-2 py-1 rounded border border-stone-200 text-xs disabled:opacity-30" title="上移">↑</button>
-                  <button type="button" disabled={i===chapters.length-1} onClick={()=>handleMoveChapter(ch,1)} className="px-2 py-1 rounded border border-stone-200 text-xs disabled:opacity-30" title="下移">↓</button>
-                  <button type="button" onClick={()=>handleRenameChapter(ch)} className="px-2 py-1 rounded border border-stone-200 text-xs">重命名</button>
-                  <button type="button" onClick={()=>handleDeleteChapter(ch)} className="px-2 py-1 rounded border border-red-200 text-red-600 text-xs">删除</button>
+                  {canManageSelectedDictionary && <>
+                    <button type="button" disabled={i===0} onClick={()=>handleMoveChapter(ch,-1)} className="px-2 py-1 rounded border border-stone-200 text-xs disabled:opacity-30" title="上移">↑</button>
+                    <button type="button" disabled={i===chapters.length-1} onClick={()=>handleMoveChapter(ch,1)} className="px-2 py-1 rounded border border-stone-200 text-xs disabled:opacity-30" title="下移">↓</button>
+                    <button type="button" onClick={()=>handleRenameChapter(ch)} className="px-2 py-1 rounded border border-stone-200 text-xs">重命名</button>
+                    <button type="button" onClick={()=>handleDeleteChapter(ch)} className="px-2 py-1 rounded border border-red-200 text-red-600 text-xs">删除</button>
+                  </>}
                 </div>
               </div>)}
               {chapters.length===0 && <div className="text-xs text-stone-400 py-3">还没有章节</div>}
-              <div className="flex gap-2 pt-2">
+              {canManageSelectedDictionary && <div className="flex gap-2 pt-2">
                 <input value={newChapterName} onChange={e=>setNewChapterName(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();void handleCreateChapter();}}} placeholder="例如：Chapter 1 / Unit 1" className="flex-1 px-4 py-3 rounded-xl border border-stone-200 bg-white text-sm" />
                 <button type="button" disabled={creatingChapter || !newChapterName.trim()} onClick={handleCreateChapter} className="px-5 py-3 rounded-xl bg-stone-900 text-white text-sm font-bold disabled:opacity-50">{creatingChapter?'创建中…':'新增章节'}</button>
-              </div>
+              </div>}
               <div className="border-t border-stone-200 pt-4 mt-4 space-y-3">
                 <div>
                   <h3 className="font-bold text-stone-800">章节单词归属</h3>
@@ -363,7 +391,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         <div className="text-sm font-semibold text-stone-800">{item.word?.text || item.wordId}</div>
                         <div className="text-xs text-stone-500 truncate">{(item.word?.meanings || []).map((m:any)=>m.definitionCn).filter(Boolean).join('；') || '暂无释义'}</div>
                       </div>
-                      <select value={item.chapterId || ''} onChange={e=>handleAssignWordChapter(item.wordId,e.target.value)} className="max-w-[48%] rounded-lg border border-stone-200 bg-white px-2 py-2 text-xs">
+                      <select value={item.chapterId || ''} disabled={!canManageSelectedDictionary} onChange={e=>handleAssignWordChapter(item.wordId,e.target.value)} className="max-w-[48%] rounded-lg border border-stone-200 bg-white px-2 py-2 text-xs disabled:opacity-60">
                         <option value="">未分章</option>
                         {chapters.map(ch=><option key={ch.id} value={ch.id}>{ch.sequence}. {ch.name}</option>)}
                       </select>
@@ -372,6 +400,37 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   {chapterWords.length===0 && <div className="px-3 py-5 text-xs text-stone-400">这本辞书还没有单词。</div>}
                 </div>
                 {chapterWords.length>200 && <p className="text-xs text-stone-400">仅显示前 200 个匹配单词，请使用搜索缩小范围。</p>}
+              </div>
+              <div className="border-t border-stone-200 pt-4 mt-4 space-y-3">
+                <div>
+                  <h3 className="font-bold text-stone-800">章节句子归属与顺序</h3>
+                  <p className="text-xs text-stone-500 mt-1">句子按章节顺序、章节内序号学习；修改序号后移开输入框即可保存。</p>
+                </div>
+                <input value={chapterSentenceQuery} onChange={e=>setChapterSentenceQuery(e.target.value)} placeholder="搜索英文句子或中文翻译…" className="w-full px-4 py-2.5 rounded-xl border border-stone-200 text-sm" />
+                <div className="max-h-80 overflow-y-auto divide-y divide-stone-100 rounded-xl border border-stone-100">
+                  {chapterSentences.filter(item => {
+                    const sentence = item.sentence || {};
+                    const query = chapterSentenceQuery.trim().toLowerCase();
+                    return !query || String(sentence.content || '').toLowerCase().includes(query) || String(sentence.translation || '').toLowerCase().includes(query);
+                  }).slice(0,150).map(item => (
+                    <div key={item.sentenceId} className="flex flex-col sm:flex-row sm:items-center gap-2 px-3 py-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm font-semibold text-stone-800">{item.sentence?.content || item.sentenceId}</div>
+                        <div className="text-xs text-stone-500 mt-1">{item.sentence?.translation || '暂无翻译'}</div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <label className="text-xs text-stone-500">序号</label>
+                        <input type="number" min={1} value={item.sequence || 1} disabled={!canManageSelectedDictionary} onChange={e=>handleSentenceSequenceChange(item.sentenceId,e.target.value)} onBlur={()=>handleSaveSentenceSequence(item)} className="w-16 rounded-lg border border-stone-200 px-2 py-2 text-xs disabled:opacity-60" />
+                        <select value={item.chapterId || ''} disabled={!canManageSelectedDictionary} onChange={e=>handleAssignSentenceChapter(item,e.target.value)} className="max-w-[45%] rounded-lg border border-stone-200 bg-white px-2 py-2 text-xs disabled:opacity-60">
+                          <option value="">未分章</option>
+                          {chapters.map(ch=><option key={ch.id} value={ch.id}>{ch.sequence}. {ch.name}</option>)}
+                        </select>
+                      </div>
+                    </div>
+                  ))}
+                  {chapterSentences.length===0 && <div className="px-3 py-5 text-xs text-stone-400">这本辞书还没有关联句子；管理员可以在“Gemini 句子入库工具”导入并指定章节。</div>}
+                </div>
+                {chapterSentences.length>150 && <p className="text-xs text-stone-400">仅显示前 150 条匹配句子，请使用搜索缩小范围。</p>}
               </div>
               {isAdmin && <div className="border-t border-stone-200 pt-4 space-y-2">
                 <h3 className="font-bold text-stone-800">批量导入到章节</h3>
