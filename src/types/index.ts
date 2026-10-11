@@ -151,6 +151,7 @@ export interface StudySessionItem {
   userId: string;
   mode: SessionMode;
   dictionaryId: string;
+  chapterId?: string;
   dictionary?: DictionaryItem;
   totalCount: number;
   completedCount: number;
