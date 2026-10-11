@@ -251,6 +251,7 @@ export interface StatisticsData {
   masteredWords: number;
   learningWords: number;
   totalWords: number;
+  wordChapters?: { id: string; name: string; sequence: number; total: number; learned: number; mastered: number }[];
   progressPercent: number;
   accuracyRate: number;
   learnedWords: number;
