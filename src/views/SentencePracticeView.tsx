@@ -361,8 +361,8 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
   };
 
   const handleWordKeyDown = (idx: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    // Tab 快捷键：普通 Tab 提示并读当前单词；Shift+Tab 读整句。
-    if (e.key === 'Tab') {
+    // Space 快捷键：空格提示并读当前单词；Shift+Space 读整句。
+    if (e.code === 'Space') {
       e.preventDefault();
       if (e.shiftKey) {
         void speak(sentence.content);
@@ -754,8 +754,17 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
               <span title="默写整句" className="h-2 rounded-full w-6 bg-stone-900" />
             </div>
 
-            <div className="text-center text-[11px] text-[#8BA0BD]">
-              <span>Tab 提示并读单词 · Shift+Tab 读整句</span>
+            <div className="flex flex-wrap items-center justify-center gap-3 text-sm text-[#526987]">
+              <span className="inline-flex items-center gap-2">
+                <kbd className="rounded-lg border border-[#B8C7DD] bg-white px-3 py-1.5 font-mono text-xs font-extrabold tracking-wide text-[#29466F] shadow-[0_2px_0_#B8C7DD]">SPACE</kbd>
+                <span>提示并读单词</span>
+              </span>
+              <span className="inline-flex items-center gap-2">
+                <kbd className="rounded-lg border border-[#B8C7DD] bg-white px-2.5 py-1.5 font-mono text-xs font-extrabold tracking-wide text-[#29466F] shadow-[0_2px_0_#B8C7DD]">SHIFT</kbd>
+                <span className="text-xs text-[#8BA0BD]">+</span>
+                <kbd className="rounded-lg border border-[#B8C7DD] bg-white px-3 py-1.5 font-mono text-xs font-extrabold tracking-wide text-[#29466F] shadow-[0_2px_0_#B8C7DD]">SPACE</kbd>
+                <span>读整句</span>
+              </span>
             </div>
           </>
         ) : (
@@ -847,11 +856,37 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
             )}
 
             {/* 快捷键提示 */}
-            <div className="text-center text-[11px] text-[#8BA0BD]">
+            <div className="flex flex-wrap items-center justify-center gap-3 text-sm text-[#526987]">
               {studyMode === 'LISTEN_READ' ? (
-                <span>Enter 下一块 · Space 读本块 · Shift+Space 读整句</span>
+                <>
+                  <span className="inline-flex items-center gap-2">
+                    <kbd className="rounded-lg border border-[#B8C7DD] bg-white px-3 py-1.5 font-mono text-xs font-extrabold tracking-wide text-[#29466F] shadow-[0_2px_0_#B8C7DD]">SPACE</kbd>
+                    <span>读本块</span>
+                  </span>
+                  <span className="inline-flex items-center gap-2">
+                    <kbd className="rounded-lg border border-[#B8C7DD] bg-white px-2.5 py-1.5 font-mono text-xs font-extrabold tracking-wide text-[#29466F] shadow-[0_2px_0_#B8C7DD]">SHIFT</kbd>
+                    <span className="text-xs text-[#8BA0BD]">+</span>
+                    <kbd className="rounded-lg border border-[#B8C7DD] bg-white px-3 py-1.5 font-mono text-xs font-extrabold tracking-wide text-[#29466F] shadow-[0_2px_0_#B8C7DD]">SPACE</kbd>
+                    <span>读整句</span>
+                  </span>
+                  <span className="inline-flex items-center gap-2">
+                    <kbd className="rounded-lg border border-[#B8C7DD] bg-white px-3 py-1.5 font-mono text-xs font-extrabold tracking-wide text-[#29466F] shadow-[0_2px_0_#B8C7DD]">ENTER</kbd>
+                    <span>下一块</span>
+                  </span>
+                </>
               ) : (
-                <span>Tab 提示并读单词 · Shift+Tab 读整句</span>
+                <>
+                  <span className="inline-flex items-center gap-2">
+                    <kbd className="rounded-lg border border-[#B8C7DD] bg-white px-3 py-1.5 font-mono text-xs font-extrabold tracking-wide text-[#29466F] shadow-[0_2px_0_#B8C7DD]">SPACE</kbd>
+                    <span>提示并读单词</span>
+                  </span>
+                  <span className="inline-flex items-center gap-2">
+                    <kbd className="rounded-lg border border-[#B8C7DD] bg-white px-2.5 py-1.5 font-mono text-xs font-extrabold tracking-wide text-[#29466F] shadow-[0_2px_0_#B8C7DD]">SHIFT</kbd>
+                    <span className="text-xs text-[#8BA0BD]">+</span>
+                    <kbd className="rounded-lg border border-[#B8C7DD] bg-white px-3 py-1.5 font-mono text-xs font-extrabold tracking-wide text-[#29466F] shadow-[0_2px_0_#B8C7DD]">SPACE</kbd>
+                    <span>读整句</span>
+                  </span>
+                </>
               )}
             </div>
           </>
