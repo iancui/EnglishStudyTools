@@ -11,7 +11,8 @@ export class SentencePracticeController {
     try {
             const userId = req.user?.id || 'u-default';
       const dictionaryId = (req.query.dictionaryId as string) || undefined;
-      const preview = await SentencePracticeService.previewPractice(userId, dictionaryId);
+      const chapterId = typeof req.query.chapterId === 'string' ? req.query.chapterId : undefined;
+      const preview = await SentencePracticeService.previewPractice(userId, dictionaryId, chapterId);
       res.json({
         code: 200,
         message: 'success',
@@ -33,7 +34,8 @@ export class SentencePracticeController {
       const { dictionaryId, chapterId } = req.body;
       const session = await SentencePracticeService.createSession(userId, {
         dictionaryId,
-        chapterId: chapterId || undefined
+        // Preserve '': it explicitly means the whole dictionary, not the saved chapter.
+        chapterId: typeof chapterId === 'string' ? chapterId : undefined
       });
       res.json({
         code: 200,
