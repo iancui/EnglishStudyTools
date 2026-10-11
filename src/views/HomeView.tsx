@@ -520,11 +520,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
           onRestart={() => onDirectStartSentencePractice?.()}
           batchCompleted={(activeSentenceSession?.currentSentenceIndex || 0) + 1}
           batchTotal={activeSentenceSession?.totalCount || 0}
-          subtitle={
-            stats?.sentenceDictionaryName
-              ? [stats.sentenceDictionaryName, stats.sentenceChapterName].filter(Boolean).join(' · ')
-              : ''
-          }
+          subtitle={stats?.sentenceDictionaryName || ''}
           footerExtra={
             (stats?.sentenceChapters || []).length > 0 ? (
               <div className="mt-6 rounded-2xl border border-[#E7EEF8] bg-gradient-to-br from-[#F8FAFF] to-white p-4">
