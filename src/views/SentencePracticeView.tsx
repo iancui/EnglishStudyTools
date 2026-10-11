@@ -701,7 +701,15 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
             </div>
 
             <div className="bg-white border border-[#E7EEF8] rounded-3xl shadow-xs px-6 sm:px-10 py-12 sm:py-16 text-center">
-              {!allWordsCorrect && renderWordBoxes()}
+              {!allWordsCorrect && (
+                <>
+                  <div className="mb-6 inline-flex flex-wrap items-center justify-center gap-2 rounded-xl border border-indigo-100 bg-indigo-50 px-4 py-3 text-sm text-indigo-700">
+                    <span aria-hidden>💡</span>
+                    <span>拼写卡住了？按 <kbd className="rounded-md border border-indigo-200 bg-white px-1.5 py-0.5 font-mono font-bold">Tab</kbd> 查看当前单词的剩余字母并播放读音。</span>
+                  </div>
+                  {renderWordBoxes()}
+                </>
+              )}
 
               {allWordsCorrect && (
                 wrong ? (
@@ -775,11 +783,17 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
                   </span>
                 </div>
               ) : (
-                <div className="flex flex-wrap justify-center items-end gap-x-3 gap-y-6">
-                  {priorText && (
-                    <span className="text-2xl sm:text-3xl font-extrabold text-[#29466F] pb-[3px] select-none">{priorText}</span>
-                  )}
-                  {renderWordBoxes()}
+                <div className="flex flex-col items-center gap-5">
+                  <div className="inline-flex flex-wrap items-center justify-center gap-2 rounded-xl border border-indigo-100 bg-indigo-50 px-4 py-3 text-sm text-indigo-700">
+                    <span aria-hidden>💡</span>
+                    <span>按 <kbd className="rounded-md border border-indigo-200 bg-white px-1.5 py-0.5 font-mono font-bold">Tab</kbd> 查看当前单词的剩余字母并播放读音；拼写正确后会自动进入下一个单词。</span>
+                  </div>
+                  <div className="flex flex-wrap justify-center items-end gap-x-3 gap-y-6">
+                    {priorText && (
+                      <span className="text-2xl sm:text-3xl font-extrabold text-[#29466F] pb-[3px] select-none">{priorText}</span>
+                    )}
+                    {renderWordBoxes()}
+                  </div>
                 </div>
               )}
 
