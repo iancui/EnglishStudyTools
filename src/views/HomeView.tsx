@@ -228,7 +228,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   useEffect(() => {
     loadHomeData();
     // 所选句子单元变化时刷新句子进度与进行中会话
-  }, [config.sentenceChapterId]);
+  }, [config.sentenceChapterId, config.defaultDictionaryId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -426,10 +426,10 @@ export const HomeView: React.FC<HomeViewProps> = ({
               <div className="mb-3 flex items-center justify-between gap-2">
                 <span className="flex items-center gap-2 text-xs font-bold text-[#526987]">
                   <BookOpen className="h-4 w-4 text-[#4F7DF3]" />
-                  学习范围
+                  学习单元
                 </span>
                 <span className="max-w-[65%] truncate rounded-full bg-[#EAF0FF] px-2.5 py-1 text-[11px] font-semibold text-[#4269C5]">
-                  {wordDictionaryName || (config.defaultDictionaryId ? '当前词库' : '尚未选择词库')}
+                  {wordChapters.find(ch => ch.id === (config.wordStudyChapterId || ''))?.name || (wordChapters.length > 0 ? '请选择单元' : (config.defaultDictionaryId ? '整本词库' : '尚未选择词库'))}
                 </span>
               </div>
               {wordChapters.length > 0 ? (
@@ -569,8 +569,13 @@ export const HomeView: React.FC<HomeViewProps> = ({
                           <span>已学 {learned}/{total} · 已掌握 {mastered}</span>
                           <span className="font-bold text-[#526987]">{percent}%</span>
                         </div>
-                        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#E7EEF8]">
-                          <div className="h-full rounded-full bg-[#4F7DF3] transition-all" style={{ width: `${percent}%` }} />
+                        {total === 0 ? (
+                          <p className="mt-2 text-[11px] text-amber-600">本单元暂无关联单词</p>
+                        ) : (
+                          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#E7EEF8]">
+                            <div className="h-full rounded-full bg-[#4F7DF3] transition-all" style={{ width: `${percent}%` }} />
+                          </div>
+                        )}
                         </div>
                       </button>
                     );
