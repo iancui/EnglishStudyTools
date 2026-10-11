@@ -388,7 +388,8 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
       }
       return nx;
     });
-    setFocusedWordIdx(null);
+    // 失去浏览器键盘焦点时保留当前单词的视觉光标位置；
+    // 真正的输入焦点仍只由自动聚焦逻辑在拼写正确后推进。
   };
 
   const allWordsCorrect = wordStates.length > 0 && wordStates.every(w => w.correct);
