@@ -79,8 +79,8 @@ export class StatisticsService {
     });
 
     stepStartedAt = Date.now();
-    // 首页“学句子”的总数与进度，必须以用户在设置里选择的句子词库（sentenceDictionaryId）为口径，
-    // 而不是全库句子数，否则用户选了某个年级却看到全库几千句，数字对不上。
+    // 词库总进度始终统计整个已选句子词库；当前单元的进度单独由 sentenceChapters 提供。
+    // 不能把 sentenceChapterId 传入总统计，否则切换单元后顶部进度也会变成单元进度。
     const sentenceDictionaryId = config.sentenceDictionaryId;
     const sentenceChapterId = config.sentenceChapterId;
     let totalSentences: number;
@@ -90,7 +90,7 @@ export class StatisticsService {
     let sentenceChapterName: string | undefined;
     let sentenceChapters: { id: string; name: string; sequence: number; total: number; learned: number; mastered: number }[] = [];
     if (sentenceDictionaryId) {
-      const s = await db.getDictionarySentenceStats(sentenceDictionaryId, userId, sentenceChapterId);
+      const s = await db.getDictionarySentenceStats(sentenceDictionaryId, userId);
       totalSentences = s.total;
       learnedSentences = s.learned;
       masteredSentences = s.mastered;
