@@ -370,6 +370,11 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
   };
 
   const handleWordKeyDown = (idx: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    // 阻止 Tab 默认切换焦点，避免逐词默写时输入光标跳到其他控件。
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      return;
+    }
     // Space 快捷键：空格提示并读当前单词；Shift+Space 读整句。
     if (e.code === 'Space') {
       e.preventDefault();
