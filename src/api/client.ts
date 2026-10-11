@@ -229,7 +229,12 @@ export const api = {
       body: JSON.stringify(params)
     }),
 
-  getActiveStudySession: () => request<any | null>('/api/study-sessions/current'),
+  getActiveStudySession: (dictionaryId?: string, chapterId?: string) => {
+    const params = new URLSearchParams();
+    if (dictionaryId) params.set('dictionaryId', dictionaryId);
+    if (chapterId) params.set('chapterId', chapterId);
+    return request<any | null>('/api/study-sessions/current' + (params.toString() ? '?' + params.toString() : ''));
+  },
   getStudySessionById: (id: string) => request<any>(`/api/study-sessions/${id}`),
 
   learnSessionWord: (sessionId: string, wordId: string) =>
