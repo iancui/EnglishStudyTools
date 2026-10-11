@@ -111,6 +111,7 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
   config,
 }) => {
   const [session, setSession] = useState<SentencePracticeSession | null>(null);
+  const [dictionaryProgress, setDictionaryProgress] = useState<{ totalSentences: number; learnedSentences: number; masteredSentences: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -196,6 +197,25 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
   }, [sessionId, applySession]);
 
   useEffect(() => { loadSession(); }, [loadSession]);
+
+  // 顶部显示所选句子词库的整体进度，而不是本次随机练习任务的进度。
+  const refreshDictionaryProgress = useCallback(async () => {
+    try {
+      const stats = await api.getTodayStatistics();
+      setDictionaryProgress({
+        totalSentences: Number(stats?.totalSentences) || 0,
+        learnedSentences: Number(stats?.learnedSentences) || 0,
+        masteredSentences: Number(stats?.masteredSentences) || 0,
+      });
+    } catch (e) {
+      console.warn('Failed to refresh sentence dictionary progress:', e);
+    }
+  }, []);
+
+  useEffect(() => { void refreshDictionaryProgress(); }, [refreshDictionaryProgress]);
+  useEffect(() => {
+    if (sentenceDone) void refreshDictionaryProgress();
+  }, [sentenceDone, refreshDictionaryProgress]);
 
   /* ---------- 发音 ---------- */
   const speak = useCallback(async (text?: string) => {
@@ -565,7 +585,7 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
   if (practiceCompleted) {
     return (
       <div className="min-h-screen bg-[#F7FAFF] flex flex-col">
-        <ImmersionHeader title="学语句完成" currentIndex={session.totalCount} totalCount={session.totalCount} onExit={() => navigate('/')} />
+        <ImmersionHeader title="学语句完成" currentIndex={dictionaryProgress?.learnedSentences ?? session.totalCount} totalCount={dictionaryProgress ? dictionaryProgress.totalSentences : session.totalCount} onExit={() => navigate('/')} />
         <main className="flex-1 max-w-xl mx-auto px-4 py-16 text-center space-y-8 flex flex-col justify-center">
           <div className="w-20 h-20 bg-[#EBF2FE] text-[#4F7DF3] rounded-3xl mx-auto flex items-center justify-center">
             <Sparkles className="w-10 h-10" />
@@ -589,8 +609,8 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
         <ImmersionHeader
           title="学语句"
           subtitle="完成本句"
-          currentIndex={currentSentenceIndex + 1}
-          totalCount={session.totalCount}
+          currentIndex={dictionaryProgress?.learnedSentences ?? currentSentenceIndex + 1}
+          totalCount={dictionaryProgress ? dictionaryProgress.totalSentences : session.totalCount}
           onExit={() => navigate('/')}
           rightExtra={
             session.dictionary?.name ? (
@@ -696,8 +716,8 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
               ? (isShortSentence ? '短句 · 逐词默写整句' : '最后一步 · 默写整句')
               : '意群递进 · 逐词输入整句')
           : '逐块递进 · 组成整句'}
-        currentIndex={currentSentenceIndex + 1}
-        totalCount={session.totalCount}
+        currentIndex={dictionaryProgress?.learnedSentences ?? currentSentenceIndex + 1}
+        totalCount={dictionaryProgress ? dictionaryProgress.totalSentences : session.totalCount}
         onExit={() => navigate('/')}
         rightExtra={
           <div className="flex items-center gap-2">
