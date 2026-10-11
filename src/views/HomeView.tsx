@@ -509,9 +509,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
         <LearningCard
           title="学句子"
           icon="💬"
-          total={stats?.totalSentences || 0}
-          learned={stats?.learnedSentences || 0}
-          mastered={stats?.masteredSentences || 0}
+          total={selectedChapter?.total ?? stats?.totalSentences ?? 0}
+          learned={selectedChapter?.learned ?? stats?.learnedSentences ?? 0}
+          mastered={selectedChapter?.mastered ?? stats?.masteredSentences ?? 0}
           active={activeSentenceInSelectedUnit}
           activeText="继续学句子"
           startText={selectedUnitStartText}
@@ -527,30 +527,51 @@ export const HomeView: React.FC<HomeViewProps> = ({
           }
           footerExtra={
             (stats?.sentenceChapters || []).length > 0 ? (
-              <div className="mt-6">
-                <label className="text-xs font-bold text-stone-500 block mb-2">切换单元（进度独立保留）</label>
-                <div className="flex flex-wrap gap-2">
+              <div className="mt-6 rounded-2xl border border-[#E7EEF8] bg-gradient-to-br from-[#F8FAFF] to-white p-4">
+                <div className="mb-3 flex items-center justify-between gap-2">
+                  <span className="flex items-center gap-2 text-xs font-bold text-[#526987]">
+                    <BookOpen className="h-4 w-4 text-[#4F7DF3]" />
+                    学习单元
+                  </span>
+                  <span className="max-w-[65%] truncate rounded-full bg-[#EAF0FF] px-2.5 py-1 text-[11px] font-semibold text-[#4269C5]">
+                    {stats?.sentenceChapterName || '选择一个单元'}
+                  </span>
+                </div>
+                <p className="mb-2 text-xs text-[#8BA0BD]">每个单元独立记录进度，点击即可切换学习范围</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {(stats?.sentenceChapters || []).map(ch => {
-                    const active = (config.sentenceChapterId || '') === ch.id;
-                    const pct = ch.total > 0 ? Math.round((ch.learned / ch.total) * 100) : 0;
+                    const selected = (config.sentenceChapterId || '') === ch.id;
+                    const total = Math.max(0, ch.total || 0);
+                    const learned = Math.min(total, Math.max(0, ch.learned || 0));
+                    const mastered = Math.min(learned, Math.max(0, ch.mastered || 0));
+                    const percent = total > 0 ? Math.round((learned / total) * 100) : 0;
+                    const status = unitStateLabel(ch);
+                    const statusColor = unitStateColor(ch);
                     return (
                       <button
                         key={ch.id}
                         type="button"
                         onClick={() => handleChapterChange(ch.id)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all text-left ${
-                          active
-                            ? 'border-amber-400 bg-amber-50 text-stone-900 ring-2 ring-amber-200'
-                            : 'border-stone-200 bg-white text-stone-700 hover:bg-stone-50'
+                        className={`rounded-2xl border p-3 text-left transition-all ${
+                          selected
+                            ? 'border-[#4F7DF3] bg-[#EAF0FF] ring-2 ring-[#D9E4FF]'
+                            : 'border-[#E7EEF8] bg-white hover:border-[#C7D7F5] hover:bg-[#F8FAFF]'
                         }`}
                       >
-                        <span>{ch.name}</span>
-                        <span className="ml-2 text-[10px] text-stone-400">
-                          {ch.learned}/{ch.total} · {pct}%
-                        </span>
-                        <span className={`ml-1.5 text-[10px] font-extrabold ${unitStateColor(ch)}`}>
-                          {unitStateLabel(ch)}
-                        </span>
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="min-w-0 break-words text-sm font-bold text-[#29466F]">{ch.name}</span>
+                          <span className={`shrink-0 text-[11px] font-extrabold ${statusColor}`}>
+                            {status}
+                            {selected && <CheckCircle2 className="ml-1 inline h-3 w-3" />}
+                          </span>
+                        </div>
+                        <div className="mt-2 flex items-center justify-between text-[11px] text-[#8BA0BD]">
+                          <span>已学 {learned}/{total} · 已掌握 {mastered}</span>
+                          <span className="font-bold text-[#526987]">{percent}%</span>
+                        </div>
+                        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#E7EEF8]">
+                          <div className="h-full rounded-full bg-[#4F7DF3] transition-all" style={{ width: `${percent}%` }} />
+                        </div>
                       </button>
                     );
                   })}
