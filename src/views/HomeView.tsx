@@ -509,9 +509,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
         <LearningCard
           title="学句子"
           icon="💬"
-          total={selectedChapter?.total ?? stats?.totalSentences ?? 0}
-          learned={selectedChapter?.learned ?? stats?.learnedSentences ?? 0}
-          mastered={selectedChapter?.mastered ?? stats?.masteredSentences ?? 0}
+          total={stats?.totalSentences ?? 0}
+          learned={stats?.learnedSentences ?? 0}
+          mastered={stats?.masteredSentences ?? 0}
           active={activeSentenceInSelectedUnit}
           activeText="继续学句子"
           startText={selectedUnitStartText}
