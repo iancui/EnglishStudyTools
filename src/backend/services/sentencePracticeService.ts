@@ -114,6 +114,12 @@ export class SentencePracticeService {
     if (selected.length < requestedCount) {
       selected.push(...unlearned.slice(newTarget, newTarget + requestedCount - selected.length));
     }
+    // 如果当前词库/单元中的句子全部已掌握，仍允许用户主动重新练习，避免生成空会话。
+    if (selected.length === 0 && candidates.length > 0) {
+      selected.push(...candidates
+        .filter(s => masteredIds.has(String(s.id)))
+        .slice(0, requestedCount));
+    }
 
     const nowStr = new Date().toISOString();
     const sessionId = `sps-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
