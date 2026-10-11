@@ -146,6 +146,7 @@ export class StudySessionService {
       userId,
       mode,
       dictionaryId,
+      chapterId,
       totalCount: selected.length,
       completedCount: 0,
       excludeMastered,
@@ -218,8 +219,8 @@ export class StudySessionService {
   /**
    * Get active ongoing session for resumption
    */
-  static async getActiveSession(userId: string) {
-    const session = await db.getActiveSessionByUserId(userId);
+  static async getActiveSession(userId: string, dictionaryId?: string, chapterId?: string) {
+    const session = await db.getActiveSessionByUserId(userId, dictionaryId, chapterId);
     if (!session) return null;
     return await this.getSessionById(session.id, userId);
   }
