@@ -102,6 +102,7 @@ let studyTrackingReady: Promise<void> | null = null;
 const ensureStudyTrackingColumns = (): Promise<void> => {
   if (!studyTrackingReady) {
     studyTrackingReady = (async () => {
+      await ensureDictionaryChapterSchema();
       const addColumn = async (sql: string) => {
         try {
           await pool.query(sql);
