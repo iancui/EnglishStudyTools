@@ -475,7 +475,7 @@ class MySQLStorage {
     const [rows] = await pool.query(
       `SELECT
          COUNT(dw.word_id) AS total_words,
-         SUM(CASE WHEN up.status IN ('LEARNING','REVIEW','MASTERED') THEN 1 ELSE 0 END) AS learned_words,
+         SUM(CASE WHEN up.status IN ('LEARNING','REVIEW','MASTERED') OR COALESCE(up.learn_count, 0) > 0 OR COALESCE(up.review_count, 0) > 0 THEN 1 ELSE 0 END) AS learned_words,
          SUM(CASE WHEN up.status='MASTERED' THEN 1 ELSE 0 END) AS mastered_words
        FROM dictionary_word dw
        LEFT JOIN user_word_progress up
