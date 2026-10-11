@@ -434,34 +434,52 @@ export const HomeView: React.FC<HomeViewProps> = ({
               </div>
               {wordChapters.length > 0 ? (
                 <>
-                  <p className="mb-2 text-xs text-[#8BA0BD]">选择单元，学习进度分别保留</p>
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleWordChapterChange('')}
-                      className={`rounded-xl border px-3 py-2 text-xs font-bold transition-all ${
-                        !(config.wordStudyChapterId || '')
-                          ? 'border-[#4F7DF3] bg-[#EAF0FF] text-[#29466F] ring-2 ring-[#D9E4FF]'
-                          : 'border-[#E7EEF8] bg-white text-[#526987] hover:bg-[#F7F9FC]'
-                      }`}
-                    >
-                      全部单元
-                    </button>
+                  <p className="mb-2 text-xs text-[#8BA0BD]">各单元进度独立保留，点击单元即可开始学习</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {wordChapters.map(ch => {
                       const selected = (config.wordStudyChapterId || '') === ch.id;
+                      const progress = stats?.wordChapters?.find(item => item.id === ch.id);
+                      const total = Math.max(0, progress?.total || 0);
+                      const learned = Math.min(total, Math.max(0, progress?.learned || 0));
+                      const mastered = Math.min(learned, Math.max(0, progress?.mastered || 0));
+                      const percent = total > 0 ? Math.round((learned / total) * 100) : 0;
+                      const hasActiveHere = selected && !!activeSession;
+                      const status = hasActiveHere
+                        ? '继续学习'
+                        : total > 0 && mastered >= total
+                          ? '已掌握'
+                          : total > 0 && learned >= total
+                            ? '待复习'
+                            : learned > 0 ? '继续学习' : '开始学习';
+                      const statusColor = hasActiveHere
+                        ? 'text-amber-600'
+                        : status === '已掌握' ? 'text-emerald-600'
+                          : status === '待复习' || status === '继续学习' ? 'text-[#4F7DF3]' : 'text-[#8BA0BD]';
                       return (
                         <button
                           key={ch.id}
                           type="button"
                           onClick={() => handleWordChapterChange(ch.id)}
-                          className={`rounded-xl border px-3 py-2 text-xs font-bold transition-all ${
+                          className={`rounded-2xl border p-3 text-left transition-all ${
                             selected
-                              ? 'border-[#4F7DF3] bg-[#EAF0FF] text-[#29466F] ring-2 ring-[#D9E4FF]'
-                              : 'border-[#E7EEF8] bg-white text-[#526987] hover:bg-[#F7F9FC]'
+                              ? 'border-[#4F7DF3] bg-[#EAF0FF] ring-2 ring-[#D9E4FF]'
+                              : 'border-[#E7EEF8] bg-white hover:border-[#C7D7F5] hover:bg-[#F8FAFF]'
                           }`}
                         >
-                          {ch.name}
-                          {selected && <CheckCircle2 className="ml-1 inline h-3 w-3" />}
+                          <div className="flex items-start justify-between gap-2">
+                            <span className="min-w-0 break-words text-sm font-bold text-[#29466F]">{ch.name}</span>
+                            <span className={`shrink-0 text-[11px] font-extrabold ${statusColor}`}>
+                              {status}
+                              {selected && <CheckCircle2 className="ml-1 inline h-3 w-3" />}
+                            </span>
+                          </div>
+                          <div className="mt-2 flex items-center justify-between text-[11px] text-[#8BA0BD]">
+                            <span>已学 {learned}/{total} · 已掌握 {mastered}</span>
+                            <span className="font-bold text-[#526987]">{percent}%</span>
+                          </div>
+                          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#E7EEF8]">
+                            <div className="h-full rounded-full bg-[#4F7DF3] transition-all" style={{ width: `${percent}%` }} />
+                          </div>
                         </button>
                       );
                     })}
