@@ -155,6 +155,7 @@ model DictionaryWord {
 
   @@unique([dictionaryId, wordId])
   @@index([dictionaryId, sequence])
+  @@index([dictionaryId, chapterId])
   @@index([wordId])
   @@map("dictionary_word")
 }
@@ -251,6 +252,7 @@ model DictionarySentence {
 
   @@unique([dictionaryId, sentenceId])
   @@index([dictionaryId, sequenceNo])
+  @@index([dictionaryId, chapterId])
   @@map("dictionary_sentence")
 }
 
@@ -315,6 +317,9 @@ model UserDictionaryConfig {
   id                  String   @id @default(uuid()) @db.VarChar(36)
   userId              String   @unique @map("user_id") @db.VarChar(36)
   defaultDictionaryId String?  @map("default_dictionary_id") @db.VarChar(36)
+  sentenceDictionaryId String? @map("sentence_dictionary_id") @db.VarChar(36)
+  sentenceChapterId    String? @map("sentence_chapter_id") @db.VarChar(36)
+  wordStudyChapterId   String? @map("word_study_chapter_id") @db.VarChar(36)
   phoneticType        String   @default("UK") @map("phonetic_type") @db.VarChar(10)
   audioType           String   @default("UK") @map("audio_type") @db.VarChar(10)
   enablePhonics       Boolean  @default(true) @map("enable_phonics")
