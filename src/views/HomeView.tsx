@@ -416,11 +416,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
           onRestart={() => handleStartWordStudy(undefined, true)}
           batchCompleted={activeSession?.completedCount || 0}
           batchTotal={activeSession?.totalCount || 0}
-          subtitle={
-            [wordDictionaryName || (config.defaultDictionaryId ? '当前词库' : ''), wordChapters.find(ch => ch.id === (config.wordStudyChapterId || ''))?.name]
-              .filter(Boolean)
-              .join(' · ')
-          }
+          subtitle={wordDictionaryName || (config.defaultDictionaryId ? '当前词库' : '')}
           footerExtra={
             <div className="mt-6 rounded-2xl border border-[#E7EEF8] bg-gradient-to-br from-[#F8FAFF] to-white p-4">
               <div className="mb-3 flex items-center justify-between gap-2">
