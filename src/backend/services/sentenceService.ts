@@ -45,12 +45,15 @@ export class SentenceService {
 
     const isFinished = currentStep >= sentence.steps.length;
     const now = new Date().toISOString();
+    const previousProgress = await db.getSentenceProgress(userId, sentenceId);
 
     const progress: UserSentenceProgress = {
       id: `sp-${userId}-${sentenceId}`,
       userId,
       sentenceId,
-      status: isFinished ? 'LEARNING' : 'IN_PROGRESS',
+      status: previousProgress?.status === 'MASTERED'
+        ? 'MASTERED'
+        : (isFinished ? 'LEARNING' : 'IN_PROGRESS'),
       currentStep,
       completedAt: isFinished ? now : undefined,
       createdAt: now,
