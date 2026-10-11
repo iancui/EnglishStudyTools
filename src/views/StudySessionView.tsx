@@ -305,6 +305,14 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.code !== 'Space') return;
       if (!session || showCompletionScreen) return;
+
+      // 阶段过渡页允许直接按 Space 进入下一阶段。
+      if (showPhaseTransition && session.phase !== 'LEARN_WRITE') {
+        e.preventDefault();
+        setShowPhaseTransition(false);
+        return;
+      }
+
       const t = e.target as HTMLElement;
       const isEditable = !!t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable);
       const canUseSpaceAfterAnswer = wordStep === 'WRITE' && hasSubmitted && !!writeResult;
@@ -330,7 +338,7 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [session, showCompletionScreen, wordStep, hasSubmitted, writeResult]);
+  }, [session, showCompletionScreen, showPhaseTransition, wordStep, hasSubmitted, writeResult]);
 
   if (loading) {
     return (
