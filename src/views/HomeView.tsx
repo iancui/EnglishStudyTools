@@ -228,7 +228,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   useEffect(() => {
     loadHomeData();
     // 所选句子单元变化时刷新句子进度与进行中会话
-  }, [config.sentenceChapterId, config.defaultDictionaryId]);
+  }, [config.sentenceChapterId, config.defaultDictionaryId, config.wordStudyChapterId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -277,7 +277,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
       setLoading(true);
       const [statsRes, sessionRes, sentenceSessionRes] = await Promise.all([
         api.getTodayStatistics(),
-        api.getActiveStudySession(),
+        api.getActiveStudySession(config.defaultDictionaryId, config.wordStudyChapterId),
         api.getActiveSentencePracticeSession(config.sentenceChapterId || '')
       ]);
       setStats(statsRes);
@@ -369,6 +369,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
         isSameBatchRestart
           ? {
               wordIds: activeSession!.words.map((w) => w.wordId),
+              dictionaryId: config.defaultDictionaryId,
+              chapterId: effectiveWordChapterId,
               mode: modeOverride || activeSession!.mode,
               writeSortMode: config.wordStudyWriteOrder || activeSession!.writeSortMode || 'SEQUENCE',
               dictationSortMode: config.wordStudyDictationOrder || activeSession!.dictationSortMode || 'RANDOM',
