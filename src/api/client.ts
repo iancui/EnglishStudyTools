@@ -232,7 +232,8 @@ export const api = {
   getActiveStudySession: (dictionaryId?: string, chapterId?: string) => {
     const params = new URLSearchParams();
     if (dictionaryId) params.set('dictionaryId', dictionaryId);
-    if (chapterId) params.set('chapterId', chapterId);
+    // Empty chapterId means the whole dictionary (sessions with chapter_id IS NULL).
+    params.set('chapterId', chapterId || '');
     return request<any | null>('/api/study-sessions/current' + (params.toString() ? '?' + params.toString() : ''));
   },
   getStudySessionById: (id: string) => request<any>(`/api/study-sessions/${id}`),
