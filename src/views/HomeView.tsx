@@ -19,7 +19,7 @@ import { StatisticsData, StudySessionItem, SentencePracticeSession, SessionMode,
 interface HomeViewProps {
   navigate: (route: string) => void;
   onStartSentencePractice?: () => void;
-  onDirectStartSentencePractice?: () => void;
+  onDirectStartSentencePractice?: (restart?: boolean) => void;
   config: DictionaryConfig;
   onUpdateConfig?: (patch: Partial<DictionaryConfig>) => Promise<void>;
 }
@@ -228,7 +228,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   useEffect(() => {
     loadHomeData();
     // 所选句子单元变化时刷新句子进度与进行中会话
-  }, [config.sentenceChapterId, config.defaultDictionaryId, config.wordStudyChapterId]);
+  }, [config.sentenceChapterId, config.sentenceDictionaryId, config.defaultDictionaryId, config.wordStudyChapterId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -517,9 +517,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
           active={activeSentenceInSelectedUnit}
           activeText="继续学句子"
           startText={selectedUnitStartText}
-          onStart={() => onDirectStartSentencePractice?.()}
+          onStart={() => onDirectStartSentencePractice?.(false)}
           onContinue={() => navigate('/sentence-practice/' + activeSentenceSession!.id)}
-          onRestart={() => onDirectStartSentencePractice?.()}
+          onRestart={() => onDirectStartSentencePractice?.(true)}
           batchCompleted={(activeSentenceSession?.currentSentenceIndex || 0) + 1}
           batchTotal={activeSentenceSession?.totalCount || 0}
           subtitle={stats?.sentenceDictionaryName || ''}
