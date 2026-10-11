@@ -166,11 +166,22 @@ export default function App() {
 
   // 首页直接按当前配置的辞书+单元开始/重新开始学句子，不再弹出选择框
   const [startingSentence, setStartingSentence] = useState(false);
-  const handleDirectStartSentencePractice = async () => {
+  const handleDirectStartSentencePractice = async (restart = false) => {
     if (startingSentence) return;
     setStartingSentence(true);
     try {
-      const session = await api.createSentencePracticeSession({});
+      // 默认进入当前单元时先恢复该单元的进行中任务；只有明确点击“重新开始”才创建新任务。
+      if (!restart) {
+        const active = await api.getActiveSentencePracticeSession(config.sentenceChapterId || '');
+        if (active?.id) {
+          navigate('/sentence-practice/' + active.id);
+          return;
+        }
+      }
+      const session = await api.createSentencePracticeSession({
+        dictionaryId: config.sentenceDictionaryId,
+        chapterId: config.sentenceChapterId || ''
+      });
       if (session?.id) navigate('/sentence-practice/' + session.id);
     } catch (e) {
       console.error('Failed to start sentence practice:', e);
