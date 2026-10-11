@@ -263,10 +263,10 @@ export const HomeView: React.FC<HomeViewProps> = ({
   // 进行中的句子会话是否属于当前所选单元（无单元辞书两侧都是 ''，视为匹配）
   const activeSentenceInSelectedUnit =
     !!activeSentenceSession && (activeSentenceSession.chapterId || '') === selectedChapterId;
-  // 未学状态下的按钮文案：全学完 → 重新开始；学过一部分 → 继续学；全新 → 开始学
+  // 句子学完不代表掌握；全学过后仍可进入复习
   const selectedUnitStartText = selectedChapter
     ? (selectedChapter.total > 0 && selectedChapter.learned >= selectedChapter.total
-        ? '重新学本单元'
+        ? '复习本单元'
         : selectedChapter.learned > 0 ? '继续学本单元' : '开始学本单元')
     : '开始学句子';
 
@@ -274,13 +274,13 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const unitStateLabel = (ch: { id: string; total: number; learned: number }) => {
     const hasActiveHere = !!activeSentenceSession && (activeSentenceSession.chapterId || '') === ch.id;
     if (hasActiveHere) return '继续学习';
-    if (ch.total > 0 && ch.learned >= ch.total) return '重新开始';
+    if (ch.total > 0 && ch.learned >= ch.total) return '待复习';
     return ch.learned > 0 ? '继续学习' : '开始学习';
   };
   const unitStateColor = (ch: { id: string; total: number; learned: number }) => {
     const hasActiveHere = !!activeSentenceSession && (activeSentenceSession.chapterId || '') === ch.id;
     if (hasActiveHere) return 'text-amber-600';
-    if (ch.total > 0 && ch.learned >= ch.total) return 'text-emerald-600';
+    if (ch.total > 0 && ch.learned >= ch.total) return 'text-[#4F7DF3]';
     return ch.learned > 0 ? 'text-[#4F7DF3]' : 'text-stone-400';
   };
 
