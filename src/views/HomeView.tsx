@@ -330,6 +330,11 @@ export const HomeView: React.FC<HomeViewProps> = ({
     return ch.learned > 0 ? 'text-[#4F7DF3]' : 'text-stone-400';
   };
 
+  // 词库没有单元，或配置里残留了已删除的单元 ID 时，回退到整本词库，避免创建会话时报错。
+  const effectiveWordChapterId = wordChapters.some(ch => ch.id === config.wordStudyChapterId)
+    ? config.wordStudyChapterId
+    : undefined;
+
   const handleStartWordStudy = async (modeOverride?: SessionMode, restart = false) => {
     const configuredIncludeWrite = config.wordStudyIncludeWrite !== false;
     const configuredIncludeDictation = config.wordStudyIncludeDictation !== false;
@@ -372,7 +377,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
             }
           : {
               dictionaryId: config.defaultDictionaryId,
-              chapterId: config.wordStudyChapterId,
+              chapterId: effectiveWordChapterId,
               count: config.wordStudyCount || 20,
               excludeMastered: true,
               sortMode: 'SEQUENCE',
