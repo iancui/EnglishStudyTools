@@ -220,13 +220,57 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const [stats, setStats] = useState<StatisticsData | null>(null);
   const [activeSession, setActiveSession] = useState<StudySessionItem | null>(null);
   const [activeSentenceSession, setActiveSentenceSession] = useState<SentencePracticeSession | null>(null);
+  const [wordDictionaryName, setWordDictionaryName] = useState('');
+  const [wordChapters, setWordChapters] = useState<{ id: string; name: string; sequence?: number }[]>([]);
   const [loading, setLoading] = useState(true);
 
 
   useEffect(() => {
     loadHomeData();
-    // 所选单元变化时（初始加载/切换单元）自动按新单元刷新进行中会话与统计
+    // 所选句子单元变化时刷新句子进度与进行中会话
   }, [config.sentenceChapterId]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadWordDictionaryInfo = async () => {
+      const dictionaryId = config.defaultDictionaryId || '';
+      if (!dictionaryId) {
+        setWordDictionaryName('');
+        setWordChapters([]);
+        return;
+      }
+      try {
+        const [dictionaries, chapters] = await Promise.all([
+          api.getDictionaries(),
+          api.getDictionaryChapters(dictionaryId)
+        ]);
+        if (cancelled) return;
+        const dictionary = (Array.isArray(dictionaries) ? dictionaries : [])
+          .find((item: any) => item?.id === dictionaryId);
+        setWordDictionaryName(typeof dictionary?.name === 'string' ? dictionary.name : '');
+        setWordChapters(Array.isArray(chapters)
+          ? chapters.filter((item: any) => item && typeof item.id === 'string' && typeof item.name === 'string')
+              .map((item: any) => ({ id: item.id, name: item.name, sequence: item.sequence }))
+          : []);
+      } catch (e) {
+        if (cancelled) return;
+        console.error('Failed to load word dictionary info:', e);
+        setWordDictionaryName('');
+        setWordChapters([]);
+      }
+    };
+    void loadWordDictionaryInfo();
+    return () => { cancelled = true; };
+  }, [config.defaultDictionaryId]);
+
+  const handleWordChapterChange = async (chapterId: string) => {
+    if (chapterId === (config.wordStudyChapterId || '')) return;
+    try {
+      await onUpdateConfig?.({ wordStudyChapterId: chapterId || undefined });
+    } catch (e) {
+      console.error('Failed to switch word chapter:', e);
+    }
+  };
 
   const loadHomeData = async () => {
     try {
@@ -367,6 +411,77 @@ export const HomeView: React.FC<HomeViewProps> = ({
           onRestart={() => handleStartWordStudy(undefined, true)}
           batchCompleted={activeSession?.completedCount || 0}
           batchTotal={activeSession?.totalCount || 0}
+          subtitle={
+            [wordDictionaryName || (config.defaultDictionaryId ? '当前词库' : ''), wordChapters.find(ch => ch.id === (config.wordStudyChapterId || ''))?.name]
+              .filter(Boolean)
+              .join(' · ')
+          }
+          footerExtra={
+            <div className="mt-6 rounded-2xl border border-[#E7EEF8] bg-gradient-to-br from-[#F8FAFF] to-white p-4">
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <span className="flex items-center gap-2 text-xs font-bold text-[#526987]">
+                  <BookOpen className="h-4 w-4 text-[#4F7DF3]" />
+                  学习范围
+                </span>
+                <span className="max-w-[65%] truncate rounded-full bg-[#EAF0FF] px-2.5 py-1 text-[11px] font-semibold text-[#4269C5]">
+                  {wordDictionaryName || (config.defaultDictionaryId ? '当前词库' : '尚未选择词库')}
+                </span>
+              </div>
+              {wordChapters.length > 0 ? (
+                <>
+                  <p className="mb-2 text-xs text-[#8BA0BD]">选择单元，学习进度分别保留</p>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleWordChapterChange('')}
+                      className={`rounded-xl border px-3 py-2 text-xs font-bold transition-all ${
+                        !(config.wordStudyChapterId || '')
+                          ? 'border-[#4F7DF3] bg-[#EAF0FF] text-[#29466F] ring-2 ring-[#D9E4FF]'
+                          : 'border-[#E7EEF8] bg-white text-[#526987] hover:bg-[#F7F9FC]'
+                      }`}
+                    >
+                      全部单元
+                    </button>
+                    {wordChapters.map(ch => {
+                      const selected = (config.wordStudyChapterId || '') === ch.id;
+                      return (
+                        <button
+                          key={ch.id}
+                          type="button"
+                          onClick={() => handleWordChapterChange(ch.id)}
+                          className={`rounded-xl border px-3 py-2 text-xs font-bold transition-all ${
+                            selected
+                              ? 'border-[#4F7DF3] bg-[#EAF0FF] text-[#29466F] ring-2 ring-[#D9E4FF]'
+                              : 'border-[#E7EEF8] bg-white text-[#526987] hover:bg-[#F7F9FC]'
+                          }`}
+                        >
+                          {ch.name}
+                          {selected && <CheckCircle2 className="ml-1 inline h-3 w-3" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              ) : (
+                <div className="flex items-start gap-3 rounded-xl border border-dashed border-[#D5E0F0] bg-white/80 p-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#EAF0FF] text-[#4F7DF3]">
+                    <BookOpen className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-[#29466F]">整本词库学习</p>
+                    <p className="mt-1 text-xs leading-5 text-[#8BA0BD]">
+                      {config.defaultDictionaryId
+                        ? '这个词库暂未设置单元，将自动从整本词库中选词，不影响学习。'
+                        : '请先在设置中选择词库；没有单元也可以正常学习。'}
+                    </p>
+                  </div>
+                  {config.defaultDictionaryId && (
+                    <span className="ml-auto shrink-0 rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-bold text-emerald-700">无需分单元</span>
+                  )}
+                </div>
+              )}
+            </div>
+          }
         />
         <LearningCard
           title="学句子"
