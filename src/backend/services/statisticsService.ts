@@ -67,11 +67,15 @@ export class StatisticsService {
       ? await db.getDictionaryWordProgressStats(userId, dictionaryId)
       : { totalWords: 0, learnedWords: 0, masteredWords: 0 };
     const totalWords = dictionaryWordStats.totalWords;
+    const wordChapters = dictionaryId
+      ? await db.getDictionaryChapterWordProgressStats(userId, dictionaryId)
+      : [];
     logStep('count-dictionary-word-progress', stepStartedAt, {
       dictionaryId,
       totalWords,
       learnedWords: dictionaryWordStats.learnedWords,
-      masteredWords: dictionaryWordStats.masteredWords
+      masteredWords: dictionaryWordStats.masteredWords,
+      wordChapterCount: wordChapters.length
     });
 
     stepStartedAt = Date.now();
@@ -171,6 +175,7 @@ export class StatisticsService {
       learningWords,
       learnedWords,
       totalWords,
+      wordChapters,
       totalSentences,
       learnedSentences,
       masteredSentences,
