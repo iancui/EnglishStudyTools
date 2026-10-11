@@ -413,7 +413,13 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
             {tok.punctBefore && (
               <span className="text-2xl sm:text-3xl font-bold text-[#8BA0BD] pb-1 mr-0.5 select-none">{tok.punctBefore}</span>
             )}
-            <div className="relative inline-block cursor-pointer" onClick={() => speak(tok.word)} title={`播放 ${tok.word} 发音`}>
+            <div
+              className="relative inline-block cursor-pointer"
+              // 阻止点击单词区域时当前输入框失焦，保留原来的输入光标
+              onMouseDown={e => e.preventDefault()}
+              onClick={() => speak(tok.word)}
+              title={`播放 ${tok.word} 发音`}
+            >
               <div aria-hidden
                 className="font-bold text-2xl sm:text-3xl pb-5 relative whitespace-nowrap select-none text-left"
                 style={{ width: `${width}px`, borderBottom: `3px solid ${borderColor}`, lineHeight: 1.2 }}>
