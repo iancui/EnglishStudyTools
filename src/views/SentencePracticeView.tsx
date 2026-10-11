@@ -639,7 +639,18 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
   const isFullPhase = studyMode === 'BUILD' && phase === 'FULL';
 
   return (
-    <div className="min-h-screen bg-[#F7FAFF] flex flex-col text-[#29466F]">
+    <div
+      className="min-h-screen bg-[#F7FAFF] flex flex-col text-[#29466F]"
+      onMouseDown={e => {
+        // 空白区域点击不应让逐词输入框失焦；否则浏览器会隐藏真实输入光标。
+        // 按钮、链接等交互控件仍按正常方式获得焦点并响应点击。
+        const target = e.target as HTMLElement;
+        if (target.closest('button, a, input, textarea, select, [role="button"], [contenteditable="true"]')) {
+          return;
+        }
+        e.preventDefault();
+      }}
+    >
       <ImmersionHeader
         title="学语句"
         subtitle={studyMode === 'BUILD'
