@@ -374,22 +374,10 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
     }
   };
 
-  const handleWordBlur = (idx: number) => {
-    setWordStates(prev => {
-      const nx = [...prev];
-      const ws = nx[idx];
-      if (ws && !ws.correct && ws.userInput.length > 0) {
-        nx[idx] = {
-          ...ws,
-          submitted: true,
-          correct: ws.errorPos === -1 && ws.userInput.length === ws.correctWord.length &&
-            ws.userInput.toLowerCase() === ws.correctWord.toLowerCase(),
-        };
-      }
-      return nx;
-    });
-    // 失去浏览器键盘焦点时保留当前单词的视觉光标位置；
-    // 真正的输入焦点仍只由自动聚焦逻辑在拼写正确后推进。
+  const handleWordBlur = (_idx: number) => {
+    // 鼠标点击页面空白处不应改变单词状态或隐藏视觉光标。
+    // 不在 blur 时提交/判错；只有 handleWordInput 的拼写结果负责判定正确与否，
+    // 并在当前单词正确后自动把焦点推进到下一个单词。
   };
 
   const allWordsCorrect = wordStates.length > 0 && wordStates.every(w => w.correct);
