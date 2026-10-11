@@ -241,30 +241,17 @@ export class StudySessionService {
 
     await db.updateStudySessionWord(sw);
 
-    // Update word progress in db
-    let progress = await db.getWordProgress(userId, wordId);
-    if (!progress) {
-      progress = {
-        id: `p-${Date.now()}`,
-        userId,
-        wordId,
-        status: 'LEARNING',
-        learnCount: 1,
-        reviewCount: 0,
-        correctCount: 0,
-        wrongCount: 0,
-        streak: 0,
-        mastery: 20,
-        lastLearnAt: now,
-        nextReviewAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
-        createdAt: now,
-        updatedAt: now
-      };
-    } else {
+    // Do not create a progress row merely because the user opened the
+    // Learn card. New-word selection treats any progress row as "already seen",
+    // so creating one here could permanently skip a word if the user exits
+    // before spelling it. Existing progress can still record another learn.
+    const progress = await db.getWordProgress(userId, wordId);
+    if (progress) {
       progress.learnCount += 1;
       progress.lastLearnAt = now;
+      progress.updatedAt = now;
+      await db.saveWordProgress(progress);
     }
-    await db.saveWordProgress(progress);
 
     // Record the learning action immediately so "学习记录" reflects
     // the Learn step even before the user finishes the spelling step.
