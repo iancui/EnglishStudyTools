@@ -207,6 +207,7 @@ export interface StudySession {
   userId: string;
   mode: SessionMode;
   dictionaryId: string;
+  chapterId?: string;
   totalCount: number;
   completedCount: number;
   excludeMastered: boolean;
