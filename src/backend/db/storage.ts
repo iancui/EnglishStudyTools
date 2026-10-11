@@ -72,6 +72,21 @@ const ensureDictionaryChapterSchema = (): Promise<void> => {
         }
       };
 
+      const [chapterIdColumn] = await pool.query(
+        'SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=? AND COLUMN_NAME=? LIMIT 1',
+        ['dictionary_chapter', 'id']
+      );
+      if (!(chapterIdColumn as Row[]).length) {
+        throw new Error('数据库迁移失败：现有 dictionary_chapter 表缺少主键字段 id，请先备份并修复该表结构。');
+      }
+      await ensureColumn('dictionary_chapter', 'dictionary_id', 'VARCHAR(36) NULL');
+      await ensureColumn('dictionary_chapter', 'name', "VARCHAR(255) NOT NULL DEFAULT ''");
+      await ensureColumn('dictionary_chapter', 'code', 'VARCHAR(100) NULL');
+      await ensureColumn('dictionary_chapter', 'description', 'TEXT NULL');
+      await ensureColumn('dictionary_chapter', 'sequence_no', 'INT NOT NULL DEFAULT 1');
+      await ensureColumn('dictionary_chapter', 'is_active', 'TINYINT(1) NOT NULL DEFAULT 1');
+      await ensureColumn('dictionary_chapter', 'created_at', 'DATETIME NULL');
+      await ensureColumn('dictionary_chapter', 'updated_at', 'DATETIME NULL');
       await ensureColumn('dictionary_word', 'chapter_id', 'VARCHAR(36) NULL');
       await ensureColumn('dictionary_sentence', 'chapter_id', 'VARCHAR(36) NULL');
       await ensureColumn('user_dictionary_config', 'word_study_chapter_id', 'VARCHAR(36) NULL');
