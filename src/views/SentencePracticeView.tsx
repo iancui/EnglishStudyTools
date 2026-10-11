@@ -361,14 +361,17 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
   };
 
   const handleWordKeyDown = (idx: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    // Tab 及任何会转移焦点的键都不允许跳出当前逐词输入序列
+    // Tab 快捷键：普通 Tab 提示并读当前单词；Shift+Tab 读整句。
     if (e.key === 'Tab') {
       e.preventDefault();
-      const currentWord = wordStates[idx];
-      if (currentWord && !currentWord.correct) {
-        // Tab：显示当前单词剩余字母提示，并播放当前单词发音；不改变输入顺序。
-        setHintedWordIdx(idx);
-        void speak(currentWord.correctWord);
+      if (e.shiftKey) {
+        void speak(sentence.content);
+      } else {
+        const currentWord = wordStates[idx];
+        if (currentWord && !currentWord.correct) {
+          setHintedWordIdx(idx);
+          void speak(currentWord.correctWord);
+        }
       }
       return;
     }
@@ -710,10 +713,6 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
             <div className="bg-white border border-[#E7EEF8] rounded-3xl shadow-xs px-6 sm:px-10 py-12 sm:py-16 text-center">
               {!allWordsCorrect && (
                 <>
-                  <div className="mb-6 inline-flex flex-wrap items-center justify-center gap-2 rounded-xl border border-indigo-100 bg-indigo-50 px-4 py-3 text-sm text-indigo-700">
-                    <span aria-hidden>💡</span>
-                    <span>拼写卡住了？按 <kbd className="rounded-md border border-indigo-200 bg-white px-1.5 py-0.5 font-mono font-bold">Tab</kbd> 查看当前单词的剩余字母并播放读音。</span>
-                  </div>
                   {renderWordBoxes()}
                 </>
               )}
@@ -756,7 +755,7 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
             </div>
 
             <div className="text-center text-[11px] text-[#8BA0BD]">
-              <span>逐词输入，输对自动跳下一个 · 标点已显示，无需输入 · 全部输完自动提交</span>
+              <span>Tab 提示并读单词 · Shift+Tab 读整句</span>
             </div>
           </>
         ) : (
@@ -791,10 +790,6 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
                 </div>
               ) : (
                 <div className="flex flex-col items-center gap-5">
-                  <div className="inline-flex flex-wrap items-center justify-center gap-2 rounded-xl border border-indigo-100 bg-indigo-50 px-4 py-3 text-sm text-indigo-700">
-                    <span aria-hidden>💡</span>
-                    <span>按 <kbd className="rounded-md border border-indigo-200 bg-white px-1.5 py-0.5 font-mono font-bold">Tab</kbd> 查看当前单词的剩余字母并播放读音；拼写正确后会自动进入下一个单词。</span>
-                  </div>
                   <div className="flex flex-wrap justify-center items-end gap-x-3 gap-y-6">
                     {priorText && (
                       <span className="text-2xl sm:text-3xl font-extrabold text-[#29466F] pb-[3px] select-none">{priorText}</span>
@@ -856,7 +851,7 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
               {studyMode === 'LISTEN_READ' ? (
                 <span>Enter 下一块 · Space 读本块 · Shift+Space 读整句</span>
               ) : (
-                <span>逐词输入本意群，输对自动进入下一意群 · 标点无需输入 · 按 Tab 显示拼写提示并播放当前单词</span>
+                <span>Tab 提示并读单词 · Shift+Tab 读整句</span>
               )}
             </div>
           </>
