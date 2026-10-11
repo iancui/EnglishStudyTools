@@ -50,7 +50,7 @@ export class SentenceService {
       id: `sp-${userId}-${sentenceId}`,
       userId,
       sentenceId,
-      status: isFinished ? 'COMPLETED' : 'IN_PROGRESS',
+      status: isFinished ? 'LEARNING' : 'IN_PROGRESS',
       currentStep,
       completedAt: isFinished ? now : undefined,
       createdAt: now,
