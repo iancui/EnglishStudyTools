@@ -35,7 +35,9 @@ export class StudySessionController {
     try {
       const userId = req.user?.id || 'u-default';
       const startedAt = Date.now();
-      const session = await StudySessionService.getActiveSession(userId);
+      const dictionaryId = typeof req.query.dictionaryId === 'string' ? req.query.dictionaryId : undefined;
+      const chapterId = typeof req.query.chapterId === 'string' ? req.query.chapterId : undefined;
+      const session = await StudySessionService.getActiveSession(userId, dictionaryId, chapterId);
       console.log('[perf:home/active-study-session]', { userId, elapsedMs: Date.now() - startedAt, hasSession: Boolean(session) });
       res.json({
         code: 200,
