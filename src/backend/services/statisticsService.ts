@@ -84,7 +84,7 @@ export class StatisticsService {
     let masteredSentences: number;
     let sentenceDictionaryName: string | undefined;
     let sentenceChapterName: string | undefined;
-    let sentenceChapters: { id: string; name: string; sequence: number; total: number; learned: number }[] = [];
+    let sentenceChapters: { id: string; name: string; sequence: number; total: number; learned: number; mastered: number }[] = [];
     if (sentenceDictionaryId) {
       const s = await db.getDictionarySentenceStats(sentenceDictionaryId, userId, sentenceChapterId);
       totalSentences = s.total;
