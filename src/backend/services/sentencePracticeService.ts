@@ -15,29 +15,28 @@ export class SentencePracticeService {
   /**
    * Preview matching sentences count for difficulty filter
    */
-  static async previewPractice(userId: string, dictionaryId?: string) {
+  static async previewPractice(userId: string, dictionaryId?: string, chapterId?: string) {
     const config = await db.getDictionaryConfig(userId);
     const count = Math.max(1, config.sentencePracticeCount || 5);
     const all: Sentence[] = await db.getAllSentences();
     const dict = dictionaryId ? await db.findDictionaryById(dictionaryId) : undefined;
-    const dictWordSet = new Set(
-      dictionaryId
-        ? (await db.getDictionaryWords(dictionaryId))
-            .map(dw => dw.word?.text?.toLowerCase())
-            .filter(Boolean) as string[]
-        : []
-    );
 
-    const matching = dictionaryId && dictWordSet.size > 0
-      ? all.filter(s => {
-          const words = s.content.toLowerCase().match(/[a-z']+/g) || [];
-          return words.some((w: string) => dictWordSet.has(w));
-        })
-      : all;
+    // Match the real session-selection rules: dictionary membership and the
+    // explicitly selected chapter, rather than guessing membership by shared words.
+    let matching = all;
+    if (dictionaryId) {
+      const rows = await db.getDictionarySentences(dictionaryId);
+      const filtered = chapterId
+        ? rows.filter((row: any) => String(row.chapter_id || '') === chapterId)
+        : rows;
+      const ids = new Set(filtered.map((row: any) => String(row.sentence_id)));
+      matching = all.filter(sentence => ids.has(String(sentence.id)));
+    }
 
     return {
       dictionaryId,
       dictionaryName: dict?.name,
+      chapterId,
       totalInDb: all.length,
       matchingCount: matching.length,
       requestedCount: count,
@@ -58,7 +57,11 @@ export class SentencePracticeService {
     // 辞书/单元优先使用调用方指定；没传则用用户配置里选定的辞书与单元
     const cfgForChapter = await db.getDictionaryConfig(userId);
     const dictionaryId = params.dictionaryId || cfgForChapter.sentenceDictionaryId;
-    const chapterId = params.chapterId || cfgForChapter.sentenceChapterId;
+    // undefined means "use saved preference"; an explicit empty string means
+    // "all chapters" and must not fall back to the saved chapter.
+    const chapterId = params.chapterId !== undefined
+      ? (params.chapterId || undefined)
+      : cfgForChapter.sentenceChapterId;
 
     // 只加载本辞书（单元）的句子，避免全库 N+1 查询拖慢开始学习
     let candidates: Sentence[] = [];
