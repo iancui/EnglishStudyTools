@@ -654,12 +654,19 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
     <div
       className="min-h-screen bg-[#F7FAFF] flex flex-col text-[#29466F]"
       onMouseDown={e => {
-        // 空白区域点击不应让逐词输入框失焦；否则浏览器会隐藏真实输入光标。
-        // 按钮、链接等交互控件仍按正常方式获得焦点并响应点击。
+        // 逐词输入框使用 pointer-events-none 且不能通过鼠标重新点击聚焦。
+        // 因此点击“读整句”等按钮时，要阻止 mousedown 把焦点转移到按钮，
+        // 但不阻止随后的 click 事件；这样发音照常播放，键盘输入也能继续。
         const target = e.target as HTMLElement;
-        if (target.closest('button, a, input, textarea, select, [role="button"], [contenteditable="true"]')) {
+        if (target.closest('button, a, [role="button"]')) {
+          e.preventDefault();
           return;
         }
+        // 真正的表单控件仍保留默认鼠标行为。
+        if (target.closest('input, textarea, select, [contenteditable="true"]')) {
+          return;
+        }
+        // 点击页面空白处同样不应让逐词输入框失焦。
         e.preventDefault();
       }}
     >
