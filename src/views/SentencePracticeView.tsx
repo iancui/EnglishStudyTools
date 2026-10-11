@@ -234,6 +234,7 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
       correctWord: t.word, userInput: '', submitted: false, correct: false, errorPos: -1,
     })));
     setFocusedWordIdx(null);
+    setHintedWordIdx(null);
     const t = setTimeout(() => wordInputRefs.current[0]?.focus(), 250);
     return () => clearTimeout(t);
     // activeTokens 随 phase / chunkIndex / 句子变化而变化，无需列入依赖
