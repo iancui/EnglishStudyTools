@@ -241,6 +241,15 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, chunkIndex, sentence?.id, studyMode, loading, sentenceDone]);
 
+  /* ---------- 整句输入成功进入结算页时，自动播放一次整句读音 ---------- */
+  useEffect(() => {
+    if (!sentenceDone || !sentence?.content) return;
+    const timer = setTimeout(() => {
+      void speak(sentence.content);
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [sentenceDone, sentence?.content, speak]);
+
   /* ---------- 结果页：每个单词的音标/释义 ---------- */
   useEffect(() => {
     if (!sentenceDone || wordTokens.length === 0) {
