@@ -89,12 +89,31 @@ export class SentencePracticeService {
 
     const requestedCount = Math.max(1, cfgForChapter.sentencePracticeCount || 5);
 
-    // 优先选取用户未学过的句子；未学过的不足时，再按顺序从已学过的里补充，
-    // 保证每次“再次学习”都能拿到新句子，而不是永远重复前 N 句。
+    // 已学句子并不等于已掌握：常规练习优先混合复习句和新句。
+    // 只有 status=MASTERED 的句子才会退出常规复习队列；旧版 COMPLETED 状态仍按待复习处理。
     const learnedIds = new Set(await db.getLearnedSentenceIds(userId));
+    const masteredIds = new Set(await db.getMasteredSentenceIds(userId));
     const unlearned = candidates.filter(s => !learnedIds.has(String(s.id)));
-    const learned = candidates.filter(s => learnedIds.has(String(s.id)));
-    const selected = [...unlearned, ...learned].slice(0, requestedCount);
+    const reviewable = candidates.filter(s =>
+      learnedIds.has(String(s.id)) && !masteredIds.has(String(s.id))
+    );
+
+    // 新句和待复习句都存在时，尽量各占一半；某一类不足时由另一类补足。
+    const reviewTarget = unlearned.length > 0
+      ? Math.min(reviewable.length, Math.ceil(requestedCount / 2))
+      : Math.min(reviewable.length, requestedCount);
+    const newTarget = Math.min(unlearned.length, requestedCount - reviewTarget);
+    const selected = [
+      ...reviewable.slice(0, reviewTarget),
+      ...unlearned.slice(0, newTarget)
+    ];
+    const remaining = requestedCount - selected.length;
+    if (remaining > 0) {
+      selected.push(...reviewable.slice(reviewTarget, reviewTarget + remaining));
+    }
+    if (selected.length < requestedCount) {
+      selected.push(...unlearned.slice(newTarget, newTarget + requestedCount - selected.length));
+    }
 
     const nowStr = new Date().toISOString();
     const sessionId = `sps-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
@@ -356,16 +375,28 @@ export class SentencePracticeService {
     currentItem.completed = true;
     await db.updateSentencePracticeItem(currentItem);
 
-    // Save sentence progress and learning record
+    // 完成一次整句输入只代表本次学习/复习完成，不代表已经掌握。
+    // 首次学完进入 LEARNING；已有进度的句子每次复习答对记一次 REVIEW，
+    // 累计 3 次正确复习后才标记 MASTERED。旧版 COMPLETED 会自然进入待复习队列。
+    const previousProgress = await db.getSentenceProgress(userId, currentItem.sentenceId);
+    const isReviewAttempt = !!previousProgress;
+    const successfulReviews = previousProgress && previousProgress.status !== 'MASTERED'
+      ? await db.getSentenceReviewSuccessCount(userId, currentItem.sentenceId)
+      : 0;
+    const nextStatus = previousProgress?.status === 'MASTERED'
+      ? 'MASTERED'
+      : (isReviewAttempt && successfulReviews + 1 >= 3 ? 'MASTERED' : 'LEARNING');
+    const completedAt = new Date().toISOString();
+
     await db.saveSentenceProgress({
       id: `usp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       userId,
       sentenceId: currentItem.sentenceId,
-      status: 'COMPLETED',
+      status: nextStatus,
       currentStep: currentItem.sentence.steps.length,
-      completedAt: new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      completedAt,
+      createdAt: completedAt,
+      updatedAt: completedAt
     });
 
     await db.addLearningRecord({
@@ -373,11 +404,11 @@ export class SentencePracticeService {
       userId,
       itemType: 'SENTENCE',
       itemId: currentItem.sentenceId,
-      action: 'STEP_COMPLETE',
+      action: isReviewAttempt ? 'REVIEW' : 'LEARN',
       isCorrect: true,
       inputText: cleanInput,
       timeSpentSec: 8,
-      createdAt: new Date().toISOString()
+      createdAt: completedAt
     });
 
     let sessionCompleted = false;
