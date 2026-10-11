@@ -433,6 +433,10 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
                 onKeyDown={e => handleWordKeyDown(i, e)}
                 onBlur={() => handleWordBlur(i)}
                 onFocus={() => setFocusedWordIdx(i)}
+                onMouseDown={e => {
+                  // 点击单词只播放发音，不允许鼠标改变输入焦点或光标位置
+                  e.preventDefault();
+                }}
                 onClick={() => speak(tok.word)}
                 autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck={false}
                 readOnly={isCorrect}
