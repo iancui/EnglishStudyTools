@@ -576,7 +576,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
                         <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#E7EEF8]">
                           <div className="h-full rounded-full bg-[#4F7DF3] transition-all" style={{ width: `${percent}%` }} />
                         </div>
-                        </div>
                       </button>
                     );
                   })}
