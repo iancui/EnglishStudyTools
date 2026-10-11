@@ -413,7 +413,7 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
             {tok.punctBefore && (
               <span className="text-2xl sm:text-3xl font-bold text-[#8BA0BD] pb-1 mr-0.5 select-none">{tok.punctBefore}</span>
             )}
-            <div className="relative inline-block">
+            <div className="relative inline-block cursor-pointer" onClick={() => speak(tok.word)} title={`播放 ${tok.word} 发音`}>
               <div aria-hidden
                 className="font-bold text-2xl sm:text-3xl pb-5 relative whitespace-nowrap select-none text-left"
                 style={{ width: `${width}px`, borderBottom: `3px solid ${borderColor}`, lineHeight: 1.2 }}>
@@ -433,15 +433,12 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
                 onKeyDown={e => handleWordKeyDown(i, e)}
                 onBlur={() => handleWordBlur(i)}
                 onFocus={() => setFocusedWordIdx(i)}
-                onMouseDown={e => {
-                  // 点击单词只播放发音，不允许鼠标改变输入焦点或光标位置
-                  e.preventDefault();
-                }}
-                onClick={() => speak(tok.word)}
+                // 输入框只接受当前焦点的键盘输入；鼠标事件交给外层单词容器播放发音
+                // 这样浏览器无法通过鼠标点击改变输入框焦点或插入光标位置
                 autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck={false}
                 readOnly={isCorrect}
                 tabIndex={-1}
-                className={`absolute top-0 left-0 text-left font-bold text-2xl sm:text-3xl bg-transparent border-0 outline-none focus:ring-0 pb-5 p-0 m-0 box-border z-10 cursor-pointer ${isBad ? 'animate-shake' : ''}`}
+                className={`pointer-events-none absolute top-0 left-0 text-left font-bold text-2xl sm:text-3xl bg-transparent border-0 outline-none focus:ring-0 pb-5 p-0 m-0 box-border z-10 ${isBad ? 'animate-shake' : ''}`}
                 style={{ width: `${width}px`, color: 'transparent', caretColor: isCorrect ? 'transparent' : '#6366f1', lineHeight: 1.2 }}
               />
               {!isCorrect && isFocused && (
