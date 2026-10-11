@@ -260,7 +260,7 @@ export interface StatisticsData {
   sentenceDictionaryName?: string;
   sentenceChapterName?: string;
   sentenceChapterId?: string;
-  sentenceChapters?: { id: string; name: string; sequence: number; total: number; learned: number }[];
+  sentenceChapters?: { id: string; name: string; sequence: number; total: number; learned: number; mastered: number }[];
 }
 
 export type SentenceSessionStatus = 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
