@@ -131,6 +131,7 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
   const [wordStates, setWordStates] = useState<WordState[]>([]);
   const [focusedWordIdx, setFocusedWordIdx] = useState<number | null>(null);
   const [hoveredWordIdx, setHoveredWordIdx] = useState<number | null>(null);
+  const [hintedWordIdx, setHintedWordIdx] = useState<number | null>(null);
   const wordInputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const fullPendingRef = useRef(false);
 
@@ -306,6 +307,7 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
   /* ---------- BUILD 逐词输入：意群/整句通用，标点不用输，全对自动推进 ---------- */
   const handleWordInput = (idx: number, value: string) => {
     if (fullPendingRef.current) return;
+    setHintedWordIdx(null);
     const current = wordStates[idx];
     if (!current || current.correct) return;
     const correct = current.correctWord;
@@ -359,7 +361,16 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
 
   const handleWordKeyDown = (idx: number, e: React.KeyboardEvent<HTMLInputElement>) => {
     // Tab 及任何会转移焦点的键都不允许跳出当前逐词输入序列
-    if (e.key === 'Tab') { e.preventDefault(); return; }
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const currentWord = wordStates[idx];
+      if (currentWord && !currentWord.correct) {
+        // Tab：显示当前单词剩余字母提示，并播放当前单词发音；不改变输入顺序。
+        setHintedWordIdx(idx);
+        void speak(currentWord.correctWord);
+      }
+      return;
+    }
     if (e.key === 'Enter') { e.preventDefault(); return; }
     // 空框按退格：回到上一个词修改（不跨意群回退，避免打乱递进顺序）
     if (e.key === 'Backspace' && wordStates[idx]?.userInput === '' && idx > 0) {
@@ -440,7 +451,7 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
                 <div aria-hidden className="absolute bottom-[10px] w-1.5 h-1.5 rounded-full pointer-events-none transition-all duration-150"
                   style={{ left: `${1 + caretBottom}px`, backgroundColor: dotColor }} />
               )}
-              {hoveredWordIdx === i && !isCorrect && (
+              {(hoveredWordIdx === i || hintedWordIdx === i) && !isCorrect && (
                 <div aria-hidden className="absolute top-0 left-0 font-bold text-2xl sm:text-3xl whitespace-nowrap pointer-events-none select-none text-[#CBD5E1] text-left"
                   style={{ width: `${width}px`, paddingBottom: '20px', borderBottom: '3px solid transparent', lineHeight: 1.2 }}>
                   <span className="text-transparent">{ws.userInput}</span>
@@ -823,7 +834,7 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
               {studyMode === 'LISTEN_READ' ? (
                 <span>Enter 下一块 · Space 读本块 · Shift+Space 读整句</span>
               ) : (
-                <span>逐词输入本意群，输对自动进入下一意群 · 标点已显示无需输入 · Tab 等键不会切换输入位置</span>
+                <span>逐词输入本意群，输对自动进入下一意群 · 标点无需输入 · 按 Tab 显示拼写提示并播放当前单词</span>
               )}
             </div>
           </>
