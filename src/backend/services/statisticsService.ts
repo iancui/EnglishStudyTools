@@ -75,9 +75,47 @@ export class StatisticsService {
     });
 
     stepStartedAt = Date.now();
-    const totalSentences = await db.getSentenceCount();
-    const sentenceProgress = await db.getSentenceProgressStats(userId);
-    logStep('count-sentence-progress', stepStartedAt, { totalSentences, ...sentenceProgress });
+    // 首页“学句子”的总数与进度，必须以用户在设置里选择的句子词库（sentenceDictionaryId）为口径，
+    // 而不是全库句子数，否则用户选了某个年级却看到全库几千句，数字对不上。
+    const sentenceDictionaryId = config.sentenceDictionaryId;
+    const sentenceChapterId = config.sentenceChapterId;
+    let totalSentences: number;
+    let learnedSentences: number;
+    let masteredSentences: number;
+    let sentenceDictionaryName: string | undefined;
+    let sentenceChapterName: string | undefined;
+    let sentenceChapters: { id: string; name: string; sequence: number; total: number; learned: number }[] = [];
+    if (sentenceDictionaryId) {
+      const s = await db.getDictionarySentenceStats(sentenceDictionaryId, userId, sentenceChapterId);
+      totalSentences = s.total;
+      learnedSentences = s.learned;
+      masteredSentences = s.mastered;
+      sentenceDictionaryName = await db.getDictionaryName(sentenceDictionaryId);
+      // 辞书有单元时，返回每个单元的进度供首页切换
+      const chapterStats = await db.getDictionaryChapterSentenceStats(sentenceDictionaryId, userId);
+      sentenceChapters = chapterStats;
+      if (sentenceChapterId) {
+        const ch = chapterStats.find(c => c.id === sentenceChapterId);
+        sentenceChapterName = ch?.name;
+      } else if (chapterStats.length > 0) {
+        // 没有显式选单元时，显示当前学习到的单元名
+        const chapter = await db.getCurrentSentenceChapter(sentenceDictionaryId, userId);
+        sentenceChapterName = chapter?.name;
+      }
+    } else {
+      const p = await db.getSentenceProgressStats(userId);
+      totalSentences = await db.getSentenceCount();
+      learnedSentences = p.learned;
+      masteredSentences = p.mastered;
+    }
+    logStep('count-sentence-progress', stepStartedAt, {
+      sentenceDictionaryId,
+      sentenceDictionaryName,
+      sentenceChapterName,
+      totalSentences,
+      learnedSentences,
+      masteredSentences
+    });
 
     // Filter today's records (strictly starting from 00:00:00 today)
     stepStartedAt = Date.now();
@@ -134,8 +172,12 @@ export class StatisticsService {
       learnedWords,
       totalWords,
       totalSentences,
-      learnedSentences: sentenceProgress.learned,
-      masteredSentences: sentenceProgress.mastered,
+      learnedSentences,
+      masteredSentences,
+      sentenceDictionaryName,
+      sentenceChapterName,
+      sentenceChapterId,
+      sentenceChapters,
       progressPercent,
       accuracyRate
     };
@@ -166,7 +208,9 @@ export class StatisticsService {
     logStep('get-word-progresses', stepStartedAt, { progressCount: progresses.length });
 
     stepStartedAt = Date.now();
-    const totalSentences = await db.getSentenceCount();
+    // 句子总数/进度已在 getTodayStatistics 中按用户选择的句子词库统计，直接复用，
+    // 避免再次用全库 getSentenceCount() 覆盖导致口径不一致。
+    const totalSentences = todayStats.totalSentences;
     logStep('count-total-sentences', stepStartedAt, { totalSentences });
 
     stepStartedAt = Date.now();

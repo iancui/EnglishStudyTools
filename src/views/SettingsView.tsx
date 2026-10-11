@@ -655,6 +655,70 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               </div>
             </div>
 
+            {/* 3.1 句子渐进学习设置 */}
+            <div className="space-y-4 pt-6 border-t border-stone-100">
+              <div>
+                <label className="text-base font-bold text-stone-900 block">句子学习方式</label>
+                <p className="text-xs text-stone-500 mt-0.5">按意群把句子拆开，逐块听读或输入，最后默写整句，循序渐进掌握句子。</p>
+              </div>
+
+              {/* 学习方式 */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {(
+                  [
+                    { k: 'BUILD', t: '意群输入（推荐）', d: '按意群逐块输入，最后默写整句，进入自动发音' },
+                    { k: 'LISTEN_READ', t: '跟读模式', d: '逐块看、听，自动累积成整句' },
+                  ] as const
+                ).map(o => {
+                  const active = (config.sentenceStudyMode || 'BUILD') === o.k;
+                  return (
+                    <button
+                      key={o.k}
+                      type="button"
+                      onClick={() => setConfig(prev => ({ ...prev, sentenceStudyMode: o.k }))}
+                      className={`p-4 rounded-2xl border text-left transition-all ${
+                        active ? 'border-amber-400 bg-amber-50 ring-2 ring-amber-200' : 'border-stone-200 bg-white hover:bg-stone-50'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-sm text-stone-900">{o.t}</span>
+                        <span className={`w-5 h-5 rounded-full border flex items-center justify-center text-xs ${
+                          active ? 'bg-stone-900 border-stone-900 text-white' : 'border-stone-300 text-transparent'
+                        }`}>✓</span>
+                      </div>
+                      <div className="text-xs text-stone-500 mt-1">{o.d}</div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* 开关：自动播放 / 显示中文 */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {(
+                  [
+                    { key: 'sentenceAutoplay', label: '自动播放发音', enabled: config.sentenceAutoplay !== false },
+                    { key: 'sentenceShowTranslation', label: '显示中文翻译', enabled: config.sentenceShowTranslation !== false },
+                  ] as const
+                ).map(o => (
+                  <button
+                    key={o.key}
+                    type="button"
+                    onClick={() => setConfig(prev => ({ ...prev, [o.key]: !o.enabled }) as DictionaryConfig)}
+                    className={`p-4 rounded-2xl border text-left transition-all ${
+                      o.enabled ? 'border-amber-400 bg-amber-50 ring-2 ring-amber-200' : 'border-stone-200 bg-white hover:bg-stone-50'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-sm text-stone-900">{o.label}</span>
+                      <span className={`w-5 h-5 rounded-full border flex items-center justify-center text-xs ${
+                        o.enabled ? 'bg-stone-900 border-stone-900 text-white' : 'border-stone-300 text-transparent'
+                      }`}>✓</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* 4. 音标显示设置 */}
             <div className="space-y-3 pt-6 border-t border-stone-100">
               <div>

@@ -151,6 +151,7 @@ export interface UserDictionaryConfig {
   userId: string;
   defaultDictionaryId?: string;
   sentenceDictionaryId?: string;
+  sentenceChapterId?: string;        // 学句子时当前选中的单元（空表示整本辞书）
   englishDict?: string; // legacy fallback
   ecDict?: string; // legacy fallback
   phoneticType: 'UK' | 'US';
@@ -166,6 +167,12 @@ export interface UserDictionaryConfig {
   wordStudyIncludeDictation?: boolean;
   wordStudyExcludeMastered?: boolean;
   wordStudyMode?: 'LEARN_AND_WRITE' | 'WRITE_ONLY';
+  // 句子渐进学习（雪球式）配置
+  sentenceStudyMode?: 'LISTEN_READ' | 'BUILD' | 'TYPE'; // 跟读 / 拼造 / 逐词拼写输入
+  sentenceChunkMode?: 'WORD' | 'PHRASE' | 'FIXED';  // 递进粒度：逐词 / 意群 / 固定词数
+  sentenceChunkSize?: number;                        // FIXED 模式每块词数
+  sentenceAutoplay?: boolean;                        // 是否自动播放发音
+  sentenceShowTranslation?: boolean;                 // 是否显示中文
   createdAt: string;
   updatedAt: string;
 }
@@ -258,6 +265,15 @@ export interface SentencePhrase {
   type: StepType;
 }
 
+export interface SentenceProgressiveChunk {
+  stepNumber: number;
+  accumulatedText: string;
+  newChunk: string;
+  meaning: string;
+  phonetic: string;
+  isFinal: boolean;
+}
+
 export interface SentencePracticeItem {
   id: string;
   sessionId: string;
@@ -270,16 +286,19 @@ export interface SentencePracticeItem {
   updatedAt: string;
   sentence?: Sentence;
   phrases?: SentencePhrase[];
+  chunks?: SentenceProgressiveChunk[];
 }
 
 export interface SentencePracticeSession {
   id: string;
   userId: string;
   dictionaryId?: string;
+  dictionary?: Dictionary;
   difficulty: string;
   totalCount: number;
   currentSentenceIndex: number;
   status: SentenceSessionStatus;
+  chapterId?: string;
   createdAt: string;
   updatedAt: string;
   items?: SentencePracticeItem[];

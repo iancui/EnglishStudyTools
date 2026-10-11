@@ -189,6 +189,14 @@ export interface SentenceAnalysis {
   explanation: string;
 }
 
+export interface SentenceWordItem {
+  id: string;
+  sentenceId: string;
+  wordId: string;
+  position: number;
+  translationCn?: string;
+}
+
 export interface SentenceItem {
   id: string;
   content: string;
@@ -196,6 +204,7 @@ export interface SentenceItem {
   level: string;
   audioUrl?: string;
   difficulty: number;
+  words?: SentenceWordItem[];
   steps: SentenceStep[];
   analyses: SentenceAnalysis[];
   progress?: {
@@ -209,6 +218,7 @@ export interface DictionaryConfig {
   userId: string;
   defaultDictionaryId?: string;
   sentenceDictionaryId?: string;
+  sentenceChapterId?: string;
   englishDict?: string;
   ecDict?: string;
   phoneticType: 'UK' | 'US';
@@ -224,6 +234,12 @@ export interface DictionaryConfig {
   wordStudyIncludeDictation?: boolean;
   wordStudyExcludeMastered?: boolean;
   wordStudyMode?: 'LEARN_AND_WRITE' | 'WRITE_ONLY';
+  // 句子渐进学习（雪球式）配置
+  sentenceStudyMode?: 'LISTEN_READ' | 'BUILD' | 'TYPE';
+  sentenceChunkMode?: 'WORD' | 'PHRASE' | 'FIXED';
+  sentenceChunkSize?: number;
+  sentenceAutoplay?: boolean;
+  sentenceShowTranslation?: boolean;
 }
 
 export interface StatisticsData {
@@ -241,6 +257,10 @@ export interface StatisticsData {
   totalSentences: number;
   learnedSentences: number;
   masteredSentences: number;
+  sentenceDictionaryName?: string;
+  sentenceChapterName?: string;
+  sentenceChapterId?: string;
+  sentenceChapters?: { id: string; name: string; sequence: number; total: number; learned: number }[];
 }
 
 export type SentenceSessionStatus = 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
@@ -256,6 +276,15 @@ export interface SentencePhrase {
   type: StepType;
 }
 
+export interface SentenceProgressiveChunk {
+  stepNumber: number;
+  accumulatedText: string;
+  newChunk: string;
+  meaning: string;
+  phonetic: string;
+  isFinal: boolean;
+}
+
 export interface SentencePracticeItem {
   id: string;
   sessionId: string;
@@ -268,6 +297,7 @@ export interface SentencePracticeItem {
   updatedAt: string;
   sentence?: SentenceItem;
   phrases?: SentencePhrase[];
+  chunks?: SentenceProgressiveChunk[];
 }
 
 export interface SentencePracticeSession {
@@ -279,6 +309,7 @@ export interface SentencePracticeSession {
   totalCount: number;
   currentSentenceIndex: number;
   status: SentenceSessionStatus;
+  chapterId?: string;
   createdAt: string;
   updatedAt: string;
   items: SentencePracticeItem[];

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Sparkles, Database, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { api } from '../api/client.ts';
-import { Dictionary } from '../types/index.ts';
+import { DictionaryItem } from '../types/index.ts';
 
 interface Props {
   navigate: (route: string) => void;
@@ -10,7 +10,7 @@ interface Props {
 
 export function AdminSentenceAIToolView({ navigate, user }: Props) {
   const [sentencesText, setSentencesText] = useState('');
-  const [dictionaries, setDictionaries] = useState<Dictionary[]>([]);
+  const [dictionaries, setDictionaries] = useState<DictionaryItem[]>([]);
   const [dictionaryId, setDictionaryId] = useState('');
   const [chapters, setChapters] = useState<any[]>([]);
   const [chapterId, setChapterId] = useState('');
@@ -22,7 +22,7 @@ export function AdminSentenceAIToolView({ navigate, user }: Props) {
 
   useEffect(() => {
     api.getDictionaries().then(list => {
-      const system = (list || []).filter((d: Dictionary) => d.isSystem);
+      const system = (list || []).filter((d: DictionaryItem) => d.isSystem);
       setDictionaries(system);
       if (system[0]) setDictionaryId(system[0].id);
     }).catch(e => setMessage(e?.message || '读取辞书失败'));

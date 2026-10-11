@@ -53,7 +53,9 @@ export class SentencePracticeController {
     try {
       const userId = req.user?.id || 'u-default';
       const startedAt = Date.now();
-      const session = await SentencePracticeService.getActiveSession(userId);
+      // ?chapterId= 按单元过滤进行中会话（空串表示无单元辞书），支持各单元进度独立
+      const chapterId = typeof req.query.chapterId === 'string' ? req.query.chapterId : undefined;
+      const session = await SentencePracticeService.getActiveSession(userId, chapterId);
       console.log('[perf:home/active-sentence-practice]', { userId, elapsedMs: Date.now() - startedAt, hasSession: Boolean(session) });
       res.json({
         code: 200,

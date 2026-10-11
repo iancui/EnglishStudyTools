@@ -327,7 +327,8 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(data)
     }),
-  getActiveSentencePracticeSession: () => request<any>('/api/sentence-practice/current'),
+  getActiveSentencePracticeSession: (chapterId?: string) =>
+    request<any>(`/api/sentence-practice/current${chapterId !== undefined ? `?chapterId=${encodeURIComponent(chapterId)}` : ''}`),
   getSentencePracticeSessionById: (id: string) => request<any>(`/api/sentence-practice/${id}`),
   submitSentencePracticeAnswer: (id: string, answer: string) =>
     request<{

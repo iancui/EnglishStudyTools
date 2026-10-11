@@ -142,6 +142,16 @@ export default function App() {
     }
   };
 
+  // 通用配置更新：保存到后端并同步到本地 state
+  const handleUpdateConfig = useCallback(async (patch: any) => {
+    try {
+      const next = await api.updateDictionaryConfig(patch);
+      if (next) setConfig(next);
+    } catch (e) {
+      console.error('Failed to update config:', e);
+    }
+  }, []);
+
   const handleOpenStudySetup = (dictId?: string, mode?: SessionMode) => {
     setSetupInitialDictId(dictId);
     setSetupInitialMode(mode || 'LEARN_AND_WRITE');
@@ -153,6 +163,21 @@ export default function App() {
   };
 
   const handleStartSentencePractice = () => setIsSentenceSetupOpen(true);
+
+  // 首页直接按当前配置的辞书+单元开始/重新开始学句子，不再弹出选择框
+  const [startingSentence, setStartingSentence] = useState(false);
+  const handleDirectStartSentencePractice = async () => {
+    if (startingSentence) return;
+    setStartingSentence(true);
+    try {
+      const session = await api.createSentencePracticeSession({});
+      if (session?.id) navigate('/sentence-practice/' + session.id);
+    } catch (e) {
+      console.error('Failed to start sentence practice:', e);
+    } finally {
+      setStartingSentence(false);
+    }
+  };
 
   const handleSentenceSessionStarted = (sessionId: string) => {
     navigate('/sentence-practice/' + sessionId);
@@ -183,7 +208,9 @@ export default function App() {
         <HomeView
           navigate={navigate}
           onStartSentencePractice={handleStartSentencePractice}
+          onDirectStartSentencePractice={handleDirectStartSentencePractice}
           config={config}
+          onUpdateConfig={handleUpdateConfig}
         />
       );
     }
@@ -409,6 +436,14 @@ export default function App() {
           </div>
         </div>
       </footer>
+
+      {/* Sentence Practice Setup Modal */}
+      <SentencePracticeSetupModal
+        isOpen={isSentenceSetupOpen}
+        onClose={() => setIsSentenceSetupOpen(false)}
+        onStarted={handleSentenceSessionStarted}
+        dictionaryId={config.sentenceDictionaryId || config.defaultDictionaryId}
+      />
 
       {/* Study Session Configuration Modal */}
       <StudySetupModal

@@ -5,6 +5,11 @@ import {
   Sentence
 } from '../types/index.ts';
 import { checkSentenceAnswer, extractSentencePhrases } from '../utils/sentenceUtils.ts';
+import {
+  buildProgressiveChunks,
+  providersFromMaps,
+  ChunkOptions
+} from '../utils/sentenceChunks.ts';
 
 export class SentencePracticeService {
   /**
@@ -50,47 +55,28 @@ export class SentencePracticeService {
       chapterId?: string;
     }
   ) {
-    const all = await db.getAllSentences();
-    if (all.length === 0) {
-      throw new Error('句子库为空，无法开启练习');
-    }
+    // 辞书/单元优先使用调用方指定；没传则用用户配置里选定的辞书与单元
+    const cfgForChapter = await db.getDictionaryConfig(userId);
+    const dictionaryId = params.dictionaryId || cfgForChapter.sentenceDictionaryId;
+    const chapterId = params.chapterId || cfgForChapter.sentenceChapterId;
 
-    const dictionaryId = params.dictionaryId;
-    const chapterId = params.chapterId;
-    const dictWordSet = new Set(
-      dictionaryId
-        ? (await db.getDictionaryWords(dictionaryId))
-            .map(dw => dw.word?.text?.toLowerCase())
-            .filter(Boolean) as string[]
-        : []
-    );
-
-    let candidates = [...all];
-
-    // 有明确的辞书时，严格使用辞书关联的句子及其章节顺序。
-    // 一旦指定章节，绝不回退到整本句子库，避免章节筛选看似生效、实际却学到其他章节。
+    // 只加载本辞书（单元）的句子，避免全库 N+1 查询拖慢开始学习
+    let candidates: Sentence[] = [];
     if (dictionaryId) {
       const dictionarySentences = await db.getDictionarySentences(dictionaryId);
-      const sentenceMap = new Map(all.map((s: Sentence) => [s.id, s]));
-      if (chapterId) {
-        candidates = dictionarySentences
-          .filter(r => String(r.chapter_id || '') === chapterId)
-          .map(r => sentenceMap.get(String(r.sentence_id))).filter(Boolean) as typeof all;
-      } else if (dictionarySentences.length > 0) {
-        candidates = dictionarySentences
-          .map(r => sentenceMap.get(String(r.sentence_id))).filter(Boolean) as typeof all;
-      }
+      const filtered = chapterId
+        ? dictionarySentences.filter(r => String(r.chapter_id || '') === chapterId)
+        : dictionarySentences;
+      const ids = filtered.map(r => String(r.sentence_id));
+      // 按辞书排序去重后批量取详情
+      const uniqueIds = [...new Set(ids)];
+      const fetched = (await db.getSentencesByIds(uniqueIds)).filter(Boolean) as Sentence[];
+      const byId = new Map(fetched.map((s: Sentence) => [String(s.id), s]));
+      candidates = uniqueIds.map(id => byId.get(id)).filter(Boolean) as Sentence[];
+    } else {
+      candidates = await db.getAllSentences();
     }
 
-    if (dictionaryId && !chapterId && dictWordSet.size > 0 && candidates.length === all.length) {
-      candidates = candidates.filter(s => {
-        const words = s.content.toLowerCase().match(/[a-z']+/g) || [];
-        return words.some((w: string) => dictWordSet.has(w));
-      });
-    }
-
-    // 选择了词库时严格按词库筛选；没有匹配句子就不能偷偷回退到全库，
-    // 否则用户会感觉“选择词库”没有生效。
     if (candidates.length === 0) {
       if (dictionaryId) {
         throw new Error('当前词库下没有符合条件的句子，请更换词库或调整练习数量');
@@ -98,9 +84,14 @@ export class SentencePracticeService {
       throw new Error('当前条件下没有可练习的句子');
     }
 
-    const config = await db.getDictionaryConfig(userId);
-    const requestedCount = Math.max(1, config.sentencePracticeCount || 5);
-    const selected = candidates.slice(0, requestedCount);
+    const requestedCount = Math.max(1, cfgForChapter.sentencePracticeCount || 5);
+
+    // 优先选取用户未学过的句子；未学过的不足时，再按顺序从已学过的里补充，
+    // 保证每次“再次学习”都能拿到新句子，而不是永远重复前 N 句。
+    const learnedIds = new Set(await db.getLearnedSentenceIds(userId));
+    const unlearned = candidates.filter(s => !learnedIds.has(String(s.id)));
+    const learned = candidates.filter(s => learnedIds.has(String(s.id)));
+    const selected = [...unlearned, ...learned].slice(0, requestedCount);
 
     const nowStr = new Date().toISOString();
     const sessionId = `sps-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
@@ -110,6 +101,7 @@ export class SentencePracticeService {
       userId,
       difficulty: 'ALL',
       dictionaryId,
+      chapterId,
       totalCount: selected.length,
       currentSentenceIndex: 0,
       status: 'IN_PROGRESS',
@@ -133,7 +125,70 @@ export class SentencePracticeService {
 
     await db.createSentencePracticeSession(session, items);
 
-    return await db.findSentencePracticeSessionById(sessionId);
+    const created = await db.findSentencePracticeSessionById(sessionId);
+    return await SentencePracticeService.attachChunks(created!, userId);
+  }
+
+  /**
+   * 根据用户配置，为会话中的每个句子生成“雪球式渐进块”：
+   * 学习时从第一块开始逐块累加，最终得到完整句子。
+   */
+  private static async attachChunks(
+    session: SentencePracticeSession,
+    userId: string
+  ): Promise<SentencePracticeSession> {
+    if (!session || !session.items) return session;
+
+    const config = await db.getDictionaryConfig(userId);
+    const wantUk = (config.phoneticType || 'UK') === 'UK';
+    // 统一按意群（PHRASE）切分：一次输入一个 2~4 词的意群，最后再输入整句。
+    const opts: ChunkOptions = {
+      granularity: 'PHRASE',
+      fixedSize: config.sentenceChunkSize || 2,
+    };
+
+    // 一次性取出本会话所有单词（含释义/音标）
+    const allWids = new Set<string>();
+    for (const item of session.items) {
+      for (const w of item.sentence?.words || []) {
+        if (w.wordId) allWids.add(String(w.wordId));
+      }
+    }
+    const fullWords = await db.getWordsByIds([...allWids]);
+    const wordById = new Map(fullWords.map(w => [String(w.id), w]));
+
+    for (const item of session.items) {
+      const s = item.sentence;
+      if (!s) continue;
+
+      // 位置（0 基）→ wordId
+      const wordIdAt = new Map<number, string>();
+      (s.words || []).forEach(w => {
+        wordIdAt.set((Number(w.position) || 1) - 1, String(w.wordId));
+      });
+
+      const meaningsByWordId = new Map<string, string[]>();
+      const phoneticByWordId = new Map<string, string>();
+      for (const wid of wordIdAt.values()) {
+        const w = wordById.get(wid);
+        if (!w) continue;
+        meaningsByWordId.set(wid, w.meanings.map(m => m.definitionCn));
+        phoneticByWordId.set(
+          wid,
+          wantUk ? w.phoneticUk || '' : w.phoneticUs || w.phoneticUk || ''
+        );
+      }
+
+      const providers = providersFromMaps(
+        pos => wordIdAt.get(pos),
+        meaningsByWordId,
+        phoneticByWordId
+      );
+
+      item.chunks = buildProgressiveChunks(s.content, opts, providers);
+    }
+
+    return session;
   }
 
   static async getSessionById(sessionId: string, userId: string) {
@@ -151,15 +206,30 @@ export class SentencePracticeService {
         currentItem.currentPhase = 'REBUILD';
         currentItem.currentPhraseIndex = 0;
         await db.updateSentencePracticeItem(currentItem);
-        return await db.findSentencePracticeSessionById(sessionId);
       }
     }
 
-    return session;
+    // 统一附加按用户配置生成的渐进块，前端据此进行雪球式学习
+    return await SentencePracticeService.attachChunks(session, userId);
   }
 
-  static async getActiveSession(userId: string) {
-    return await db.getActiveSentencePracticeSession(userId) || null;
+  static async getActiveSession(userId: string, chapterId?: string) {
+    // 传 chapterId（可为 '' 表示无单元）时只返回该辞书+单元的进行中会话，
+    // 支持多个单元各自保留学习进度
+    let filter: { dictionaryId?: string; chapterId?: string } | undefined;
+    if (chapterId !== undefined) {
+      const cfg = await db.getDictionaryConfig(userId);
+      filter = { dictionaryId: cfg.sentenceDictionaryId, chapterId };
+    }
+    const session = await db.getActiveSentencePracticeSession(userId, filter) || null;
+    if (session && !session.chapterId) {
+      // 兼容旧会话：按当前句子的章节补标注
+      const current = session.items?.[session.currentSentenceIndex] || session.items?.[0];
+      if (current?.sentenceId && session.dictionaryId) {
+        session.chapterId = await db.getSentenceChapterId(current.sentenceId, session.dictionaryId);
+      }
+    }
+    return session;
   }
 
   /**
@@ -324,6 +394,8 @@ export class SentencePracticeService {
     // The frontend must receive the updated currentSentenceIndex/status,
     // especially for the final sentence where status becomes COMPLETED.
     const updatedSession = await db.findSentencePracticeSessionById(sessionId);
+    // 重要：返回的会话也要附加渐进块，否则前端进入下一句时拿不到 chunks。
+    const sessionWithChunks = await SentencePracticeService.attachChunks(updatedSession!, userId);
 
     return {
       isCorrect: true,
@@ -333,7 +405,7 @@ export class SentencePracticeService {
       sessionCompleted,
       nextSentenceIndex,
       message: '✓ 完成句子重建',
-      session: updatedSession
+      session: sessionWithChunks
     };
   }
 
@@ -366,7 +438,8 @@ export class SentencePracticeService {
     await db.updateSentencePracticeItem(item);
     await db.updateSentencePracticeSession(session);
 
-    return await db.findSentencePracticeSessionById(sessionId);
+    const retried = await db.findSentencePracticeSessionById(sessionId);
+    return await SentencePracticeService.attachChunks(retried!, userId);
   }
 
   static async cancelSession(sessionId: string, userId: string) {

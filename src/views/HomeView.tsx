@@ -19,7 +19,9 @@ import { StatisticsData, StudySessionItem, SentencePracticeSession, SessionMode,
 interface HomeViewProps {
   navigate: (route: string) => void;
   onStartSentencePractice?: () => void;
+  onDirectStartSentencePractice?: () => void;
   config: DictionaryConfig;
+  onUpdateConfig?: (patch: Partial<DictionaryConfig>) => Promise<void>;
 }
 
 
@@ -31,11 +33,14 @@ const LearningCard: React.FC<{
   mastered: number;
   active?: boolean;
   activeText?: string;
+  startText?: string;
   onStart: () => void;
   onContinue?: () => void;
   onRestart?: () => void;
   batchCompleted?: number;
   batchTotal?: number;
+  subtitle?: string;
+  footerExtra?: React.ReactNode;
 }> = ({
   title,
   icon,
@@ -44,11 +49,14 @@ const LearningCard: React.FC<{
   mastered,
   active,
   activeText,
+  startText,
   onStart,
   onContinue,
   onRestart,
   batchCompleted = 0,
-  batchTotal = 0
+  batchTotal = 0,
+  subtitle,
+  footerExtra
 }) => {
   const safeTotal = Math.max(0, total);
   const safeLearned = Math.min(safeTotal, Math.max(0, learned));
@@ -139,6 +147,11 @@ const LearningCard: React.FC<{
             <div>
               <h2 className="text-xl font-bold text-[#29466F]">{title}</h2>
               <p className="text-xs text-[#8BA0BD] mt-0.5">词库总体进度</p>
+              {subtitle && (
+                <p className="text-xs font-semibold text-[#4F7DF3] mt-1.5 flex items-center gap-1">
+                  <BookOpen className="w-3 h-3" />{subtitle}
+                </p>
+              )}
             </div>
           </div>
 
@@ -168,6 +181,8 @@ const LearningCard: React.FC<{
         </div>
       </div>
 
+      {footerExtra}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-6">
         <button
           type="button"
@@ -177,7 +192,7 @@ const LearningCard: React.FC<{
           <span>
             {active
               ? (activeText || '继续学习') + (batchTotal > 0 ? ' ' + batchCompleted + '/' + batchTotal : '')
-              : '开始' + title}
+              : (startText || '开始' + title)}
           </span>
           <ArrowRight className="w-4 h-4" />
         </button>
@@ -198,8 +213,9 @@ const LearningCard: React.FC<{
 
 export const HomeView: React.FC<HomeViewProps> = ({
   navigate,
-  onStartSentencePractice,
-  config
+  onDirectStartSentencePractice,
+  config,
+  onUpdateConfig,
 }) => {
   const [stats, setStats] = useState<StatisticsData | null>(null);
   const [activeSession, setActiveSession] = useState<StudySessionItem | null>(null);
@@ -209,7 +225,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
   useEffect(() => {
     loadHomeData();
-  }, []);
+    // 所选单元变化时（初始加载/切换单元）自动按新单元刷新进行中会话与统计
+  }, [config.sentenceChapterId]);
 
   const loadHomeData = async () => {
     try {
@@ -217,7 +234,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
       const [statsRes, sessionRes, sentenceSessionRes] = await Promise.all([
         api.getTodayStatistics(),
         api.getActiveStudySession(),
-        api.getActiveSentencePracticeSession()
+        api.getActiveSentencePracticeSession(config.sentenceChapterId || '')
       ]);
       setStats(statsRes);
       setActiveSession(sessionRes);
@@ -227,6 +244,44 @@ export const HomeView: React.FC<HomeViewProps> = ({
     } finally {
       setLoading(false);
     }
+  };
+
+  /* 切换“学句子”单元：保存到用户配置；统计与进行中会话由 config 变化触发的 effect 自动刷新 */
+  const handleChapterChange = async (chapterId: string) => {
+    if (chapterId === (config.sentenceChapterId || '')) return;
+    try {
+      await onUpdateConfig?.({ sentenceChapterId: chapterId || undefined });
+    } catch (e) {
+      console.error('Failed to switch chapter:', e);
+    }
+  };
+
+  /* ---------- 学句子卡片：按当前所选单元显示“继续/开始”状态 ---------- */
+  const selectedChapterId = config.sentenceChapterId || '';
+  const chapterList = stats?.sentenceChapters || [];
+  const selectedChapter = chapterList.find(c => c.id === selectedChapterId);
+  // 进行中的句子会话是否属于当前所选单元（无单元辞书两侧都是 ''，视为匹配）
+  const activeSentenceInSelectedUnit =
+    !!activeSentenceSession && (activeSentenceSession.chapterId || '') === selectedChapterId;
+  // 未学状态下的按钮文案：全学完 → 重新开始；学过一部分 → 继续学；全新 → 开始学
+  const selectedUnitStartText = selectedChapter
+    ? (selectedChapter.total > 0 && selectedChapter.learned >= selectedChapter.total
+        ? '重新学本单元'
+        : selectedChapter.learned > 0 ? '继续学本单元' : '开始学本单元')
+    : '开始学句子';
+
+  /* 单元 chip 上的状态标签：进行中会话 > 进度判断 */
+  const unitStateLabel = (ch: { id: string; total: number; learned: number }) => {
+    const hasActiveHere = !!activeSentenceSession && (activeSentenceSession.chapterId || '') === ch.id;
+    if (hasActiveHere) return '继续学习';
+    if (ch.total > 0 && ch.learned >= ch.total) return '重新开始';
+    return ch.learned > 0 ? '继续学习' : '开始学习';
+  };
+  const unitStateColor = (ch: { id: string; total: number; learned: number }) => {
+    const hasActiveHere = !!activeSentenceSession && (activeSentenceSession.chapterId || '') === ch.id;
+    if (hasActiveHere) return 'text-amber-600';
+    if (ch.total > 0 && ch.learned >= ch.total) return 'text-emerald-600';
+    return ch.learned > 0 ? 'text-[#4F7DF3]' : 'text-stone-400';
   };
 
   const handleStartWordStudy = async (modeOverride?: SessionMode, restart = false) => {
@@ -317,11 +372,52 @@ export const HomeView: React.FC<HomeViewProps> = ({
           total={stats?.totalSentences || 0}
           learned={stats?.learnedSentences || 0}
           mastered={stats?.masteredSentences || 0}
-          active={!!activeSentenceSession}
+          active={activeSentenceInSelectedUnit}
           activeText="继续学句子"
-          onStart={() => onStartSentencePractice?.()}
+          startText={selectedUnitStartText}
+          onStart={() => onDirectStartSentencePractice?.()}
           onContinue={() => navigate('/sentence-practice/' + activeSentenceSession!.id)}
-          onRestart={() => onStartSentencePractice?.()}
+          onRestart={() => onDirectStartSentencePractice?.()}
+          batchCompleted={(activeSentenceSession?.currentSentenceIndex || 0) + 1}
+          batchTotal={activeSentenceSession?.totalCount || 0}
+          subtitle={
+            stats?.sentenceDictionaryName
+              ? [stats.sentenceDictionaryName, stats.sentenceChapterName].filter(Boolean).join(' · ')
+              : ''
+          }
+          footerExtra={
+            (stats?.sentenceChapters || []).length > 0 ? (
+              <div className="mt-6">
+                <label className="text-xs font-bold text-stone-500 block mb-2">切换单元（进度独立保留）</label>
+                <div className="flex flex-wrap gap-2">
+                  {(stats?.sentenceChapters || []).map(ch => {
+                    const active = (config.sentenceChapterId || '') === ch.id;
+                    const pct = ch.total > 0 ? Math.round((ch.learned / ch.total) * 100) : 0;
+                    return (
+                      <button
+                        key={ch.id}
+                        type="button"
+                        onClick={() => handleChapterChange(ch.id)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all text-left ${
+                          active
+                            ? 'border-amber-400 bg-amber-50 text-stone-900 ring-2 ring-amber-200'
+                            : 'border-stone-200 bg-white text-stone-700 hover:bg-stone-50'
+                        }`}
+                      >
+                        <span>{ch.name}</span>
+                        <span className="ml-2 text-[10px] text-stone-400">
+                          {ch.learned}/{ch.total} · {pct}%
+                        </span>
+                        <span className={`ml-1.5 text-[10px] font-extrabold ${unitStateColor(ch)}`}>
+                          {unitStateLabel(ch)}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : undefined
+          }
         />
       </div>
 
