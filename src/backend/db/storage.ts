@@ -112,6 +112,8 @@ const ensureStudyTrackingColumns = (): Promise<void> => {
         }
       };
       await addColumn('ALTER TABLE study_session ADD COLUMN chapter_id VARCHAR(36) NULL');
+      // Recover chapter scope for old in-progress batches when all their words belong to one chapter.
+      await pool.query(`UPDATE study_session ss JOIN (SELECT ssw.session_id, MIN(dw.chapter_id) AS chapter_id FROM study_session_word ssw JOIN study_session s ON s.id=ssw.session_id JOIN dictionary_word dw ON dw.word_id=ssw.word_id AND dw.dictionary_id=s.dictionary_id WHERE dw.chapter_id IS NOT NULL GROUP BY ssw.session_id HAVING COUNT(DISTINCT dw.chapter_id)=1 AND COUNT(DISTINCT dw.word_id)=COUNT(ssw.word_id)) recovered ON recovered.session_id=ss.id SET ss.chapter_id=recovered.chapter_id WHERE ss.chapter_id IS NULL`);
       await addColumn('ALTER TABLE study_session_word ADD COLUMN wrong_attempt_count INT NOT NULL DEFAULT 0');
       await addColumn('ALTER TABLE learning_record ADD COLUMN session_id VARCHAR(128) NULL');
       await addColumn('ALTER TABLE learning_record ADD COLUMN phase VARCHAR(32) NULL');
