@@ -491,6 +491,36 @@ class MySQLStorage {
     };
   }
 
+  async getDictionaryChapterWordProgressStats(userId: string, dictionaryId: string) {
+    await ensureDictionaryChapterSchema();
+    const [rows] = await pool.query(
+      `SELECT
+         dc.id AS chapter_id,
+         dc.name AS chapter_name,
+         dc.sequence_no,
+         COUNT(dw.word_id) AS total_words,
+         SUM(CASE WHEN up.status IN ('LEARNING','REVIEW','MASTERED') THEN 1 ELSE 0 END) AS learned_words,
+         SUM(CASE WHEN up.status='MASTERED' THEN 1 ELSE 0 END) AS mastered_words
+       FROM dictionary_chapter dc
+       LEFT JOIN dictionary_word dw
+         ON dw.chapter_id=dc.id AND dw.dictionary_id=dc.dictionary_id AND dw.is_active=1
+       LEFT JOIN user_word_progress up
+         ON up.word_id=dw.word_id AND up.user_id=?
+       WHERE dc.dictionary_id=? AND dc.is_active=1
+       GROUP BY dc.id, dc.name, dc.sequence_no
+       ORDER BY dc.sequence_no, dc.id`,
+      [userId, dictionaryId]
+    );
+    return (rows as Row[]).map(row => ({
+      id: String(row.chapter_id),
+      name: String(row.chapter_name || ''),
+      sequence: Number(row.sequence_no || 0),
+      total: Number(row.total_words || 0),
+      learned: Number(row.learned_words || 0),
+      mastered: Number(row.mastered_words || 0)
+    }));
+  }
+
   async getAllWords(){const [rows]=await pool.query('SELECT * FROM word ORDER BY id');return Promise.all((rows as Row[]).map(r=>this.findWordById(r.id))) as any}
   async findWordById(id:string){const [rows]=await pool.execute('SELECT * FROM word WHERE id=?',[id]);return this.loadWord((rows as Row[])[0])}
   async findWordByText(text:string){const [rows]=await pool.query('SELECT * FROM word WHERE LOWER(text)=LOWER(?)',[text.trim()]);return this.loadWord((rows as Row[])[0])}
