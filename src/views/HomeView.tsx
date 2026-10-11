@@ -477,9 +477,13 @@ export const HomeView: React.FC<HomeViewProps> = ({
                             <span>已学 {learned}/{total} · 已掌握 {mastered}</span>
                             <span className="font-bold text-[#526987]">{percent}%</span>
                           </div>
-                          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#E7EEF8]">
-                            <div className="h-full rounded-full bg-[#4F7DF3] transition-all" style={{ width: `${percent}%` }} />
-                          </div>
+                          {total === 0 ? (
+                            <p className="mt-2 text-[11px] text-amber-600">本单元暂无关联单词</p>
+                          ) : (
+                            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#E7EEF8]">
+                              <div className="h-full rounded-full bg-[#4F7DF3] transition-all" style={{ width: `${percent}%` }} />
+                            </div>
+                          )}
                         </button>
                       );
                     })}
@@ -569,13 +573,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
                           <span>已学 {learned}/{total} · 已掌握 {mastered}</span>
                           <span className="font-bold text-[#526987]">{percent}%</span>
                         </div>
-                        {total === 0 ? (
-                          <p className="mt-2 text-[11px] text-amber-600">本单元暂无关联单词</p>
-                        ) : (
-                          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#E7EEF8]">
-                            <div className="h-full rounded-full bg-[#4F7DF3] transition-all" style={{ width: `${percent}%` }} />
-                          </div>
-                        )}
+                        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#E7EEF8]">
+                          <div className="h-full rounded-full bg-[#4F7DF3] transition-all" style={{ width: `${percent}%` }} />
+                        </div>
                         </div>
                       </button>
                     );
