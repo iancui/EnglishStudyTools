@@ -92,6 +92,27 @@ const ensureDictionaryChapterSchema = (): Promise<void> => {
       await ensureColumn('user_dictionary_config', 'word_study_chapter_id', 'VARCHAR(36) NULL');
       await ensureColumn('user_dictionary_config', 'sentence_chapter_id', 'VARCHAR(36) NULL');
       await ensureColumn('sentence_practice_session', 'chapter_id', 'VARCHAR(36) NULL');
+      // Recover legacy sessions that predate chapter_id. Only assign a chapter when every
+      // item in that session belongs to the same chapter in the same dictionary.
+      await pool.query(`UPDATE sentence_practice_session s
+        JOIN (
+          SELECT spi.session_id, MIN(ds.chapter_id) AS chapter_id
+          FROM sentence_practice_item spi
+          JOIN sentence_practice_session ss ON ss.id = spi.session_id
+          JOIN dictionary_sentence ds
+            ON ds.sentence_id = spi.sentence_id
+           AND ds.dictionary_id = ss.dictionary_id
+          WHERE ss.dictionary_id IS NOT NULL
+            AND ds.chapter_id IS NOT NULL
+          GROUP BY spi.session_id
+          HAVING COUNT(DISTINCT ds.chapter_id) = 1
+             AND COUNT(DISTINCT spi.id) = (
+               SELECT COUNT(*) FROM sentence_practice_item all_items
+               WHERE all_items.session_id = spi.session_id
+             )
+        ) recovered ON recovered.session_id = s.id
+        SET s.chapter_id = recovered.chapter_id
+        WHERE s.chapter_id IS NULL`);
     })();
   }
   return dictionaryChapterSchemaReady;
