@@ -620,13 +620,15 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
               })}
             </div>
 
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[11px] text-[#8BA0BD]">
-              <span className="flex items-center gap-1.5">
-                <kbd className="px-1.5 py-0.5 bg-white border rounded font-mono text-[10px] text-[#29466F]">Space</kbd>
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3 text-sm text-[#526987]">
+              <span className="inline-flex items-center gap-2">
+                <kbd className="rounded-lg border border-[#B8C7DD] bg-white px-3 py-1.5 font-mono text-xs font-extrabold tracking-wide text-[#29466F] shadow-[0_2px_0_#B8C7DD]">SPACE</kbd>
                 <span>{isLastSentence ? '完成' : '下一句'}</span>
               </span>
-              <span className="flex items-center gap-1.5">
-                <kbd className="px-1.5 py-0.5 bg-white border rounded font-mono text-[10px] text-[#29466F]">Shift+Space</kbd>
+              <span className="inline-flex items-center gap-2">
+                <kbd className="rounded-lg border border-[#B8C7DD] bg-white px-2.5 py-1.5 font-mono text-xs font-extrabold tracking-wide text-[#29466F] shadow-[0_2px_0_#B8C7DD]">SHIFT</kbd>
+                <span className="text-xs text-[#8BA0BD]">+</span>
+                <kbd className="rounded-lg border border-[#B8C7DD] bg-white px-3 py-1.5 font-mono text-xs font-extrabold tracking-wide text-[#29466F] shadow-[0_2px_0_#B8C7DD]">SPACE</kbd>
                 <span>播放整句</span>
               </span>
             </div>
