@@ -361,34 +361,47 @@ class MySQLStorage {
   private config(r:Row):UserDictionaryConfig{return{id:r.id,userId:r.user_id,defaultDictionaryId:r.default_dictionary_id||undefined,sentenceDictionaryId:r.sentence_dictionary_id||undefined,sentenceChapterId:r.sentence_chapter_id||undefined,phoneticType:r.phonetic_type,audioType:r.audio_type,enablePhonics:Boolean(r.enable_phonics),sentencePracticeCount:Number(r.sentence_practice_count||5),wordStudyCount:Number(r.word_study_count||20),wordStudyChapterId:r.word_study_chapter_id||undefined,wordStudySortMode:r.word_study_sort_mode||'RANDOM',wordStudyWriteOrder:r.word_study_write_order||'SEQUENCE',wordStudyDictationOrder:r.word_study_dictation_order||'RANDOM',wordStudyIncludeWrite:r.word_study_include_write === undefined ? true : Boolean(r.word_study_include_write),wordStudyIncludeDictation:r.word_study_include_dictation === undefined ? true : Boolean(r.word_study_include_dictation),wordStudyExcludeMastered:r.word_study_exclude_mastered === undefined ? true : Boolean(r.word_study_exclude_mastered),wordStudyMode:r.word_study_mode||'LEARN_AND_WRITE',sentenceStudyMode:r.sentence_study_mode||'BUILD',sentenceChunkMode:r.sentence_chunk_mode||'PHRASE',sentenceChunkSize:Number(r.sentence_chunk_size||2),sentenceAutoplay:r.sentence_autoplay===undefined?true:Boolean(r.sentence_autoplay),sentenceShowTranslation:r.sentence_show_translation===undefined?true:Boolean(r.sentence_show_translation),createdAt:iso(r.created_at)!,updatedAt:iso(r.updated_at)!}}
   async saveDictionaryConfig(userId:string,p:Partial<UserDictionaryConfig>){await ensureDictionaryChapterSchema();const c=await this.getDictionaryConfig(userId);const x={...c,...p,updatedAt:new Date().toISOString()};await pool.query('UPDATE user_dictionary_config SET default_dictionary_id=?,sentence_dictionary_id=?,sentence_chapter_id=?,phonetic_type=?,audio_type=?,enable_phonics=?,sentence_practice_count=?,word_study_count=?,word_study_chapter_id=?,word_study_sort_mode=?,word_study_write_order=?,word_study_dictation_order=?,word_study_include_write=?,word_study_include_dictation=?,word_study_exclude_mastered=?,word_study_mode=?,sentence_study_mode=?,sentence_chunk_mode=?,sentence_chunk_size=?,sentence_autoplay=?,sentence_show_translation=?,updated_at=? WHERE user_id=?',[x.defaultDictionaryId||null,x.sentenceDictionaryId||null,x.sentenceChapterId||null,x.phoneticType,x.audioType,x.enablePhonics,x.sentencePracticeCount||5,x.wordStudyCount||20,x.wordStudyChapterId||null,x.wordStudySortMode||'RANDOM',x.wordStudyWriteOrder||'SEQUENCE',x.wordStudyDictationOrder||'RANDOM',x.wordStudyIncludeWrite !== false,x.wordStudyIncludeDictation !== false,x.wordStudyExcludeMastered !== false,x.wordStudyMode||'LEARN_AND_WRITE',x.sentenceStudyMode||'BUILD',x.sentenceChunkMode||'PHRASE',x.sentenceChunkSize||2,x.sentenceAutoplay!==false,x.sentenceShowTranslation!==false,mysqlDate(x.updatedAt),userId]);return x}
 
-  async getStudyCandidates(dictionaryId: string, userId: string, _excludeMastered: boolean, sortMode: string, limit: number, chapterId?: string) {
+  async getStudyCandidates(dictionaryId: string, userId: string, excludeMastered: boolean, sortMode: string, limit: number, chapterId?: string) {
     await ensureDictionaryChapterSchema();
-    // 新词队列只包含尚无学习进度的词；有进度的词由复习/错词流程负责。
-    // RANDOM randomizes the eligible pool in SQL before LIMIT; SEQUENCE and
-    // REVIEW_FIRST fall back to textbook order because this pool has no reviewed words.
     const params: any[] = [userId, dictionaryId];
     if (chapterId) params.push(chapterId);
+    if (excludeMastered) params.push(90);
     params.push(Math.max(1, limit));
+
+    const eligibility = excludeMastered
+      ? 'AND (up.word_id IS NULL OR (up.status <> \'MASTERED\' AND COALESCE(up.mastery, 0) <= ?))'
+      : '';
+    const mode = String(sortMode || 'RANDOM').toUpperCase();
+    const orderBy = mode === 'RANDOM'
+      ? 'RAND()'
+      : mode === 'REVIEW_FIRST'
+        ? 'CASE WHEN up.word_id IS NOT NULL THEN 0 ELSE 1 END, CASE WHEN up.next_review_at IS NOT NULL AND up.next_review_at <= NOW() THEN 0 ELSE 1 END, dw.sequence_no ASC'
+        : 'dw.sequence_no ASC';
 
     const [rows] = await pool.query(
       `SELECT dw.word_id, dw.sequence_no
        FROM dictionary_word dw
        LEFT JOIN user_word_progress up ON up.word_id=dw.word_id AND up.user_id=?
        WHERE dw.dictionary_id=? AND dw.is_active=1
-         AND up.word_id IS NULL
          ${chapterId ? 'AND dw.chapter_id=?' : ''}
-       ORDER BY ${String(sortMode).toUpperCase() === 'RANDOM' ? 'RAND()' : 'dw.sequence_no ASC'}
+         ${eligibility}
+       ORDER BY ${orderBy}
        LIMIT ?`,
       params
     );
     return rows as Row[];
   }
 
-  async getStudyPreview(dictionaryId: string, userId: string, chapterId?: string) {
+  async getStudyPreview(dictionaryId: string, userId: string, chapterId?: string, excludeMastered = true) {
     await ensureDictionaryChapterSchema();
     const chapterFilter = chapterId ? ' AND dw.chapter_id=?' : '';
+    const masteryFilter = excludeMastered
+      ? ' AND (up.word_id IS NULL OR (up.status <> \'MASTERED\' AND COALESCE(up.mastery, 0) <= 90))'
+      : '';
     const [rows] = await pool.query(
-      `SELECT d.name AS dictionary_name, COUNT(dw.word_id) AS total_in_dict, SUM(CASE WHEN dw.word_id IS NOT NULL AND up.word_id IS NULL THEN 1 ELSE 0 END) AS matching_count
+      `SELECT d.name AS dictionary_name,
+              COUNT(dw.word_id) AS total_in_dict,
+              SUM(CASE WHEN dw.word_id IS NOT NULL${masteryFilter} THEN 1 ELSE 0 END) AS matching_count
        FROM dictionary d
        LEFT JOIN dictionary_word dw ON dw.dictionary_id=d.id AND dw.is_active=1${chapterFilter}
        LEFT JOIN user_word_progress up ON up.word_id=dw.word_id AND up.user_id=?
