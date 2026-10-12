@@ -2,13 +2,28 @@ import { useState, useCallback } from 'react';
 
 export class SpeechPlayer {
   private static synth = typeof window !== 'undefined' ? window.speechSynthesis : null;
+  private static cachedVoices: SpeechSynthesisVoice[] = [];
+
+  // Safari on iPad may populate its voice list asynchronously. Start warming it as
+  // soon as this module loads so the first learner-triggered pronunciation is faster.
+  private static voicesInitialized = (() => {
+    if (typeof window === 'undefined' || !window.speechSynthesis) return false;
+    const synth = window.speechSynthesis;
+    const refresh = () => {
+      SpeechPlayer.cachedVoices = synth.getVoices() || [];
+    };
+    refresh();
+    synth.addEventListener?.('voiceschanged', refresh);
+    return true;
+  })();
 
   /**
    * Select best voice following priority: en-US -> en-GB -> any English voice -> default
    */
   private static selectVoice(preferredLang: string): SpeechSynthesisVoice | null {
     if (!this.synth) return null;
-    const voices = this.synth.getVoices();
+    const voices = this.cachedVoices.length ? this.cachedVoices : this.synth.getVoices();
+    if (voices.length && !this.cachedVoices.length) this.cachedVoices = voices;
     if (!voices || voices.length === 0) return null;
 
     // 1. Exact or case-insensitive match for preferredLang (e.g. en-US)
@@ -48,7 +63,9 @@ export class SpeechPlayer {
         return;
       }
 
-      this.synth.cancel();
+      // Calling cancel() before every utterance can delay the first TTS playback on
+      // iOS Safari. Cancel only when there is something queued or already speaking.
+      if (this.synth.speaking || this.synth.pending) this.synth.cancel();
 
       const targetLang = options.lang || 'en-US';
       const utterance = new SpeechSynthesisUtterance(text);
