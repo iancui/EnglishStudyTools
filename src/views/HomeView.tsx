@@ -8,7 +8,6 @@ import {
   BarChart3,
   Settings,
   Flame,
-  CheckCircle2,
   Clock,
   Headphones,
   GraduationCap
@@ -468,7 +467,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
                             <span className="min-w-0 break-words text-sm font-bold text-[#29466F]">{ch.name}</span>
                             <span className={`shrink-0 text-[11px] font-extrabold ${statusColor}`}>
                               {status}
-                              {selected && <CheckCircle2 className="ml-1 inline h-3 w-3" />}
                             </span>
                           </div>
                           <div className="mt-2 flex items-center justify-between text-[11px] text-[#8BA0BD]">
@@ -560,7 +558,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
                           <span className="min-w-0 break-words text-sm font-bold text-[#29466F]">{ch.name}</span>
                           <span className={`shrink-0 text-[11px] font-extrabold ${statusColor}`}>
                             {status}
-                            {selected && <CheckCircle2 className="ml-1 inline h-3 w-3" />}
                           </span>
                         </div>
                         <div className="mt-2 flex items-center justify-between text-[11px] text-[#8BA0BD]">
