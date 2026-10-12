@@ -795,6 +795,14 @@ export const StudySessionView: React.FC<StudySessionViewProps> = ({
                   autoCapitalize="none"
                   spellCheck={false}
                   autoFocus={wordStep === 'WRITE' && !hasSubmitted}
+                  // On iPad Safari, focus after an async state change does not always open
+                  // the software keyboard. Explicit touch focus keeps the input usable.
+                  onTouchEnd={e => {
+                    if (wordStep === 'WRITE' && !hasSubmitted) e.currentTarget.focus();
+                  }}
+                  onClick={e => {
+                    if (wordStep === 'WRITE' && !hasSubmitted) e.currentTarget.focus();
+                  }}
                   data-form-type="other"
                   value={userInput}
                   onChange={e => setUserInput(e.target.value)}
