@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Headphones,
-  PenLine,
+  RotateCcw,
   AlertTriangle,
   MessageSquareText,
   CalendarCheck2,
@@ -46,44 +45,8 @@ export const ReviewView: React.FC<ReviewViewProps> = ({ navigate, config }) => {
     );
   };
 
-  const startWordSession = async (
-    kind: 'WRITE' | 'DICTATION' | 'TODAY',
-    wordIds?: string[]
-  ) => {
-    if (!confirmReplaceActive()) return;
-    try {
-      setStarting(kind);
-      const session = await api.createStudySession({
-        ...(wordIds?.length ? { wordIds } : {
-          dictionaryId: config.defaultDictionaryId,
-          chapterId: config.wordStudyChapterId,
-          count: config.wordStudyCount || 20,
-          excludeMastered: config.wordStudyExcludeMastered !== false,
-          sortMode: config.wordStudySortMode || 'RANDOM'
-        }),
-        mode: kind === 'DICTATION' ? 'WRITE_ONLY' : 'LEARN_AND_WRITE',
-        writeSortMode: config.wordStudyWriteOrder || 'SEQUENCE',
-        dictationSortMode: config.wordStudyDictationOrder || 'RANDOM',
-        includeWrite: kind === 'DICTATION'
-          ? false
-          : kind === 'TODAY'
-            ? config.wordStudyIncludeWrite !== false
-            : true,
-        includeDictation: kind === 'DICTATION'
-          ? true
-          : kind === 'TODAY'
-            ? config.wordStudyIncludeDictation !== false
-            : false
-      });
-      navigate('/study/' + session.id);
-    } catch (e: any) {
-      alert('开始复习失败：' + (e?.message || '没有符合条件的单词'));
-    } finally {
-      setStarting('');
-    }
-  };
-
   const startTodayReview = async () => {
+    if (!confirmReplaceActive()) return;
     try {
       const words = await api.getTodayReview();
       const ids = (words || []).map((w: any) => w.id).filter(Boolean);
@@ -91,9 +54,18 @@ export const ReviewView: React.FC<ReviewViewProps> = ({ navigate, config }) => {
         alert('当前没有到期复习的单词。');
         return;
       }
-      await startWordSession('TODAY', ids);
+      setStarting('TODAY');
+      const session = await api.createStudySession({
+        wordIds: ids,
+        mode: 'LEARN_AND_WRITE',
+        includeWrite: config.wordStudyIncludeWrite !== false,
+        includeDictation: config.wordStudyIncludeDictation !== false
+      });
+      navigate('/study/' + session.id);
     } catch (e: any) {
-      alert('加载今日复习失败：' + (e?.message || '未知错误'));
+      alert('开始今日复习失败：' + (e?.message || '没有符合条件的单词'));
+    } finally {
+      setStarting('');
     }
   };
 
@@ -125,23 +97,12 @@ export const ReviewView: React.FC<ReviewViewProps> = ({ navigate, config }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <ReviewCard
-          icon={<PenLine className="w-5 h-5" />}
-          title="单词背写"
-          description="看中文释义和音标，主动回忆英文拼写。"
-          meta={'每次 ' + (config.wordStudyCount || 20) + ' 词 · ' + (config.wordStudyWriteOrder === 'RANDOM' ? '随机顺序' : '顺序')}
-          buttonText="开始背写"
-          loading={starting === 'WRITE'}
-          onClick={() => startWordSession('WRITE')}
-        />
-
-        <ReviewCard
-          icon={<Headphones className="w-5 h-5" />}
-          title="单词听写"
-          description="播放英文发音，隐藏音标，听音输入英文拼写。"
-          meta={'每次 ' + (config.wordStudyCount || 20) + ' 词 · ' + (config.wordStudyDictationOrder === 'SEQUENCE' ? '顺序' : '随机')}
-          buttonText="开始听写"
-          loading={starting === 'DICTATION'}
-          onClick={() => startWordSession('DICTATION')}
+          icon={<RotateCcw className="w-5 h-5" />}
+          title="普通复习"
+          description="按词库挑选已学单词，可手动勾选或随机抽词，进行单词背写或单词听写。"
+          meta="按词库 · 单元分组选词"
+          buttonText="进入普通复习"
+          onClick={() => navigate('/review/words')}
         />
 
         <ReviewCard

@@ -301,6 +301,14 @@ export const api = {
 
   // Review
   getTodayReview: () => request<any[]>('/api/review/today'),
+  getReviewWordPool: (dictionaryId: string, excludeMastered = true) =>
+    request<{
+      dictionaries: { id: string; name: string; totalWords: number; learnedWords: number; masteredWords: number; learningWords: number; unlearnedWords: number }[];
+      selectedDictionaryId: string;
+      dictionaryName: string;
+      chapters: { id: string; name: string; sequence: number; words: any[] }[];
+      uncategorized: any[];
+    }>(`/api/review/word-pool?dictionaryId=${encodeURIComponent(dictionaryId)}&excludeMastered=${excludeMastered}`),
   submitReview: (id: string, payload: { answer?: string; isCorrect?: boolean }) =>
     request<any>(`/api/review/${id}`, {
       method: 'POST',

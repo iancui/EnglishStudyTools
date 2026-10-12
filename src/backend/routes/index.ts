@@ -100,6 +100,7 @@ apiRouter.post('/words/:id/learn', WordController.markLearned);
 
 // Review
 apiRouter.get('/review/today', ReviewController.getTodayReview);
+apiRouter.get('/review/word-pool', ReviewController.getWordPool);
 apiRouter.post('/review/:id', ReviewController.submitReview);
 
 // Sentences (Preserved 100%)

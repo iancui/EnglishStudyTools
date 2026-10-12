@@ -20,6 +20,22 @@ export class ReviewController {
     }
   }
 
+  static async getWordPool(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const userId = req.user?.id || 'u-default';
+      const dictionaryId = typeof req.query.dictionaryId === 'string' ? req.query.dictionaryId : '';
+      const excludeMastered = String(req.query.excludeMastered ?? 'true') !== 'false';
+      const data = await ReviewService.getWordReviewPool(userId, dictionaryId, excludeMastered);
+      res.json({
+        code: 200,
+        message: 'success',
+        data
+      });
+    } catch (e) {
+      next(e);
+    }
+  }
+
   static async submitReview(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id || 'u-default';

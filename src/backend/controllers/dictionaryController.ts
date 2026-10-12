@@ -41,24 +41,27 @@ export class DictionaryController {
     try {
       const userId = req.user?.id || 'u-default';
       const before = await DictionaryService.getConfig(userId);
-      const activeSession = await StudySessionService.getActiveSession(userId);
+      // 只查“当前词库+当前单元”的进行中会话：其他单元的会话进度独立保留，
+      // 不受本次配置修改影响（与句子练习的单元进度独立逻辑一致）
+      const activeSession = await StudySessionService.getActiveSession(userId, before.defaultDictionaryId, before.wordStudyChapterId || '');
 
       // 修改会影响选词的学习配置时，当前批次属于旧学习计划。
       // 旧批次直接取消，不创建新批次；回到首页后显示“开始背单词”，
       // 用户主动点击后才按最新配置创建新的学习批次。
-      const changedLearningConfig =
-        before.defaultDictionaryId !== req.body?.defaultDictionaryId ||
-        (before.wordStudyChapterId || '') !== (req.body?.wordStudyChapterId || '') ||
-        Number(before.wordStudyCount || 20) !== Number(req.body?.wordStudyCount || 20) ||
-        (before.wordStudySortMode || 'RANDOM') !== (req.body?.wordStudySortMode || 'RANDOM') ||
-        (before.wordStudyWriteOrder || 'SEQUENCE') !== (req.body?.wordStudyWriteOrder || 'SEQUENCE') ||
-        (before.wordStudyDictationOrder || 'RANDOM') !== (req.body?.wordStudyDictationOrder || 'RANDOM') ||
-        Boolean(before.wordStudyIncludeWrite !== false) !== Boolean(req.body?.wordStudyIncludeWrite !== false) ||
-        Boolean(before.wordStudyIncludeDictation !== false) !== Boolean(req.body?.wordStudyIncludeDictation !== false) ||
-        Boolean(before.wordStudyExcludeMastered !== false) !== Boolean(req.body?.wordStudyExcludeMastered !== false) ||
-        (before.wordStudyMode || 'LEARN_AND_WRITE') !== (req.body?.wordStudyMode || 'LEARN_AND_WRITE');
-
+      // 注意：切换单元本身不取消旧单元会话（各单元进度独立，切回可继续），
+      // 因此 chapterId 变化不触发取消。
+      // 注意：PUT 是局部更新，必须与合并后的配置比较，否则未传的字段会被误判为变化。
       const config = await DictionaryService.updateConfig(userId, req.body);
+      const changedLearningConfig =
+        before.defaultDictionaryId !== config.defaultDictionaryId ||
+        Number(before.wordStudyCount || 20) !== Number(config.wordStudyCount || 20) ||
+        (before.wordStudySortMode || 'RANDOM') !== (config.wordStudySortMode || 'RANDOM') ||
+        (before.wordStudyWriteOrder || 'SEQUENCE') !== (config.wordStudyWriteOrder || 'SEQUENCE') ||
+        (before.wordStudyDictationOrder || 'RANDOM') !== (config.wordStudyDictationOrder || 'RANDOM') ||
+        Boolean(before.wordStudyIncludeWrite !== false) !== Boolean(config.wordStudyIncludeWrite !== false) ||
+        Boolean(before.wordStudyIncludeDictation !== false) !== Boolean(config.wordStudyIncludeDictation !== false) ||
+        Boolean(before.wordStudyExcludeMastered !== false) !== Boolean(config.wordStudyExcludeMastered !== false) ||
+        (before.wordStudyMode || 'LEARN_AND_WRITE') !== (config.wordStudyMode || 'LEARN_AND_WRITE');
 
       if (activeSession && changedLearningConfig) {
         await StudySessionService.cancelSession(activeSession.id, userId);

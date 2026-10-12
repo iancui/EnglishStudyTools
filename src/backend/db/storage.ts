@@ -546,6 +546,49 @@ class MySQLStorage {
     }));
   }
 
+  /** 每个词库的整体单词进度（不区分单元），用于普通复习页的词库列表 */
+  async getAllDictionaryWordProgressStats(userId: string) {
+    await ensureDictionaryChapterSchema();
+    const [rows] = await pool.query(
+      `SELECT dw.dictionary_id AS dictionary_id,
+              COUNT(dw.word_id) AS total_words,
+              SUM(CASE WHEN up.status IN ('LEARNING','REVIEW','MASTERED') OR COALESCE(up.learn_count,0)>0 OR COALESCE(up.review_count,0)>0 THEN 1 ELSE 0 END) AS learned_words,
+              SUM(CASE WHEN up.status='MASTERED' THEN 1 ELSE 0 END) AS mastered_words
+       FROM dictionary_word dw
+       LEFT JOIN user_word_progress up ON up.word_id=dw.word_id AND up.user_id=?
+       WHERE dw.is_active=1
+       GROUP BY dw.dictionary_id`,
+      [userId]
+    );
+    const map = new Map<string, { totalWords: number; learnedWords: number; masteredWords: number }>();
+    for (const r of rows as Row[]) {
+      map.set(String(r.dictionary_id), {
+        totalWords: Number(r.total_words || 0),
+        learnedWords: Number(r.learned_words || 0),
+        masteredWords: Number(r.mastered_words || 0)
+      });
+    }
+    return map;
+  }
+
+  /** 取某词库中已学（掌握/已学未掌握）的单词及其进度；includeMastered=false 时排除已掌握 */
+  async getDictionaryWordReviewPool(userId: string, dictionaryId: string, includeMastered: boolean) {
+    await ensureDictionaryChapterSchema();
+    const masteryFilter = includeMastered ? '' : " AND up.status<>'MASTERED'";
+    const [rows] = await pool.query(
+      `SELECT dw.word_id, dw.chapter_id, dw.sequence_no,
+              up.status, up.mastery, up.correct_count, up.wrong_count, up.streak,
+              up.learn_count, up.review_count, up.next_review_at
+       FROM dictionary_word dw
+       JOIN user_word_progress up ON up.word_id=dw.word_id AND up.user_id=?
+       WHERE dw.dictionary_id=? AND dw.is_active=1
+         AND up.status IN ('LEARNING','REVIEW','MASTERED')${masteryFilter}
+       ORDER BY dw.sequence_no, dw.id`,
+      [userId, dictionaryId]
+    );
+    return rows as Row[];
+  }
+
   async getAllWords(){const [rows]=await pool.query('SELECT * FROM word ORDER BY id');return Promise.all((rows as Row[]).map(r=>this.findWordById(r.id))) as any}
   async findWordById(id:string){const [rows]=await pool.execute('SELECT * FROM word WHERE id=?',[id]);return this.loadWord((rows as Row[])[0])}
   async findWordByText(text:string){const [rows]=await pool.query('SELECT * FROM word WHERE LOWER(text)=LOWER(?)',[text.trim()]);return this.loadWord((rows as Row[])[0])}
