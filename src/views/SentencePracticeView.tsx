@@ -453,10 +453,12 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
             )}
             <div
               className="relative inline-block cursor-pointer"
-              // 阻止点击单词区域时当前输入框失焦，保留原来的输入光标
-              onMouseDown={e => e.preventDefault()}
-              onClick={() => speak(tok.word)}
-              title={`播放 ${tok.word} 发音`}
+              // Tapping a word should focus its real input on iPad Safari so the
+              // software keyboard can open. Do not prevent the input's default focus.
+              onClick={e => {
+                if (e.target === e.currentTarget) void speak(tok.word);
+              }}
+              title={`输入 ${tok.word}；点击单词可播放发音`}
             >
               <div aria-hidden
                 className="font-bold text-2xl sm:text-3xl pb-5 relative whitespace-nowrap select-none text-left"
@@ -477,12 +479,15 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
                 onKeyDown={e => handleWordKeyDown(i, e)}
                 onBlur={() => handleWordBlur(i)}
                 onFocus={() => setFocusedWordIdx(i)}
-                // 输入框只接受当前焦点的键盘输入；鼠标事件交给外层单词容器播放发音
-                // 这样浏览器无法通过鼠标点击改变输入框焦点或插入光标位置
+                onTouchEnd={e => {
+                  if (!isCorrect) e.currentTarget.focus();
+                }}
                 autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck={false}
+                inputMode="text"
+                enterKeyHint="next"
                 readOnly={isCorrect}
-                tabIndex={-1}
-                className={`pointer-events-none absolute top-0 left-0 text-left font-bold text-2xl sm:text-3xl bg-transparent border-0 outline-none focus:ring-0 pb-5 p-0 m-0 box-border z-10 ${isBad ? 'animate-shake' : ''}`}
+                tabIndex={isCorrect ? -1 : 0}
+                className={`pointer-events-auto absolute top-0 left-0 text-left font-bold text-2xl sm:text-3xl bg-transparent border-0 outline-none focus:ring-0 pb-5 p-0 m-0 box-border z-10 ${isBad ? 'animate-shake' : ''}`}
                 style={{ width: `${width}px`, color: 'transparent', caretColor: isCorrect ? 'transparent' : '#6366f1', lineHeight: 1.2 }}
               />
               {!isCorrect && isFocused && (
