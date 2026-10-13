@@ -406,7 +406,11 @@ export class SentencePracticeService {
     };
     await db.saveSentenceProgress(sentenceProgress);
     if (session.dictionaryId) {
-      await db.saveSentenceChapterProgress(sentenceProgress, session.dictionaryId, session.chapterId);
+      // When learning across the whole dictionary, attribute this sentence to its
+      // actual unit instead of the empty "all units" scope.
+      const progressChapterId = session.chapterId
+        || await db.getSentenceChapterId(currentItem.sentenceId, session.dictionaryId);
+      await db.saveSentenceChapterProgress(sentenceProgress, session.dictionaryId, progressChapterId);
     }
 
     await db.addLearningRecord({
