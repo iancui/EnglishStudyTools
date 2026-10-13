@@ -394,7 +394,7 @@ export class SentencePracticeService {
       : (isReviewAttempt && successfulReviews + 1 >= 3 ? 'MASTERED' : 'LEARNING');
     const completedAt = new Date().toISOString();
 
-    await db.saveSentenceProgress({
+    const sentenceProgress = {
       id: `usp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       userId,
       sentenceId: currentItem.sentenceId,
@@ -403,7 +403,11 @@ export class SentencePracticeService {
       completedAt,
       createdAt: completedAt,
       updatedAt: completedAt
-    });
+    };
+    await db.saveSentenceProgress(sentenceProgress);
+    if (session.dictionaryId) {
+      await db.saveSentenceChapterProgress(sentenceProgress, session.dictionaryId, session.chapterId);
+    }
 
     await db.addLearningRecord({
       id: `lr-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
