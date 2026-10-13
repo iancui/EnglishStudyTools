@@ -92,6 +92,41 @@ const ensureDictionaryChapterSchema = (): Promise<void> => {
       await ensureColumn('user_dictionary_config', 'word_study_chapter_id', 'VARCHAR(36) NULL');
       await ensureColumn('user_dictionary_config', 'sentence_chapter_id', 'VARCHAR(36) NULL');
       await ensureColumn('sentence_practice_session', 'chapter_id', 'VARCHAR(36) NULL');
+      // Store sentence progress by dictionary + chapter: a sentence reused in another unit
+      // must not make that other unit appear completed.
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS user_sentence_chapter_progress (
+          id VARCHAR(64) NOT NULL,
+          user_id VARCHAR(64) NOT NULL,
+          dictionary_id VARCHAR(36) NOT NULL,
+          chapter_id VARCHAR(36) NOT NULL DEFAULT '',
+          sentence_id VARCHAR(36) NOT NULL,
+          status VARCHAR(20) NOT NULL DEFAULT 'LEARNING',
+          current_step INT NOT NULL DEFAULT 0,
+          completed_at DATETIME NULL,
+          created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          PRIMARY KEY (id),
+          UNIQUE KEY uq_user_dict_chapter_sentence (user_id, dictionary_id, chapter_id, sentence_id),
+          KEY idx_user_sentence_chapter_lookup (user_id, dictionary_id, chapter_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+      `);
+      // Migrate legacy records only when a sentence has one unambiguous unit per dictionary.
+      await pool.query(`
+        INSERT IGNORE INTO user_sentence_chapter_progress
+          (id, user_id, dictionary_id, chapter_id, sentence_id, status, current_step, completed_at, created_at, updated_at)
+        SELECT CONCAT('legacy-', LEFT(MD5(CONCAT(usp.user_id, '|', ds.dictionary_id, '|', COALESCE(ds.chapter_id, ''), '|', usp.sentence_id)), 48)),
+               usp.user_id, ds.dictionary_id, COALESCE(ds.chapter_id, ''), usp.sentence_id,
+               usp.status, usp.current_step, usp.completed_at, usp.created_at, usp.updated_at
+        FROM user_sentence_progress usp
+        JOIN dictionary_sentence ds ON ds.sentence_id = usp.sentence_id AND ds.is_active = 1
+        WHERE NOT EXISTS (
+          SELECT 1 FROM dictionary_sentence ds2
+          WHERE ds2.dictionary_id = ds.dictionary_id AND ds2.sentence_id = ds.sentence_id
+            AND ds2.is_active = 1 AND COALESCE(ds2.chapter_id, '') <> COALESCE(ds.chapter_id, '')
+        )
+      `);
+
       // Recover legacy sessions that predate chapter_id. Only assign a chapter when every
       // item in that session belongs to the same chapter in the same dictionary.
       await pool.query(`UPDATE sentence_practice_session s
@@ -638,9 +673,9 @@ class MySQLStorage {
   async getLearnedSentenceIds(userId:string){const [rows]=await pool.query('SELECT DISTINCT sentence_id FROM user_sentence_progress WHERE user_id=?',[userId]);return (rows as Row[]).map(r=>String(r.sentence_id))}
   async getMasteredSentenceIds(userId:string){const [rows]=await pool.query("SELECT DISTINCT sentence_id FROM user_sentence_progress WHERE user_id=? AND status='MASTERED'",[userId]);return (rows as Row[]).map(r=>String(r.sentence_id))}
   async getSentenceReviewSuccessCount(userId:string,sentenceId:string){const [rows]=await pool.query("SELECT COUNT(*) AS total FROM learning_record WHERE user_id=? AND item_type='SENTENCE' AND item_id=? AND action='REVIEW' AND is_correct=1",[userId,sentenceId]);return Number((rows as Row[])[0]?.total||0)}
-  async getDictionarySentenceStats(dictionaryId:string,userId:string,chapterId?:string){await ensureDictionaryChapterSchema();const params:any[]=[userId,dictionaryId];const chapterFilter=chapterId?' AND ds.chapter_id=? ':'';if(chapterId)params.push(chapterId);const [rows]=await pool.query(`SELECT COUNT(DISTINCT ds.sentence_id) AS total, COUNT(DISTINCT usp.sentence_id) AS learned, COUNT(DISTINCT CASE WHEN usp.status='MASTERED' THEN usp.sentence_id END) AS mastered FROM dictionary_sentence ds LEFT JOIN user_sentence_progress usp ON usp.sentence_id=ds.sentence_id AND usp.user_id=? WHERE ds.dictionary_id=? AND ds.is_active=1 ${chapterFilter}`,params);const r=(rows as Row[])[0]||{};return{total:Number(r.total||0),learned:Number(r.learned||0),mastered:Number(r.mastered||0)}}
+  async getDictionarySentenceStats(dictionaryId:string,userId:string,chapterId?:string){await ensureDictionaryChapterSchema();const params:any[]=[userId,dictionaryId];const chapterFilter=chapterId?' AND ds.chapter_id=? ':'';if(chapterId)params.push(chapterId);const [rows]=await pool.query(`SELECT COUNT(DISTINCT ds.sentence_id) AS total, COUNT(DISTINCT usp.sentence_id) AS learned, COUNT(DISTINCT CASE WHEN usp.status='MASTERED' THEN usp.sentence_id END) AS mastered FROM dictionary_sentence ds LEFT JOIN user_sentence_chapter_progress usp ON usp.sentence_id=ds.sentence_id AND usp.dictionary_id=ds.dictionary_id AND usp.chapter_id=COALESCE(ds.chapter_id,'') AND usp.user_id=? WHERE ds.dictionary_id=? AND ds.is_active=1 ${chapterFilter}`,params);const r=(rows as Row[])[0]||{};return{total:Number(r.total||0),learned:Number(r.learned||0),mastered:Number(r.mastered||0)}}
   /** 辞书每个单元的句子总数与已学数，用于首页单元切换进度展示 */
-  async getDictionaryChapterSentenceStats(dictionaryId:string,userId:string){await ensureDictionaryChapterSchema();const [rows]=await pool.query(`SELECT dc.id AS chapter_id, dc.name AS chapter_name, dc.sequence_no AS chapter_seq, COUNT(DISTINCT ds.sentence_id) AS total, COUNT(DISTINCT usp.sentence_id) AS learned, COUNT(DISTINCT CASE WHEN usp.status='MASTERED' THEN ds.sentence_id END) AS mastered FROM dictionary_chapter dc LEFT JOIN dictionary_sentence ds ON ds.chapter_id=dc.id AND ds.dictionary_id=dc.dictionary_id AND ds.is_active=1 LEFT JOIN user_sentence_progress usp ON usp.sentence_id=ds.sentence_id AND usp.user_id=? WHERE dc.dictionary_id=? AND dc.is_active=1 GROUP BY dc.id ORDER BY dc.sequence_no,dc.id`,[userId,dictionaryId]);return(rows as Row[]).map(r=>({id:String(r.chapter_id),name:String(r.chapter_name||''),sequence:Number(r.chapter_seq||0),total:Number(r.total||0),learned:Number(r.learned||0),mastered:Number(r.mastered||0)}))}
+  async getDictionaryChapterSentenceStats(dictionaryId:string,userId:string){await ensureDictionaryChapterSchema();const [rows]=await pool.query(`SELECT dc.id AS chapter_id, dc.name AS chapter_name, dc.sequence_no AS chapter_seq, COUNT(DISTINCT ds.sentence_id) AS total, COUNT(DISTINCT usp.sentence_id) AS learned, COUNT(DISTINCT CASE WHEN usp.status='MASTERED' THEN ds.sentence_id END) AS mastered FROM dictionary_chapter dc LEFT JOIN dictionary_sentence ds ON ds.chapter_id=dc.id AND ds.dictionary_id=dc.dictionary_id AND ds.is_active=1 LEFT JOIN user_sentence_chapter_progress usp ON usp.sentence_id=ds.sentence_id AND usp.dictionary_id=ds.dictionary_id AND usp.chapter_id=dc.id AND usp.user_id=? WHERE dc.dictionary_id=? AND dc.is_active=1 GROUP BY dc.id ORDER BY dc.sequence_no,dc.id`,[userId,dictionaryId]);return(rows as Row[]).map(r=>({id:String(r.chapter_id),name:String(r.chapter_name||''),sequence:Number(r.chapter_seq||0),total:Number(r.total||0),learned:Number(r.learned||0),mastered:Number(r.mastered||0)}))}
   async getDictionaryName(id:string){const [r]=await pool.execute('SELECT name FROM dictionary WHERE id=?',[id]);return (r as Row[])[0]?.name as string|undefined}
   /** 当前学习单元：按辞书句子顺序，取第一个未学句子所属章节；全学完则取最后一句的章节。无章节返回 undefined。 */
   async getCurrentSentenceChapter(dictionaryId:string,userId:string){await ensureDictionaryChapterSchema();const [rows]=await pool.query(`SELECT dc.name AS chapter_name, dc.sequence_no AS chapter_seq FROM dictionary_sentence ds LEFT JOIN user_sentence_progress usp ON usp.sentence_id=ds.sentence_id AND usp.user_id=? JOIN dictionary_chapter dc ON dc.id=ds.chapter_id WHERE ds.dictionary_id=? AND ds.is_active=1 AND ds.chapter_id IS NOT NULL ORDER BY (usp.sentence_id IS NULL) DESC, ds.sequence_no ASC LIMIT 1`,[userId,dictionaryId]);const r=(rows as Row[])[0];return r?{name:String(r.chapter_name),sequenceNo:Number(r.chapter_seq||0)}:undefined}
@@ -648,6 +683,7 @@ class MySQLStorage {
   async getSentenceProgress(userId:string,sentenceId:string){const[r]=await pool.query('SELECT * FROM user_sentence_progress WHERE user_id=? AND sentence_id=?',[userId,sentenceId]);return this.usp((r as Row[])[0])}
   private usp(r?:Row):UserSentenceProgress|undefined{if(!r)return;return{id:r.id,userId:r.user_id,sentenceId:r.sentence_id,status:r.status,currentStep:r.current_step,completedAt:iso(r.completed_at),createdAt:iso(r.created_at)!,updatedAt:iso(r.updated_at)!}}
   async saveSentenceProgress(p:UserSentenceProgress){await pool.query('INSERT INTO user_sentence_progress(id,user_id,sentence_id,status,current_step,completed_at,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE status=VALUES(status),current_step=VALUES(current_step),completed_at=VALUES(completed_at),updated_at=VALUES(updated_at)',[p.id,p.userId,p.sentenceId,p.status,p.currentStep,mysqlDate(p.completedAt),mysqlDate(p.createdAt),mysqlDate(p.updatedAt)]);return p}
+  async saveSentenceChapterProgress(p:UserSentenceProgress,dictionaryId:string,chapterId?:string){await ensureDictionaryChapterSchema();const chapter=chapterId||'';await pool.query('INSERT INTO user_sentence_chapter_progress(id,user_id,dictionary_id,chapter_id,sentence_id,status,current_step,completed_at,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE status=VALUES(status),current_step=VALUES(current_step),completed_at=VALUES(completed_at),updated_at=VALUES(updated_at)',[p.id,p.userId,dictionaryId,chapter,p.sentenceId,p.status,p.currentStep,mysqlDate(p.completedAt),mysqlDate(p.createdAt),mysqlDate(p.updatedAt)]);return p}
   async addLearningRecord(r:LearningRecord){await ensureStudyTrackingColumns();await pool.query('INSERT INTO learning_record(id,user_id,item_type,item_id,action,is_correct,input_text,time_spent_sec,created_at,session_id,phase) VALUES(?,?,?,?,?,?,?,?,?,?,?)',[r.id,r.userId,r.itemType,r.itemId,r.action,r.isCorrect,r.inputText||null,r.timeSpentSec,mysqlDate(r.createdAt),r.sessionId||null,r.phase||null]);return r}
   async getLearningRecords(userId:string){await ensureStudyTrackingColumns();const[r]=await pool.query('SELECT * FROM learning_record WHERE user_id=? ORDER BY created_at',[userId]);return(r as Row[]).map(x=>({id:x.id,userId:x.user_id,itemType:x.item_type,itemId:x.item_id,action:x.action,isCorrect:Boolean(x.is_correct),inputText:x.input_text||undefined,timeSpentSec:x.time_spent_sec,createdAt:iso(x.created_at)!,sessionId:x.session_id||undefined,phase:x.phase||undefined}))}
   async addReviewRecord(r:ReviewRecord){await pool.execute('INSERT INTO review_record(id,user_id,word_id,interval_days,next_review_at,result,created_at) VALUES(?,?,?,?,?,?,?)',[r.id,r.userId,r.wordId,r.intervalDays,mysqlDate(r.nextReviewAt),r.result,mysqlDate(r.createdAt)]);return r}
