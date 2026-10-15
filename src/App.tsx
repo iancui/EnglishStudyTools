@@ -167,13 +167,14 @@ export default function App() {
 
   // 首页直接按当前配置的辞书+单元开始/重新开始学句子，不再弹出选择框
   const [startingSentence, setStartingSentence] = useState(false);
-  const handleDirectStartSentencePractice = async (restart = false) => {
+  const handleDirectStartSentencePractice = async (restart = false, chapterIdOverride?: string) => {
     if (startingSentence) return;
     setStartingSentence(true);
     try {
       // 默认进入当前单元时先恢复该单元的进行中任务；只有明确点击“重新开始”才创建新任务。
       if (!restart) {
-        const active = await api.getActiveSentencePracticeSession(config.sentenceChapterId || '');
+        const targetChapterId = chapterIdOverride !== undefined ? chapterIdOverride : (config.sentenceChapterId || '');
+        const active = await api.getActiveSentencePracticeSession(targetChapterId);
         if (active?.id) {
           navigate('/sentence-practice/' + active.id);
           return;
@@ -181,7 +182,7 @@ export default function App() {
       }
       const session = await api.createSentencePracticeSession({
         dictionaryId: config.sentenceDictionaryId,
-        chapterId: config.sentenceChapterId || ''
+        chapterId: chapterIdOverride !== undefined ? chapterIdOverride : (config.sentenceChapterId || '')
       });
       if (session?.id) navigate('/sentence-practice/' + session.id);
     } catch (e: any) {
