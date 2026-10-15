@@ -10,7 +10,10 @@ import {
   Flame,
   Clock,
   Headphones,
-  GraduationCap
+  GraduationCap,
+  ChevronDown,
+  ChevronRight,
+  Layers3
 } from 'lucide-react';
 import { api } from '../api/client.ts';
 import { StatisticsData, StudySessionItem, SentencePracticeSession, SessionMode, DictionaryConfig } from '../types/index.ts';
@@ -227,6 +230,10 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const [sentenceUnitSearch, setSentenceUnitSearch] = useState('');
   const [wordUnitFilter, setWordUnitFilter] = useState<'全部' | '已完成' | '未完成'>('未完成');
   const [sentenceUnitFilter, setSentenceUnitFilter] = useState<'全部' | '已完成' | '未完成'>('未完成');
+  const [wordSortByProgress, setWordSortByProgress] = useState(false);
+  const [sentenceSortByProgress, setSentenceSortByProgress] = useState(false);
+  const [wordExpandedStages, setWordExpandedStages] = useState<number[]>([0]);
+  const [sentenceExpandedStages, setSentenceExpandedStages] = useState<number[]>([0]);
 
 
   useEffect(() => {
@@ -436,14 +443,100 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
 
 
+
   const orderedWordChapters = [...wordChapters].sort((a, b) => (a.sequence ?? 0) - (b.sequence ?? 0));
+  const orderedSentenceChapters = [...sentenceChapters].sort((a, b) => ((a as any).sequence ?? 0) - ((b as any).sequence ?? 0));
+  const visibleWordChapterIds = new Set(filteredWordChapters.map(ch => ch.id));
+  const visibleSentenceChapterIds = new Set(filteredSentenceChapters.map(ch => ch.id));
+
+  const toChineseStageName = (stageNumber: number) => {
+    const digits = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
+    if (stageNumber <= 10) return `第${stageNumber === 10 ? '十' : digits[stageNumber]}阶段`;
+    if (stageNumber < 20) return `第十${digits[stageNumber % 10]}阶段`;
+    const tens = Math.floor(stageNumber / 10);
+    const ones = stageNumber % 10;
+    return `第${digits[tens]}十${ones ? digits[ones] : ''}阶段`;
+  };
+
+  const wordStageGroups = Array.from(
+    { length: Math.ceil(orderedWordChapters.length / 10) },
+    (_, stageIndex) => {
+      const chapters = orderedWordChapters.slice(stageIndex * 10, stageIndex * 10 + 10);
+      const units = chapters.filter(ch => visibleWordChapterIds.has(ch.id));
+      const sortedUnits = wordSortByProgress
+        ? [...units].sort((a, b) => {
+            const pa = stats?.wordChapters?.find(item => item.id === a.id);
+            const pb = stats?.wordChapters?.find(item => item.id === b.id);
+            const rank = (total: number, learned: number) => total <= 0 ? 1 : learned > 0 && learned < total ? 0 : learned >= total ? 2 : 1;
+            return rank(pa?.total || 0, pa?.learned || 0) - rank(pb?.total || 0, pb?.learned || 0)
+              || (a.sequence ?? 0) - (b.sequence ?? 0);
+          })
+        : units;
+      const total = chapters.reduce((sum, ch) => sum + Math.max(0, stats?.wordChapters?.find(item => item.id === ch.id)?.total || 0), 0);
+      const learned = chapters.reduce((sum, ch) => {
+        const p = stats?.wordChapters?.find(item => item.id === ch.id);
+        return sum + Math.min(Math.max(0, p?.total || 0), Math.max(0, p?.learned || 0));
+      }, 0);
+      const completedCount = chapters.filter(ch => {
+        const p = stats?.wordChapters?.find(item => item.id === ch.id);
+        return isUnitCompleted(p?.total || 0, p?.learned || 0);
+      }).length;
+      return {
+        stageIndex,
+        name: toChineseStageName(stageIndex + 1),
+        units: sortedUnits,
+        chapterCount: chapters.length,
+        completedCount,
+        startUnit: stageIndex * 10 + 1,
+        endUnit: stageIndex * 10 + chapters.length,
+        percent: total > 0 ? Math.round(learned / total * 100) : 0
+      };
+    }
+  ).filter(stage => stage.units.length > 0);
+
+  const sentenceStageGroups = Array.from(
+    { length: Math.ceil(orderedSentenceChapters.length / 10) },
+    (_, stageIndex) => {
+      const chapters = orderedSentenceChapters.slice(stageIndex * 10, stageIndex * 10 + 10);
+      const units = chapters.filter(ch => visibleSentenceChapterIds.has(ch.id));
+      const sortedUnits = sentenceSortByProgress
+        ? [...units].sort((a, b) => {
+            const pa = sentenceChapters.find(item => item.id === a.id);
+            const pb = sentenceChapters.find(item => item.id === b.id);
+            const rank = (total: number, learned: number) => total <= 0 ? 1 : learned > 0 && learned < total ? 0 : learned >= total ? 2 : 1;
+            return rank(pa?.total || 0, pa?.learned || 0) - rank(pb?.total || 0, pb?.learned || 0)
+              || ((a as any).sequence ?? 0) - ((b as any).sequence ?? 0);
+          })
+        : units;
+      const total = chapters.reduce((sum, ch) => sum + Math.max(0, sentenceChapters.find(item => item.id === ch.id)?.total || 0), 0);
+      const learned = chapters.reduce((sum, ch) => {
+        const p = sentenceChapters.find(item => item.id === ch.id);
+        return sum + Math.min(Math.max(0, p?.total || 0), Math.max(0, p?.learned || 0));
+      }, 0);
+      const completedCount = chapters.filter(ch => {
+        const p = sentenceChapters.find(item => item.id === ch.id);
+        return isUnitCompleted(p?.total || 0, p?.learned || 0);
+      }).length;
+      return {
+        stageIndex,
+        name: toChineseStageName(stageIndex + 1),
+        units: sortedUnits,
+        chapterCount: chapters.length,
+        completedCount,
+        startUnit: stageIndex * 10 + 1,
+        endUnit: stageIndex * 10 + chapters.length,
+        percent: total > 0 ? Math.round(learned / total * 100) : 0
+      };
+    }
+  ).filter(stage => stage.units.length > 0);
+
+
   const quickWordChapter = activeSession
     ? orderedWordChapters.find(ch => ch.id === (activeSession.chapterId || ''))
     : orderedWordChapters.find(ch => {
         const progress = stats?.wordChapters?.find(item => item.id === ch.id);
         return (progress?.total || 0) > 0 && (progress?.learned || 0) < (progress?.total || 0);
       });
-  const orderedSentenceChapters = [...sentenceChapters].sort((a, b) => a.sequence - b.sequence);
   const quickSentenceChapter = activeSentenceSession
     ? orderedSentenceChapters.find(ch => ch.id === (activeSentenceSession.chapterId || ''))
     : orderedSentenceChapters.find(ch => (ch.total || 0) > 0 && (ch.learned || 0) < (ch.total || 0));
@@ -560,64 +653,50 @@ export const HomeView: React.FC<HomeViewProps> = ({
               {wordChapters.length > 0 ? (
                 <>
                   <p className="mb-2 text-xs text-[#8BA0BD]">各单元进度独立保留，点击单元即可开始学习</p>
-                  <div className="mb-3 grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+                  <div className="mb-3 grid grid-cols-1 gap-2 lg:grid-cols-[minmax(0,1fr)_auto]">
                     <input value={wordUnitSearch} onChange={e => setWordUnitSearch(e.target.value)} placeholder="搜索单词单元…" className="min-w-0 rounded-xl border border-[#E2EAF5] bg-white px-3 py-2 text-sm text-[#29466F] outline-none focus:border-blue-300" />
-                    <select value={wordUnitFilter} onChange={e => setWordUnitFilter(e.target.value as '全部' | '已完成' | '未完成')} className="rounded-xl border border-[#E2EAF5] bg-white px-3 py-2 text-sm text-[#29466F] outline-none">
-                      <option value="未完成">未完成</option><option value="已完成">已完成</option><option value="全部">全部</option>
-                    </select>
+                    <div className="flex gap-2">
+                      <select value={wordUnitFilter} onChange={e => setWordUnitFilter(e.target.value as '全部' | '已完成' | '未完成')} className="min-w-0 flex-1 rounded-xl border border-[#E2EAF5] bg-white px-3 py-2 text-sm text-[#29466F] outline-none sm:flex-none">
+                        <option value="未完成">未完成</option><option value="已完成">已完成</option><option value="全部">全部</option>
+                      </select>
+                      <button type="button" onClick={() => setWordSortByProgress(value => !value)} className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold whitespace-nowrap ${wordSortByProgress ? 'border-blue-200 bg-blue-50 text-blue-700' : 'border-[#E2EAF5] text-[#526987]'}`}>
+                        <Layers3 className="h-4 w-4" /><span>{wordSortByProgress ? '按进度' : '课程顺序'}</span>
+                      </button>
+                    </div>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {filteredWordChapters.map(ch => {
-                      const selected = (config.wordStudyChapterId || '') === ch.id;
-                      const progress = stats?.wordChapters?.find(item => item.id === ch.id);
-                      const total = Math.max(0, progress?.total || 0);
-                      const learned = Math.min(total, Math.max(0, progress?.learned || 0));
-                      const mastered = Math.min(learned, Math.max(0, progress?.mastered || 0));
-                      const percent = total > 0 ? Math.round((learned / total) * 100) : 0;
-                      const hasActiveHere = selected && !!activeSession;
-                      const status = total > 0 && mastered >= total
-                        ? '已掌握'
-                        : total > 0 && learned >= total
-                          ? '已学完'
-                          : hasActiveHere
-                            ? '继续学习'
-                            : learned > 0 ? '继续学习' : '开始学习';
-                      const statusColor = status === '已掌握'
-                        ? 'text-emerald-600'
-                        : status === '已学完' || status === '继续学习'
-                          ? (hasActiveHere ? 'text-amber-600' : 'text-[#4F7DF3]')
-                          : 'text-[#8BA0BD]';
+                  <div className="space-y-3">
+                    {wordStageGroups.map(stage => {
+                      const isOpen = wordUnitSearch.trim() ? true : wordExpandedStages.includes(stage.stageIndex);
                       return (
-                        <button
-                          key={ch.id}
-                          type="button"
-                          onClick={() => handleWordChapterChange(ch.id)}
-                          className={`rounded-2xl border p-3 text-left transition-all ${
-                            selected
-                              ? 'border-[#4F7DF3] bg-[#EAF0FF] ring-2 ring-[#D9E4FF]'
-                              : 'border-[#E7EEF8] bg-white hover:border-[#C7D7F5] hover:bg-[#F8FAFF]'
-                          }`}
-                        >
-                          <div className="flex items-start justify-between gap-2">
-                            <span className="min-w-0 break-words text-sm font-bold text-[#29466F]">{ch.name}</span>
-                            <span className={`shrink-0 text-[11px] font-extrabold ${statusColor}`}>
-                              {status}
-                            </span>
-                          </div>
-                          <div className="mt-2 flex items-center justify-between text-[11px] text-[#8BA0BD]">
-                            <span>已学 {learned}/{total} · 已掌握 {mastered}</span>
-                            <span className="font-bold text-[#526987]">{percent}%</span>
-                          </div>
-                          {total === 0 ? (
-                            <p className="mt-2 text-[11px] text-amber-600">本单元暂无关联单词</p>
-                          ) : (
-                            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#E7EEF8]">
-                              <div className="h-full rounded-full bg-[#4F7DF3] transition-all" style={{ width: `${percent}%` }} />
-                            </div>
-                          )}
-                        </button>
+                        <div key={stage.stageIndex} className="overflow-hidden rounded-2xl border border-[#E4ECF8]">
+                          <button type="button" onClick={() => setWordExpandedStages(prev => prev.includes(stage.stageIndex) ? prev.filter(index => index !== stage.stageIndex) : [...prev, stage.stageIndex])} className="flex w-full items-center gap-3 p-4 text-left transition hover:bg-blue-50/50 sm:p-5">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">{isOpen ? <ChevronDown className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}</span>
+                            <span className="min-w-0 flex-1"><span className="block font-bold">{stage.name}</span><span className="mt-1 block text-xs text-[#8094B2]">第 {stage.startUnit}–{stage.endUnit} 个单元 · 已完成 {stage.completedCount}/{stage.chapterCount}</span></span>
+                            <span className="text-sm font-extrabold text-blue-700">{stage.percent}%</span>
+                          </button>
+                          <div className="mx-4 h-1 overflow-hidden rounded-full bg-slate-100 sm:mx-5"><div className="h-full rounded-full bg-blue-500 transition-all" style={{ width: stage.percent + '%' }} /></div>
+                          {isOpen && <div className="grid grid-cols-1 gap-2 p-4 sm:grid-cols-2 sm:p-5">
+                            {stage.units.map(ch => {
+                              const selected = (config.wordStudyChapterId || '') === ch.id;
+                              const progress = stats?.wordChapters?.find(item => item.id === ch.id);
+                              const total = Math.max(0, progress?.total || 0);
+                              const learned = Math.min(total, Math.max(0, progress?.learned || 0));
+                              const mastered = Math.min(learned, Math.max(0, progress?.mastered || 0));
+                              const percent = total > 0 ? Math.round((learned / total) * 100) : 0;
+                              const hasActiveHere = selected && !!activeSession;
+                              const status = total > 0 && mastered >= total ? '已掌握' : total > 0 && learned >= total ? '已学完' : hasActiveHere ? '继续学习' : learned > 0 ? '继续学习' : '开始学习';
+                              const statusColor = status === '已掌握' ? 'text-emerald-600' : status === '已学完' || status === '继续学习' ? (hasActiveHere ? 'text-amber-600' : 'text-[#4F7DF3]') : 'text-[#8BA0BD]';
+                              return <button key={ch.id} type="button" onClick={() => handleWordChapterChange(ch.id)} className={`rounded-2xl border p-3 text-left transition-all ${selected ? 'border-[#4F7DF3] bg-[#EAF0FF] ring-2 ring-[#D9E4FF]' : 'border-[#E7EEF8] bg-white hover:border-[#C7D7F5] hover:bg-[#F8FAFF]'}`}>
+                                <div className="flex items-start justify-between gap-2"><span className="min-w-0 break-words text-sm font-bold text-[#29466F]">{ch.name}</span><span className={`shrink-0 text-[11px] font-extrabold ${statusColor}`}>{status}</span></div>
+                                <div className="mt-2 flex items-center justify-between text-[11px] text-[#8BA0BD]"><span>已学 {learned}/{total} · 已掌握 {mastered}</span><span className="font-bold text-[#526987]">{percent}%</span></div>
+                                {total === 0 ? <p className="mt-2 text-[11px] text-amber-600">本单元暂无关联单词</p> : <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#E7EEF8]"><div className="h-full rounded-full bg-[#4F7DF3] transition-all" style={{ width: `${percent}%` }} /></div>}
+                              </button>;
+                            })}
+                          </div>}
+                        </div>
                       );
                     })}
+                    {wordStageGroups.length === 0 && <div className="rounded-xl border border-dashed border-[#D5E0F0] px-3 py-8 text-center text-sm text-[#8BA0BD]">没有找到符合条件的单词单元。请调整搜索或筛选条件。</div>}
                   </div>
                 </>
               ) : (
@@ -672,48 +751,48 @@ export const HomeView: React.FC<HomeViewProps> = ({
               {sentenceChapters.length > 0 ? (
                 <>
                   <p className="mb-2 text-xs text-[#8BA0BD]">每个单元独立记录进度，点击即可切换学习范围</p>
-                  <div className="mb-3 grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+                  <div className="mb-3 grid grid-cols-1 gap-2 lg:grid-cols-[minmax(0,1fr)_auto]">
                     <input value={sentenceUnitSearch} onChange={e => setSentenceUnitSearch(e.target.value)} placeholder="搜索句子单元…" className="min-w-0 rounded-xl border border-[#E2EAF5] bg-white px-3 py-2 text-sm text-[#29466F] outline-none focus:border-blue-300" />
-                    <select value={sentenceUnitFilter} onChange={e => setSentenceUnitFilter(e.target.value as '全部' | '已完成' | '未完成')} className="rounded-xl border border-[#E2EAF5] bg-white px-3 py-2 text-sm text-[#29466F] outline-none">
-                      <option value="未完成">未完成</option><option value="已完成">已完成</option><option value="全部">全部</option>
-                    </select>
+                    <div className="flex gap-2">
+                      <select value={sentenceUnitFilter} onChange={e => setSentenceUnitFilter(e.target.value as '全部' | '已完成' | '未完成')} className="min-w-0 flex-1 rounded-xl border border-[#E2EAF5] bg-white px-3 py-2 text-sm text-[#29466F] outline-none sm:flex-none">
+                        <option value="未完成">未完成</option><option value="已完成">已完成</option><option value="全部">全部</option>
+                      </select>
+                      <button type="button" onClick={() => setSentenceSortByProgress(value => !value)} className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold whitespace-nowrap ${sentenceSortByProgress ? 'border-violet-200 bg-violet-50 text-violet-700' : 'border-[#E2EAF5] text-[#526987]'}`}>
+                        <Layers3 className="h-4 w-4" /><span>{sentenceSortByProgress ? '按进度' : '课程顺序'}</span>
+                      </button>
+                    </div>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {filteredSentenceChapters.map(ch => {
-                      const selected = (config.sentenceChapterId || '') === ch.id;
-                      const total = Math.max(0, ch.total || 0);
-                      const learned = Math.min(total, Math.max(0, ch.learned || 0));
-                      const mastered = Math.min(learned, Math.max(0, ch.mastered || 0));
-                      const percent = total > 0 ? Math.round((learned / total) * 100) : 0;
-                      const status = unitStateLabel(ch);
-                      const statusColor = unitStateColor(ch);
+                  <div className="space-y-3">
+                    {sentenceStageGroups.map(stage => {
+                      const isOpen = sentenceUnitSearch.trim() ? true : sentenceExpandedStages.includes(stage.stageIndex);
                       return (
-                        <button
-                          key={ch.id}
-                          type="button"
-                          onClick={() => handleChapterChange(ch.id)}
-                          className={`rounded-2xl border p-3 text-left transition-all ${
-                            selected
-                              ? 'border-[#4F7DF3] bg-[#EAF0FF] ring-2 ring-[#D9E4FF]'
-                              : 'border-[#E7EEF8] bg-white hover:border-[#C7D7F5] hover:bg-[#F8FAFF]'
-                          }`}
-                        >
-                          <div className="flex items-start justify-between gap-2">
-                            <span className="min-w-0 break-words text-sm font-bold text-[#29466F]">{ch.name}</span>
-                            <span className={`shrink-0 text-[11px] font-extrabold ${statusColor}`}>
-                              {status}
-                            </span>
-                          </div>
-                          <div className="mt-2 flex items-center justify-between text-[11px] text-[#8BA0BD]">
-                            <span>已学 {learned}/{total} · 已掌握 {mastered}</span>
-                            <span className="font-bold text-[#526987]">{percent}%</span>
-                          </div>
-                          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#E7EEF8]">
-                            <div className="h-full rounded-full bg-[#4F7DF3] transition-all" style={{ width: `${percent}%` }} />
-                          </div>
-                        </button>
+                        <div key={stage.stageIndex} className="overflow-hidden rounded-2xl border border-[#E4ECF8]">
+                          <button type="button" onClick={() => setSentenceExpandedStages(prev => prev.includes(stage.stageIndex) ? prev.filter(index => index !== stage.stageIndex) : [...prev, stage.stageIndex])} className="flex w-full items-center gap-3 p-4 text-left transition hover:bg-violet-50/50 sm:p-5">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-600">{isOpen ? <ChevronDown className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}</span>
+                            <span className="min-w-0 flex-1"><span className="block font-bold">{stage.name}</span><span className="mt-1 block text-xs text-[#8094B2]">第 {stage.startUnit}–{stage.endUnit} 个单元 · 已完成 {stage.completedCount}/{stage.chapterCount}</span></span>
+                            <span className="text-sm font-extrabold text-violet-700">{stage.percent}%</span>
+                          </button>
+                          <div className="mx-4 h-1 overflow-hidden rounded-full bg-slate-100 sm:mx-5"><div className="h-full rounded-full bg-violet-500 transition-all" style={{ width: stage.percent + '%' }} /></div>
+                          {isOpen && <div className="grid grid-cols-1 gap-2 p-4 sm:grid-cols-2 sm:p-5">
+                            {stage.units.map(ch => {
+                              const selected = (config.sentenceChapterId || '') === ch.id;
+                              const total = Math.max(0, ch.total || 0);
+                              const learned = Math.min(total, Math.max(0, ch.learned || 0));
+                              const mastered = Math.min(learned, Math.max(0, ch.mastered || 0));
+                              const percent = total > 0 ? Math.round((learned / total) * 100) : 0;
+                              const status = unitStateLabel(ch);
+                              const statusColor = unitStateColor(ch);
+                              return <button key={ch.id} type="button" onClick={() => handleChapterChange(ch.id)} className={`rounded-2xl border p-3 text-left transition-all ${selected ? 'border-[#4F7DF3] bg-[#EAF0FF] ring-2 ring-[#D9E4FF]' : 'border-[#E7EEF8] bg-white hover:border-[#C7D7F5] hover:bg-[#F8FAFF]'}`}>
+                                <div className="flex items-start justify-between gap-2"><span className="min-w-0 break-words text-sm font-bold text-[#29466F]">{ch.name}</span><span className={`shrink-0 text-[11px] font-extrabold ${statusColor}`}>{status}</span></div>
+                                <div className="mt-2 flex items-center justify-between text-[11px] text-[#8BA0BD]"><span>已学 {learned}/{total} · 已掌握 {mastered}</span><span className="font-bold text-[#526987]">{percent}%</span></div>
+                                <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#E7EEF8]"><div className="h-full rounded-full bg-violet-500 transition-all" style={{ width: `${percent}%` }} /></div>
+                              </button>;
+                            })}
+                          </div>}
+                        </div>
                       );
                     })}
+                    {sentenceStageGroups.length === 0 && <div className="rounded-xl border border-dashed border-[#D5E0F0] px-3 py-8 text-center text-sm text-[#8BA0BD]">没有找到符合条件的句子单元。请调整搜索或筛选条件。</div>}
                   </div>
                 </>
               ) : (
