@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react';
 import {
   Activity,
   ArrowUpRight,
-  Award,
   BookOpen,
   CalendarCheck2,
   CheckCircle2,
@@ -386,7 +385,6 @@ export const StatisticsView: React.FC<StatisticsViewProps> = ({ navigate }) => {
                   {calendar.weeks.map((week, weekIndex) => (
                     <div className="flex flex-col gap-[3px]" key={weekIndex}>
                       {week.map(day => {
-                        const level = day.activityCount === 0 ? 0 : day.activityCount <= 4 ? 1 : day.activityCount <= 8 ? 2 : day.activityCount <= 14 ? 3 : 4;
                         const selected = selectedDate === day.key;
                         const future = day.date > startOfDay(new Date());
                         const label = formatLongDate(day.date) + ' · 单词 ' + day.words + '，句子 ' + day.sentences + '，复习 ' + day.reviews;
