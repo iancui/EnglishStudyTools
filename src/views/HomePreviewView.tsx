@@ -205,13 +205,13 @@ export const HomePreviewView: React.FC<{ navigate: (route: string) => void }> = 
                       <div className="flex items-start justify-between gap-2"><span className="min-w-0 text-sm font-bold leading-5">{unit.name}</span><span className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-bold ${statusStyle[unit.status]}`}>{unit.status}</span></div>
                       <div className="mt-3 flex items-center justify-between gap-2 text-xs text-[#8094B2]"><span>已学 {unit.learned}/{unit.total} · 已掌握 {unit.mastered}</span><span className="font-bold text-[#526987]">{percent}%</span></div>
                       <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100"><div className={`h-full rounded-full ${unit.status === '已完成' ? 'bg-emerald-500' : 'bg-blue-500'}`} style={{ width: percent + '%' }} /></div>
-                      <div className={`mt-3 flex items-center justify-between rounded-xl px-3 py-2 text-xs font-bold ${unit.status === '学习中' || unit.status === '待强化' ? 'bg-blue-600 text-white' : 'bg-slate-50 text-[#526987]'}`}><span>{unit.status === '已完成' ? '复习单元' : unit.status === '未开始' ? '开始学习' : '继续学习'}</span><ArrowRight className="h-3.5 w-3.5" /></div>
+                      <div className={`mt-3 flex items-center justify-between rounded-xl px-3 py-2 text-xs font-bold ${unit.status === '学习中' ? 'bg-blue-600 text-white' : 'bg-slate-50 text-[#526987]'}`}><span>{unit.status === '已完成' ? '复习单元' : unit.status === '未开始' ? '开始学习' : '继续学习'}</span><ArrowRight className="h-3.5 w-3.5" /></div>
                     </button>;
                   })}
                 </div>}
               </div>;
             })}
-            {visibleStages.length === 0 && <div className="rounded-2xl border border-dashed border-[#D8E3F2] py-12 text-center"><Search className="mx-auto h-7 w-7 text-slate-300" /><p className="mt-3 font-semibold">没有找到符合条件的单元</p><button onClick={() => { setFilter('全部单元'); setQuery(''); }} className="mt-2 text-sm font-bold text-blue-600">清除筛选</button></div>}
+            {visibleStages.length === 0 && <div className="rounded-2xl border border-dashed border-[#D8E3F2] py-12 text-center"><Search className="mx-auto h-7 w-7 text-slate-300" /><p className="mt-3 font-semibold">没有找到符合条件的单元</p><button onClick={() => { setFilter('未完成'); setQuery(''); }} className="mt-2 text-sm font-bold text-blue-600">清除筛选</button></div>}
           </div>
         </section>
 
