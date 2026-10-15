@@ -211,8 +211,8 @@ export const HomePreviewView: React.FC<{ navigate: (route: string) => void }> = 
                 {isOpen && <div className="grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 sm:p-5">
                   {stage.units.map(unit => {
                     const percent = unit.total ? Math.round(unit.learned / unit.total * 100) : 0;
-                    const selected = selected?.id === unit.id;
-                    return <button key={unit.id} onClick={() => startUnit(unit)} className={`rounded-2xl border p-4 text-left transition hover:-translate-y-0.5 hover:shadow-sm ${selected ? 'border-blue-400 bg-blue-50 ring-2 ring-blue-100' : 'border-[#E4ECF8] bg-white hover:border-blue-200'}`}>
+                    const isSelected = selected?.id === unit.id;
+                    return <button key={unit.id} onClick={() => startUnit(unit)} className={`rounded-2xl border p-4 text-left transition hover:-translate-y-0.5 hover:shadow-sm ${isSelected ? 'border-blue-400 bg-blue-50 ring-2 ring-blue-100' : 'border-[#E4ECF8] bg-white hover:border-blue-200'}`}>
                       <div className="flex items-start justify-between gap-2"><span className="min-w-0 text-sm font-bold leading-5">{unit.name}</span><span className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-bold ${statusStyle[unit.status]}`}>{unit.status}</span></div>
                       <div className="mt-3 flex items-center justify-between gap-2 text-xs text-[#8094B2]"><span>已学 {unit.learned}/{unit.total} · 已掌握 {unit.mastered}</span><span className="font-bold text-[#526987]">{percent}%</span></div>
                       <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100"><div className={`h-full rounded-full ${unit.status === '已完成' ? 'bg-emerald-500' : 'bg-blue-500'}`} style={{ width: percent + '%' }} /></div>
