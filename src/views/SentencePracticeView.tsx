@@ -55,16 +55,26 @@ function parseWordTokens(text: string): WordToken[] {
 
 /** 前端 HTML 实体解码（与后端 decodeHtmlEntities 保持一致） */
 function decodeHtmlEntitiesFe(text: string): string {
-  if (!text) return text;
+  if (!text || text.indexOf('&') === -1) return text;
   const map: Record<string, string> = {
     lsquo: "'", rsquo: "'", ldquo: '"', rdquo: '"',
     amp: '&', nbsp: ' ', hellip: '…', mdash: '—', ndash: '–',
     apos: "'", quot: '"', lt: '<', gt: '>',
+    deg: '°', pound: '£', euro: '€', sect: '§', bull: '•', copy: '©', reg: '®',
+    eacute: 'é', egrave: 'è', aacute: 'á', agrave: 'à', icirc: 'î', ocirc: 'ô',
+    uuml: 'ü', ouml: 'ö', auml: 'ä', ccedil: 'ç', ntilde: 'ñ',
   };
-  return text.replace(/&([a-z]+);/gi, (_, name) => {
-    const v = map[name.toLowerCase()];
-    return v !== undefined ? v : '&' + name + ';';
-  });
+  const fromCodePoint = (raw: string, num: string, base: number): string => {
+    const cp = parseInt(num, base);
+    return Number.isFinite(cp) && cp >= 0 && cp <= 0x10ffff ? String.fromCodePoint(cp) : raw;
+  };
+  return text
+    .replace(/&#x([0-9a-fA-F]+);/g, (m, hex) => fromCodePoint(m, hex, 16))
+    .replace(/&#(\d+);/g, (m, dec) => fromCodePoint(m, dec, 10))
+    .replace(/&([a-z]+);/gi, (m, name) => {
+      const v = map[name.toLowerCase()];
+      return v !== undefined ? v : m;
+    });
 }
 
 /**
@@ -111,12 +121,6 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
   config,
 }) => {
   const [session, setSession] = useState<SentencePracticeSession | null>(null);
-  const [dictionaryProgress, setDictionaryProgress] = useState<{
-    totalSentences: number;
-    learnedSentences: number;
-    masteredSentences: number;
-    sentenceChapters: { id: string; name: string; sequence: number; total: number; learned: number; mastered: number }[];
-  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -149,18 +153,11 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
   const showTranslation = config?.sentenceShowTranslation !== false;
 
   const currentSentenceIndex = session?.currentSentenceIndex ?? 0;
-  const progressChapterId = session?.chapterId || config?.sentenceChapterId || '';
-  const currentUnitProgress = useMemo(() => {
-    if (progressChapterId) {
-      const chapter = dictionaryProgress?.sentenceChapters.find(item => item.id === progressChapterId);
-      if (chapter) return { currentIndex: chapter.learned, totalCount: chapter.total };
-      return { currentIndex: currentSentenceIndex + 1, totalCount: session?.totalCount || 0 };
-    }
-    return {
-      currentIndex: dictionaryProgress?.learnedSentences ?? currentSentenceIndex + 1,
-      totalCount: dictionaryProgress?.totalSentences ?? session?.totalCount ?? 0,
-    };
-  }, [progressChapterId, dictionaryProgress, currentSentenceIndex, session?.totalCount]);
+  // 顶部进度只反映「本次会话」的推进（如 1/5），不使用单元/词库的总句数
+  const currentUnitProgress = useMemo(() => ({
+    currentIndex: currentSentenceIndex + 1,
+    totalCount: session?.totalCount || 0,
+  }), [currentSentenceIndex, session?.totalCount]);
   const currentItem = session?.items?.[currentSentenceIndex];
   const sentence = currentItem?.sentence;
   const chunks: SentenceProgressiveChunk[] = currentItem?.chunks || [];
@@ -214,26 +211,6 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
   }, [sessionId, applySession]);
 
   useEffect(() => { loadSession(); }, [loadSession]);
-
-  // 顶部显示所选句子词库的整体进度，而不是本次随机练习任务的进度。
-  const refreshDictionaryProgress = useCallback(async () => {
-    try {
-      const stats = await api.getTodayStatistics();
-      setDictionaryProgress({
-        totalSentences: Number(stats?.totalSentences) || 0,
-        learnedSentences: Number(stats?.learnedSentences) || 0,
-        masteredSentences: Number(stats?.masteredSentences) || 0,
-        sentenceChapters: Array.isArray(stats?.sentenceChapters) ? stats.sentenceChapters : [],
-      });
-    } catch (e) {
-      console.warn('Failed to refresh sentence dictionary progress:', e);
-    }
-  }, []);
-
-  useEffect(() => { void refreshDictionaryProgress(); }, [refreshDictionaryProgress]);
-  useEffect(() => {
-    if (sentenceDone) void refreshDictionaryProgress();
-  }, [sentenceDone, refreshDictionaryProgress]);
 
   /* ---------- 发音 ---------- */
   const speak = useCallback(async (text?: string) => {
@@ -417,7 +394,7 @@ export const SentencePracticeView: React.FC<SentencePracticeViewProps> = ({
     if (e.code === 'Space') {
       e.preventDefault();
       if (e.shiftKey) {
-        void speak(sentence.content);
+        void speak(sentence?.content);
       } else {
         const currentWord = wordStates[idx];
         if (currentWord && !currentWord.correct) {

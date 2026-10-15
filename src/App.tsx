@@ -184,8 +184,9 @@ export default function App() {
         chapterId: config.sentenceChapterId || ''
       });
       if (session?.id) navigate('/sentence-practice/' + session.id);
-    } catch (e) {
+    } catch (e: any) {
       console.error('Failed to start sentence practice:', e);
+      alert('开始学句子失败：' + (e?.message || '请稍后在设置中检查句子词库'));
     } finally {
       setStartingSentence(false);
     }

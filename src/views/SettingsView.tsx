@@ -624,7 +624,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               </div>
               <select
                 value={config.sentenceDictionaryId || config.defaultDictionaryId || 'dict-primary-6'}
-                onChange={e => setConfig(prev => ({ ...prev, sentenceDictionaryId: e.target.value }))}
+                onChange={e => setConfig(prev => ({ ...prev, sentenceDictionaryId: e.target.value, sentenceChapterId: undefined }))}
                 className="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 text-sm font-medium text-stone-900 focus:bg-white focus:border-stone-900 outline-none transition-all cursor-pointer"
               >
                 {allDictionaries.map(d => (

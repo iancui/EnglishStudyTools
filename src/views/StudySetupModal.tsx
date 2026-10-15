@@ -281,9 +281,9 @@ export const StudySetupModal: React.FC<StudySetupModalProps> = ({
           {/* 4. Exclude Mastered Toggle */}
           <div className="flex items-center justify-between p-3.5 bg-stone-50 rounded-xl border border-stone-100">
             <div>
-              <div className="font-semibold text-xs text-stone-900">排除已掌握单词</div>
+              <div className="font-semibold text-xs text-stone-900">排除已学单词</div>
               <div className="text-[11px] text-stone-500 mt-0.5">
-                自动剔除状态为 MASTERED 或记忆熟练度大于 90% 的词
+                只抽取尚未学过的词，避免与之前批次重复（开启时不再出现学过的词）
               </div>
             </div>
 

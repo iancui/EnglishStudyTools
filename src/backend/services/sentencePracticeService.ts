@@ -59,9 +59,19 @@ export class SentencePracticeService {
     const dictionaryId = params.dictionaryId || cfgForChapter.sentenceDictionaryId;
     // undefined means "use saved preference"; an explicit empty string means
     // "all chapters" and must not fall back to the saved chapter.
-    const chapterId = params.chapterId !== undefined
+    let chapterId = params.chapterId !== undefined
       ? (params.chapterId || undefined)
       : cfgForChapter.sentenceChapterId;
+
+    // 防御：切换到没有单元的词库后，配置里可能仍残留上一个词库的单元 id。
+    // 若不校验就会筛出 0 条候选句子并直接报错（首页点击“开始学句子”看起来毫无反应）。
+    // 单元不属于当前词库时，按整本词库处理。
+    if (dictionaryId && chapterId) {
+      const chapters = await db.getDictionaryChapters(dictionaryId);
+      if (!chapters.some(c => c.id === chapterId)) {
+        chapterId = undefined;
+      }
+    }
 
     // 只加载本辞书（单元）的句子，避免全库 N+1 查询拖慢开始学习
     let candidates: Sentence[] = [];
@@ -89,36 +99,17 @@ export class SentencePracticeService {
 
     const requestedCount = Math.max(1, cfgForChapter.sentencePracticeCount || 5);
 
-    // 已学句子并不等于已掌握：常规练习优先混合复习句和新句。
-    // 只有 status=MASTERED 的句子才会退出常规复习队列；旧版 COMPLETED 状态仍按待复习处理。
+    // 学习会话只挑「从未学过」的句子（没有 user_sentence_progress 记录），
+    // 按单元内的顺序取下一批；复习与掌握的调度由复习页面负责，不再混入旧句。
     const learnedIds = new Set(await db.getLearnedSentenceIds(userId));
-    const masteredIds = new Set(await db.getMasteredSentenceIds(userId));
-    const unlearned = candidates.filter(s => !learnedIds.has(String(s.id)));
-    const reviewable = candidates.filter(s =>
-      learnedIds.has(String(s.id)) && !masteredIds.has(String(s.id))
-    );
+    const selected = candidates
+      .filter(s => !learnedIds.has(String(s.id)))
+      .slice(0, requestedCount);
 
-    // 新句和待复习句都存在时，尽量各占一半；某一类不足时由另一类补足。
-    const reviewTarget = unlearned.length > 0
-      ? Math.min(reviewable.length, Math.ceil(requestedCount / 2))
-      : Math.min(reviewable.length, requestedCount);
-    const newTarget = Math.min(unlearned.length, requestedCount - reviewTarget);
-    const selected = [
-      ...reviewable.slice(0, reviewTarget),
-      ...unlearned.slice(0, newTarget)
-    ];
-    const remaining = requestedCount - selected.length;
-    if (remaining > 0) {
-      selected.push(...reviewable.slice(reviewTarget, reviewTarget + remaining));
-    }
-    if (selected.length < requestedCount) {
-      selected.push(...unlearned.slice(newTarget, newTarget + requestedCount - selected.length));
-    }
-    // 如果当前词库/单元中的句子全部已掌握，仍允许用户主动重新练习，避免生成空会话。
-    if (selected.length === 0 && candidates.length > 0) {
-      selected.push(...candidates
-        .filter(s => masteredIds.has(String(s.id)))
-        .slice(0, requestedCount));
+    if (selected.length === 0) {
+      throw new Error(dictionaryId
+        ? '本单元句子已全部学过，暂无可学习的新句子'
+        : '当前条件下没有可学习的句子');
     }
 
     const nowStr = new Date().toISOString();

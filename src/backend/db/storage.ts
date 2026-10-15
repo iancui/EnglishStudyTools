@@ -425,12 +425,11 @@ class MySQLStorage {
     await ensureDictionaryChapterSchema();
     const params: any[] = [userId, dictionaryId];
     if (chapterId) params.push(chapterId);
-    if (excludeMastered) params.push(90);
     params.push(Math.max(1, limit));
 
-    const eligibility = excludeMastered
-      ? 'AND (up.word_id IS NULL OR (up.status <> \'MASTERED\' AND COALESCE(up.mastery, 0) <= ?))'
-      : '';
+    // 新词学习场景下「排除已掌握」等价于「排除已学过的单词」：只要该词已有学习进度记录，
+    // 就说明用户学过，不能再作为新词重复出现，否则第二次学习会再次抽到第一次学过的词。
+    const eligibility = excludeMastered ? 'AND up.word_id IS NULL' : '';
     const mode = String(sortMode || 'RANDOM').toUpperCase();
     const orderBy = mode === 'RANDOM'
       ? 'RAND()'
@@ -455,9 +454,7 @@ class MySQLStorage {
   async getStudyPreview(dictionaryId: string, userId: string, chapterId?: string, excludeMastered = true) {
     await ensureDictionaryChapterSchema();
     const chapterFilter = chapterId ? ' AND dw.chapter_id=?' : '';
-    const masteryFilter = excludeMastered
-      ? ' AND (up.word_id IS NULL OR (up.status <> \'MASTERED\' AND COALESCE(up.mastery, 0) <= 90))'
-      : '';
+    const masteryFilter = excludeMastered ? ' AND up.word_id IS NULL' : '';
     const [rows] = await pool.query(
       `SELECT d.name AS dictionary_name,
               COUNT(dw.word_id) AS total_in_dict,
@@ -515,7 +512,7 @@ class MySQLStorage {
         const ms = meaningsMap.get(String(r.id)) || [];
         const ps = phonicsMap.get(String(r.id)) || [];
         result.set(String(r.id), {
-          id:r.id,text:r.text,phoneticUk:r.phonetic_uk||'',phoneticUs:r.phonetic_us||'',
+          id:r.id,text:r.text,phoneticUk:decodeHtmlEntities(String(r.phonetic_uk||'')),phoneticUs:decodeHtmlEntities(String(r.phonetic_us||'')),
           audioUkUrl:r.audio_uk_url||undefined,audioUsUrl:r.audio_us_url||undefined,pos:r.pos||'',
           difficulty:Number(r.difficulty||1),
           meanings:ms.map(x=>({id:x.id,wordId:x.word_id,pos:x.pos,definitionCn:x.definition_cn,definitionEn:x.definition_en||undefined,exampleEn:x.example_en||undefined,exampleCn:x.example_cn||undefined})),

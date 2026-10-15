@@ -36,8 +36,8 @@ const LearningCard: React.FC<{
   onStart: () => void;
   onContinue?: () => void;
   onRestart?: () => void;
-  batchCompleted?: number;
-  batchTotal?: number;
+  hideAction?: boolean;
+  totalLabel?: string;
   subtitle?: string;
   footerExtra?: React.ReactNode;
 }> = ({
@@ -52,8 +52,8 @@ const LearningCard: React.FC<{
   onStart,
   onContinue,
   onRestart,
-  batchCompleted = 0,
-  batchTotal = 0,
+  hideAction = false,
+  totalLabel = '总单词',
   subtitle,
   footerExtra
 }) => {
@@ -136,7 +136,7 @@ const LearningCard: React.FC<{
 
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span className="text-3xl font-extrabold text-[#29466F] leading-none">{safeTotal}</span>
-            <span className="text-[11px] text-[#8BA0BD] mt-1">总单词</span>
+            <span className="text-[11px] text-[#8BA0BD] mt-1">{totalLabel}</span>
           </div>
         </div>
 
@@ -182,30 +182,31 @@ const LearningCard: React.FC<{
 
       {footerExtra}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-6">
-        <button
-          type="button"
-          onClick={active && onContinue ? onContinue : onStart}
-          className="py-3.5 px-5 bg-[#4F7DF3] hover:bg-[#3D6CE5] text-white font-bold rounded-2xl transition-all flex items-center justify-center gap-2 text-sm"
-        >
-          <span>
-            {active
-              ? (activeText || '继续学习') + (batchTotal > 0 ? ' ' + batchCompleted + '/' + batchTotal : '')
-              : (startText || '开始' + title)}
-          </span>
-          <ArrowRight className="w-4 h-4" />
-        </button>
-        {active && onRestart && (
+      {hideAction ? (
+        <div className="mt-6 rounded-2xl border border-dashed border-[#D5E0F0] bg-[#F8FAFF] py-3 text-center text-xs font-semibold text-[#8BA0BD]">
+          已学完
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-6">
           <button
             type="button"
-            onClick={onRestart}
-            className="py-3.5 px-5 bg-white hover:bg-[#F7F9FC] border border-[#DCE5F2] text-[#29466F] font-bold rounded-2xl transition-all text-sm"
+            onClick={active && onContinue ? onContinue : onStart}
+            className="py-3.5 px-5 bg-[#4F7DF3] hover:bg-[#3D6CE5] text-white font-bold rounded-2xl transition-all flex items-center justify-center gap-2 text-sm"
           >
-            重新开始
+            <span>{active ? (activeText || '继续学习') : (startText || '开始' + title)}</span>
+            <ArrowRight className="w-4 h-4" />
           </button>
-        )}
-      </div>
-
+          {active && onRestart && (
+            <button
+              type="button"
+              onClick={onRestart}
+              className="py-3.5 px-5 bg-white hover:bg-[#F7F9FC] border border-[#DCE5F2] text-[#29466F] font-bold rounded-2xl transition-all text-sm"
+            >
+              重新开始
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 };
@@ -306,26 +307,39 @@ export const HomeView: React.FC<HomeViewProps> = ({
   // 进行中的句子会话是否属于当前所选单元（无单元辞书两侧都是 ''，视为匹配）
   const activeSentenceInSelectedUnit =
     !!activeSentenceSession && (activeSentenceSession.chapterId || '') === selectedChapterId;
-  // 句子学完不代表掌握；全学过后仍可进入复习
+  // 首页只展示学习进度，不参与复习/掌握判定（相关逻辑后续放到复习页面）
   const selectedUnitStartText = selectedChapter
     ? (selectedChapter.total > 0 && selectedChapter.learned >= selectedChapter.total
-        ? (selectedChapter.mastered >= selectedChapter.total ? '重新学本单元' : '复习本单元')
+        ? (selectedChapter.mastered >= selectedChapter.total ? '重新学本单元' : '继续学本单元')
         : selectedChapter.learned > 0 ? '继续学本单元' : '开始学本单元')
     : '开始学句子';
+
+  /* 已学完的目标（所选单元优先，无单元则整本词库）不再显示学习按钮 */
+  const wordTargetProgress = config.wordStudyChapterId
+    ? stats?.wordChapters?.find(c => c.id === config.wordStudyChapterId)
+    : undefined;
+  const wordTargetTotal = wordTargetProgress?.total ?? (stats?.totalWords ?? 0);
+  const wordTargetLearned = wordTargetProgress?.learned ?? (stats?.learnedWords ?? 0);
+  const wordFullyLearned = wordTargetTotal > 0 && wordTargetLearned >= wordTargetTotal;
+
+  const sentenceTargetTotal = selectedChapter?.total ?? (stats?.totalSentences ?? 0);
+  const sentenceTargetLearned = selectedChapter?.learned ?? (stats?.learnedSentences ?? 0);
+  const sentenceFullyLearned = sentenceTargetTotal > 0 && sentenceTargetLearned >= sentenceTargetTotal;
+  const sentenceChapters = stats?.sentenceChapters || [];
 
   /* 单元 chip 上的状态标签：进行中会话 > 进度判断 */
   const unitStateLabel = (ch: { id: string; total: number; learned: number; mastered: number }) => {
     const hasActiveHere = !!activeSentenceSession && (activeSentenceSession.chapterId || '') === ch.id;
-    if (hasActiveHere) return '继续学习';
     if (ch.total > 0 && ch.mastered >= ch.total) return '已掌握';
-    if (ch.total > 0 && ch.learned >= ch.total) return '待复习';
+    if (ch.total > 0 && ch.learned >= ch.total) return '已学完';
+    if (hasActiveHere) return '继续学习';
     return ch.learned > 0 ? '继续学习' : '开始学习';
   };
   const unitStateColor = (ch: { id: string; total: number; learned: number; mastered: number }) => {
     const hasActiveHere = !!activeSentenceSession && (activeSentenceSession.chapterId || '') === ch.id;
-    if (hasActiveHere) return 'text-amber-600';
     if (ch.total > 0 && ch.mastered >= ch.total) return 'text-emerald-600';
     if (ch.total > 0 && ch.learned >= ch.total) return 'text-[#4F7DF3]';
+    if (hasActiveHere) return 'text-amber-600';
     return ch.learned > 0 ? 'text-[#4F7DF3]' : 'text-stone-400';
   };
 
@@ -412,11 +426,10 @@ export const HomeView: React.FC<HomeViewProps> = ({
           mastered={stats?.masteredWords || 0}
           active={!!activeSession}
           activeText={activeSession?.phase === 'DICTATION' ? '继续强化听写' : '继续背单词'}
+          hideAction={wordFullyLearned}
           onStart={() => handleStartWordStudy()}
           onContinue={() => navigate('/study/' + activeSession!.id)}
           onRestart={() => handleStartWordStudy(undefined, true)}
-          batchCompleted={activeSession?.completedCount || 0}
-          batchTotal={activeSession?.totalCount || 0}
           subtitle={wordDictionaryName || (config.defaultDictionaryId ? '当前词库' : '')}
           footerExtra={
             <div className="mt-6 rounded-2xl border border-[#E7EEF8] bg-gradient-to-br from-[#F8FAFF] to-white p-4">
@@ -441,17 +454,18 @@ export const HomeView: React.FC<HomeViewProps> = ({
                       const mastered = Math.min(learned, Math.max(0, progress?.mastered || 0));
                       const percent = total > 0 ? Math.round((learned / total) * 100) : 0;
                       const hasActiveHere = selected && !!activeSession;
-                      const status = hasActiveHere
-                        ? '继续学习'
-                        : total > 0 && mastered >= total
-                          ? '已掌握'
-                          : total > 0 && learned >= total
-                            ? '待复习'
+                      const status = total > 0 && mastered >= total
+                        ? '已掌握'
+                        : total > 0 && learned >= total
+                          ? '已学完'
+                          : hasActiveHere
+                            ? '继续学习'
                             : learned > 0 ? '继续学习' : '开始学习';
-                      const statusColor = hasActiveHere
-                        ? 'text-amber-600'
-                        : status === '已掌握' ? 'text-emerald-600'
-                          : status === '待复习' || status === '继续学习' ? 'text-[#4F7DF3]' : 'text-[#8BA0BD]';
+                      const statusColor = status === '已掌握'
+                        ? 'text-emerald-600'
+                        : status === '已学完' || status === '继续学习'
+                          ? (hasActiveHere ? 'text-amber-600' : 'text-[#4F7DF3]')
+                          : 'text-[#8BA0BD]';
                       return (
                         <button
                           key={ch.id}
@@ -515,64 +529,85 @@ export const HomeView: React.FC<HomeViewProps> = ({
           active={activeSentenceInSelectedUnit}
           activeText="继续学句子"
           startText={selectedUnitStartText}
+          hideAction={sentenceFullyLearned}
           onStart={() => onDirectStartSentencePractice?.(false)}
           onContinue={() => navigate('/sentence-practice/' + activeSentenceSession!.id)}
           onRestart={() => onDirectStartSentencePractice?.(true)}
-          batchCompleted={(activeSentenceSession?.currentSentenceIndex || 0) + 1}
-          batchTotal={activeSentenceSession?.totalCount || 0}
+          totalLabel="总句子"
           subtitle={stats?.sentenceDictionaryName || ''}
           footerExtra={
-            (stats?.sentenceChapters || []).length > 0 ? (
-              <div className="mt-6 rounded-2xl border border-[#E7EEF8] bg-gradient-to-br from-[#F8FAFF] to-white p-4">
-                <div className="mb-3 flex items-center justify-between gap-2">
-                  <span className="flex items-center gap-2 text-xs font-bold text-[#526987]">
-                    <BookOpen className="h-4 w-4 text-[#4F7DF3]" />
-                    学习单元
-                  </span>
-                  <span className="max-w-[65%] truncate rounded-full bg-[#EAF0FF] px-2.5 py-1 text-[11px] font-semibold text-[#4269C5]">
-                    {stats?.sentenceChapterName || '选择一个单元'}
-                  </span>
-                </div>
-                <p className="mb-2 text-xs text-[#8BA0BD]">每个单元独立记录进度，点击即可切换学习范围</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {(stats?.sentenceChapters || []).map(ch => {
-                    const selected = (config.sentenceChapterId || '') === ch.id;
-                    const total = Math.max(0, ch.total || 0);
-                    const learned = Math.min(total, Math.max(0, ch.learned || 0));
-                    const mastered = Math.min(learned, Math.max(0, ch.mastered || 0));
-                    const percent = total > 0 ? Math.round((learned / total) * 100) : 0;
-                    const status = unitStateLabel(ch);
-                    const statusColor = unitStateColor(ch);
-                    return (
-                      <button
-                        key={ch.id}
-                        type="button"
-                        onClick={() => handleChapterChange(ch.id)}
-                        className={`rounded-2xl border p-3 text-left transition-all ${
-                          selected
-                            ? 'border-[#4F7DF3] bg-[#EAF0FF] ring-2 ring-[#D9E4FF]'
-                            : 'border-[#E7EEF8] bg-white hover:border-[#C7D7F5] hover:bg-[#F8FAFF]'
-                        }`}
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <span className="min-w-0 break-words text-sm font-bold text-[#29466F]">{ch.name}</span>
-                          <span className={`shrink-0 text-[11px] font-extrabold ${statusColor}`}>
-                            {status}
-                          </span>
-                        </div>
-                        <div className="mt-2 flex items-center justify-between text-[11px] text-[#8BA0BD]">
-                          <span>已学 {learned}/{total} · 已掌握 {mastered}</span>
-                          <span className="font-bold text-[#526987]">{percent}%</span>
-                        </div>
-                        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#E7EEF8]">
-                          <div className="h-full rounded-full bg-[#4F7DF3] transition-all" style={{ width: `${percent}%` }} />
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
+            <div className="mt-6 rounded-2xl border border-[#E7EEF8] bg-gradient-to-br from-[#F8FAFF] to-white p-4">
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <span className="flex items-center gap-2 text-xs font-bold text-[#526987]">
+                  <BookOpen className="h-4 w-4 text-[#4F7DF3]" />
+                  学习单元
+                </span>
+                <span className="max-w-[65%] truncate rounded-full bg-[#EAF0FF] px-2.5 py-1 text-[11px] font-semibold text-[#4269C5]">
+                  {sentenceChapters.length > 0
+                    ? (stats?.sentenceChapterName || (config.sentenceChapterId ? '请选择单元' : '整本词库'))
+                    : (config.sentenceDictionaryId ? '整本词库' : '尚未选择词库')}
+                </span>
               </div>
-            ) : undefined
+              {sentenceChapters.length > 0 ? (
+                <>
+                  <p className="mb-2 text-xs text-[#8BA0BD]">每个单元独立记录进度，点击即可切换学习范围</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {sentenceChapters.map(ch => {
+                      const selected = (config.sentenceChapterId || '') === ch.id;
+                      const total = Math.max(0, ch.total || 0);
+                      const learned = Math.min(total, Math.max(0, ch.learned || 0));
+                      const mastered = Math.min(learned, Math.max(0, ch.mastered || 0));
+                      const percent = total > 0 ? Math.round((learned / total) * 100) : 0;
+                      const status = unitStateLabel(ch);
+                      const statusColor = unitStateColor(ch);
+                      return (
+                        <button
+                          key={ch.id}
+                          type="button"
+                          onClick={() => handleChapterChange(ch.id)}
+                          className={`rounded-2xl border p-3 text-left transition-all ${
+                            selected
+                              ? 'border-[#4F7DF3] bg-[#EAF0FF] ring-2 ring-[#D9E4FF]'
+                              : 'border-[#E7EEF8] bg-white hover:border-[#C7D7F5] hover:bg-[#F8FAFF]'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <span className="min-w-0 break-words text-sm font-bold text-[#29466F]">{ch.name}</span>
+                            <span className={`shrink-0 text-[11px] font-extrabold ${statusColor}`}>
+                              {status}
+                            </span>
+                          </div>
+                          <div className="mt-2 flex items-center justify-between text-[11px] text-[#8BA0BD]">
+                            <span>已学 {learned}/{total} · 已掌握 {mastered}</span>
+                            <span className="font-bold text-[#526987]">{percent}%</span>
+                          </div>
+                          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#E7EEF8]">
+                            <div className="h-full rounded-full bg-[#4F7DF3] transition-all" style={{ width: `${percent}%` }} />
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              ) : (
+                <div className="flex items-start gap-3 rounded-xl border border-dashed border-[#D5E0F0] bg-white/80 p-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#EAF0FF] text-[#4F7DF3]">
+                    <BookOpen className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-[#29466F]">整本词库学习</p>
+                    <p className="mt-1 text-xs leading-5 text-[#8BA0BD]">
+                      {config.sentenceDictionaryId
+                        ? '这个词库暂未设置单元，将自动从整本词库中选句，不影响学习。'
+                        : '请先在设置中选择词库；没有单元也可以正常学习。'}
+                    </p>
+                  </div>
+                  {config.sentenceDictionaryId && (
+                    <span className="ml-auto shrink-0 rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-bold text-emerald-700">无需分单元</span>
+                  )}
+                </div>
+              )}
+            </div>
           }
         />
       </div>

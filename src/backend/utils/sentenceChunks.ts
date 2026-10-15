@@ -20,14 +20,24 @@ const HTML_ENTITIES: Record<string, string> = {
   lsquo: "'", rsquo: "'", ldquo: '"', rdquo: '"',
   amp: '&', nbsp: ' ', hellip: '…', mdash: '—', ndash: '–',
   apos: "'", quot: '"', lt: '<', gt: '>',
+  deg: '°', pound: '£', euro: '€', sect: '§', bull: '•', copy: '©', reg: '®',
+  eacute: 'é', egrave: 'è', aacute: 'á', agrave: 'à', icirc: 'î', ocirc: 'ô',
+  uuml: 'ü', ouml: 'ö', auml: 'ä', ccedil: 'ç', ntilde: 'ñ',
 };
 
 export function decodeHtmlEntities(text: string): string {
-  if (!text) return text;
-  return text.replace(/&([a-z]+);/gi, (_, name) => {
-    const v = HTML_ENTITIES[name.toLowerCase()];
-    return v !== undefined ? v : '&' + name + ';';
-  });
+  if (!text || text.indexOf('&') === -1) return text;
+  const fromCodePoint = (raw: string, num: string, base: number): string => {
+    const cp = parseInt(num, base);
+    return Number.isFinite(cp) && cp >= 0 && cp <= 0x10ffff ? String.fromCodePoint(cp) : raw;
+  };
+  return text
+    .replace(/&#x([0-9a-fA-F]+);/g, (m, hex) => fromCodePoint(m, hex, 16))
+    .replace(/&#(\d+);/g, (m, dec) => fromCodePoint(m, dec, 10))
+    .replace(/&([a-z]+);/gi, (m, name) => {
+      const v = HTML_ENTITIES[name.toLowerCase()];
+      return v !== undefined ? v : m;
+    });
 }
 
 export type ChunkGranularity = 'WORD' | 'PHRASE' | 'FIXED';
