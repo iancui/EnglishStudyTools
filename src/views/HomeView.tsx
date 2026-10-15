@@ -18,7 +18,7 @@ import { StatisticsData, StudySessionItem, SentencePracticeSession, SessionMode,
 interface HomeViewProps {
   navigate: (route: string) => void;
   onStartSentencePractice?: () => void;
-  onDirectStartSentencePractice?: (restart?: boolean) => void;
+  onDirectStartSentencePractice?: (restart?: boolean, chapterId?: string) => void;
   config: DictionaryConfig;
   onUpdateConfig?: (patch: Partial<DictionaryConfig>) => Promise<void>;
 }
@@ -371,19 +371,21 @@ export const HomeView: React.FC<HomeViewProps> = ({
     ? config.wordStudyChapterId
     : undefined;
 
-  const handleStartWordStudy = async (modeOverride?: SessionMode, restart = false) => {
+  const handleStartWordStudy = async (modeOverride?: SessionMode, restart = false, chapterIdOverride?: string) => {
     const configuredIncludeWrite = config.wordStudyIncludeWrite !== false;
     const configuredIncludeDictation = config.wordStudyIncludeDictation !== false;
 
     // An in-progress session keeps the settings it was created with. If the
     // learner changed the write/dictation settings afterward, don't silently
     // resume that old session and make it look as if the new settings failed.
+    const requestedChapterId = chapterIdOverride !== undefined ? chapterIdOverride : effectiveWordChapterId;
+    const activeSessionMatchesRequestedChapter = !!activeSession && (activeSession.chapterId || '') === (requestedChapterId || '');
     const activeSettingsMismatch = !!activeSession && (
       activeSession.includeWrite !== configuredIncludeWrite ||
       activeSession.includeDictation !== configuredIncludeDictation
     );
 
-    if (activeSession && !restart) {
+    if (activeSession && activeSessionMatchesRequestedChapter && !restart) {
       if (!activeSettingsMismatch) {
         navigate('/study/' + activeSession.id);
         return;
@@ -400,13 +402,13 @@ export const HomeView: React.FC<HomeViewProps> = ({
     }
 
     try {
-      const isSameBatchRestart = restart && !modeOverride && !!activeSession;
+      const isSameBatchRestart = restart && !modeOverride && !!activeSession && activeSessionMatchesRequestedChapter;
       const session = await api.createStudySession(
         isSameBatchRestart
           ? {
               wordIds: activeSession!.words.map((w) => w.wordId),
               dictionaryId: config.defaultDictionaryId,
-              chapterId: effectiveWordChapterId,
+              chapterId: requestedChapterId,
               mode: modeOverride || activeSession!.mode,
               writeSortMode: config.wordStudyWriteOrder || activeSession!.writeSortMode || 'SEQUENCE',
               dictationSortMode: config.wordStudyDictationOrder || activeSession!.dictationSortMode || 'RANDOM',
@@ -415,7 +417,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
             }
           : {
               dictionaryId: config.defaultDictionaryId,
-              chapterId: effectiveWordChapterId,
+              chapterId: requestedChapterId,
               count: config.wordStudyCount || 20,
               excludeMastered: true,
               sortMode: 'SEQUENCE',
@@ -434,12 +436,101 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
 
 
+  const orderedWordChapters = [...wordChapters].sort((a, b) => (a.sequence ?? 0) - (b.sequence ?? 0));
+  const quickWordChapter = activeSession
+    ? orderedWordChapters.find(ch => ch.id === (activeSession.chapterId || ''))
+    : orderedWordChapters.find(ch => {
+        const progress = stats?.wordChapters?.find(item => item.id === ch.id);
+        return (progress?.total || 0) > 0 && (progress?.learned || 0) < (progress?.total || 0);
+      });
+  const orderedSentenceChapters = [...sentenceChapters].sort((a, b) => a.sequence - b.sequence);
+  const quickSentenceChapter = activeSentenceSession
+    ? orderedSentenceChapters.find(ch => ch.id === (activeSentenceSession.chapterId || ''))
+    : orderedSentenceChapters.find(ch => (ch.total || 0) > 0 && (ch.learned || 0) < (ch.total || 0));
+
+  const startQuickWordChapter = async () => {
+    if (activeSession && (!quickWordChapter || (activeSession.chapterId || '') === quickWordChapter.id)) {
+      navigate('/study/' + activeSession.id);
+      return;
+    }
+    if (!quickWordChapter) {
+      if (wordChapters.length === 0) await handleStartWordStudy();
+      else alert('所有单词单元都已学完。你可以在目录中切换到“全部”查看已完成单元。');
+      return;
+    }
+    await handleWordChapterChange(quickWordChapter.id);
+    await handleStartWordStudy(undefined, false, quickWordChapter.id);
+  };
+
+  const startQuickSentenceChapter = async () => {
+    if (activeSentenceSession && (!quickSentenceChapter || (activeSentenceSession.chapterId || '') === quickSentenceChapter.id)) {
+      navigate('/sentence-practice/' + activeSentenceSession.id);
+      return;
+    }
+    if (!quickSentenceChapter) {
+      if (sentenceChapters.length === 0) onDirectStartSentencePractice?.(false);
+      else alert('所有句子单元都已学完。你可以在目录中切换到“全部”查看已完成单元。');
+      return;
+    }
+    await handleChapterChange(quickSentenceChapter.id);
+    onDirectStartSentencePractice?.(false, quickSentenceChapter.id);
+  };
+
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-8 py-6 sm:py-9 space-y-6 animate-fadeIn">
       <div>
         <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#29466F]">今天学一点</h1>
         <p className="mt-2 text-sm text-[#8094B2]">继续上次的学习，或按课程顺序选择一个单元开始。</p>
       </div>
+
+      <section className="rounded-3xl border border-[#E1EAF8] bg-gradient-to-br from-white via-white to-blue-50 p-4 sm:p-6 shadow-xs">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#29466F]"><Sparkles className="h-5 w-5 text-[#4F7DF3]" />快速开始</h2>
+            <p className="mt-1 text-sm text-[#8094B2]">优先继续正在进行的单元；否则按目录顺序学习下一个未完成单元。</p>
+          </div>
+          <span className="rounded-full bg-[#EAF0FF] px-3 py-1 text-xs font-bold text-[#4269C5]">快捷入口</span>
+        </div>
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+          <button type="button" onClick={() => void startQuickWordChapter()} className="group rounded-2xl border border-[#E3EBF8] bg-white p-4 text-left transition hover:border-[#BFD0F5] hover:shadow-sm">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#EAF0FF] text-lg">📚</span>
+                <span className="min-w-0">
+                  <span className="block font-bold text-[#29466F]">{activeSession ? '继续背单词' : '学个新单元'}</span>
+                  <span className="mt-1 block truncate text-xs text-[#8094B2]">{quickWordChapter?.name || (wordChapters.length === 0 ? (config.defaultDictionaryId ? '整本词库' : '请先选择单词词库') : '所有单词单元已学完')}</span>
+                </span>
+              </div>
+              <ArrowRight className="h-5 w-5 shrink-0 text-[#4F7DF3] transition group-hover:translate-x-1" />
+            </div>
+            {quickWordChapter && (() => {
+              const progress = stats?.wordChapters?.find(item => item.id === quickWordChapter.id);
+              const total = Math.max(0, progress?.total || 0);
+              const learned = Math.min(total, Math.max(0, progress?.learned || 0));
+              const percent = total ? Math.round(learned / total * 100) : 0;
+              return <><div className="mt-4 h-1.5 overflow-hidden rounded-full bg-[#E7EEF8]"><div className="h-full rounded-full bg-[#4F7DF3]" style={{ width: percent + '%' }} /></div><div className="mt-2 flex justify-between text-xs text-[#8094B2]"><span>{activeSession ? '正在进行' : '按课程顺序开始'}</span><span>{percent}%</span></div></>;
+            })()}
+          </button>
+          <button type="button" onClick={() => void startQuickSentenceChapter()} className="group rounded-2xl border border-[#E3EBF8] bg-white p-4 text-left transition hover:border-violet-200 hover:shadow-sm">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-lg">💬</span>
+                <span className="min-w-0">
+                  <span className="block font-bold text-[#29466F]">{activeSentenceSession ? '继续学句子' : '学个新单元'}</span>
+                  <span className="mt-1 block truncate text-xs text-[#8094B2]">{quickSentenceChapter?.name || (sentenceChapters.length === 0 ? (config.sentenceDictionaryId ? '整本句子词库' : '请先选择句子词库') : '所有句子单元已学完')}</span>
+                </span>
+              </div>
+              <ArrowRight className="h-5 w-5 shrink-0 text-violet-500 transition group-hover:translate-x-1" />
+            </div>
+            {quickSentenceChapter && (() => {
+              const total = Math.max(0, quickSentenceChapter.total || 0);
+              const learned = Math.min(total, Math.max(0, quickSentenceChapter.learned || 0));
+              const percent = total ? Math.round(learned / total * 100) : 0;
+              return <><div className="mt-4 h-1.5 overflow-hidden rounded-full bg-[#E7EEF8]"><div className="h-full rounded-full bg-violet-500" style={{ width: percent + '%' }} /></div><div className="mt-2 flex justify-between text-xs text-[#8094B2]"><span>{activeSentenceSession ? '正在进行' : '按课程顺序开始'}</span><span>{percent}%</span></div></>;
+            })()}
+          </button>
+        </div>
+      </section>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <LearningCard
