@@ -94,10 +94,14 @@ export const HomePreviewView: React.FC<{ navigate: (route: string) => void }> = 
     setNotice('');
   };
 
+  // 先按课程目录顺序找正在学习的单元；没有进行中的单元时，选择顺序最靠前的未开始单元。
+  const orderedUnits = stages.flatMap(stage => stage.units);
+  const activeUnit = orderedUnits.find(unit => unit.status === '学习中');
+  const nextNewUnit = orderedUnits.find(unit => unit.status === '未开始');
+  const quickUnit = activeUnit || nextNewUnit;
   const continueLast = () => {
-    const active = stages.flatMap(stage => stage.units).find(unit => unit.status === '学习中');
-    if (active) startUnit(active);
-    else setNotice('暂无可继续的单元。你可以直接从下方目录选择一个未完成单元开始学习。');
+    if (quickUnit) startUnit(quickUnit);
+    else setNotice(`所有${kind === 'words' ? '单词' : '句子'}单元都已完成。`);
   };
 
   const stagePercent = (stage: Stage) => {
@@ -108,9 +112,27 @@ export const HomePreviewView: React.FC<{ navigate: (route: string) => void }> = 
 
   const wordStats = { total: 1021, learned: 60, mastered: 15 };
   const sentenceStats = { total: 1128, learned: 11, mastered: 0 };
+  // 与正式首页 LearningCard 保持一致：已掌握、已学未掌握、未学习三段圆环。
   const Ring = ({ learned, total, mastered, color, label }: { learned: number; total: number; mastered: number; color: string; label: string }) => {
-    const percent = total ? Math.round(learned / total * 100) : 0;
-    return <div className="flex items-center gap-4"><div className="relative h-24 w-24 shrink-0"><svg viewBox="0 0 100 100" className="h-full w-full -rotate-90"><circle cx="50" cy="50" r="42" fill="none" stroke="#EAF0F8" strokeWidth="9"/><circle cx="50" cy="50" r="42" fill="none" stroke={color} strokeWidth="9" strokeLinecap="round" strokeDasharray={String(2 * Math.PI * 42)} strokeDashoffset={String(2 * Math.PI * 42 * (1 - percent / 100))}/></svg><div className="absolute inset-0 flex flex-col items-center justify-center"><span className="text-xl font-extrabold">{percent}%</span><span className="text-[10px] text-[#8094B2]">{label}</span></div></div><div className="min-w-0 flex-1"><p className="text-sm font-semibold text-[#8094B2]">总量 {total}</p><p className="mt-1 text-sm">已学 <b>{learned}</b></p><p className="mt-1 text-sm">已掌握 <b>{mastered}</b></p></div></div>;
+    const safeTotal = Math.max(0, total);
+    const safeLearned = Math.min(safeTotal, Math.max(0, learned));
+    const safeMastered = Math.min(safeLearned, Math.max(0, mastered));
+    const learnedUnmastered = Math.max(0, safeLearned - safeMastered);
+    const unlearned = Math.max(0, safeTotal - safeLearned);
+    const radius = 50;
+    const circumference = 2 * Math.PI * radius;
+    const gap = safeTotal > 0 ? 2 : 0;
+    const usableCircumference = Math.max(0, circumference - gap * 3);
+    const masteredLength = safeTotal > 0 ? usableCircumference * (safeMastered / safeTotal) : 0;
+    const learnedLength = safeTotal > 0 ? usableCircumference * (learnedUnmastered / safeTotal) : 0;
+    const unlearnedLength = safeTotal > 0 ? usableCircumference * (unlearned / safeTotal) : 0;
+    let offset = 0;
+    const masteredOffset = -offset;
+    offset += masteredLength + gap;
+    const learnedOffset = -offset;
+    offset += learnedLength + gap;
+    const unlearnedOffset = -offset;
+    return <div className="flex items-center gap-4"><div className="relative h-28 w-28 shrink-0"><svg viewBox="0 0 120 120" className="h-full w-full -rotate-90"><circle cx="60" cy="60" r={radius} fill="none" stroke="currentColor" strokeWidth="10" className="text-[#EEF2F7]"/>{safeTotal > 0 && <><circle cx="60" cy="60" r={radius} fill="none" stroke="currentColor" strokeWidth="10" strokeLinecap="butt" strokeDasharray={`${masteredLength} ${circumference - masteredLength}`} strokeDashoffset={masteredOffset} className="text-emerald-500 transition-all duration-700"/><circle cx="60" cy="60" r={radius} fill="none" stroke="currentColor" strokeWidth="10" strokeLinecap="butt" strokeDasharray={`${learnedLength} ${circumference - learnedLength}`} strokeDashoffset={learnedOffset} className="text-[#4F7DF3] transition-all duration-700"/><circle cx="60" cy="60" r={radius} fill="none" stroke="currentColor" strokeWidth="10" strokeLinecap="butt" strokeDasharray={`${unlearnedLength} ${circumference - unlearnedLength}`} strokeDashoffset={unlearnedOffset} className="text-[#DCE5F2] transition-all duration-700"/></>}</svg><div className="absolute inset-0 flex flex-col items-center justify-center"><span className="text-3xl font-extrabold text-[#29466F] leading-none">{safeTotal}</span><span className="mt-1 text-[11px] text-[#8BA0BD]">{label}</span></div></div><div className="min-w-0 flex-1 space-y-2.5 text-sm"><p className="font-semibold text-[#8BA0BD]">词库总体进度</p><div className="flex items-center justify-between"><span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-emerald-500"/>已掌握</span><b className="text-emerald-600">{safeMastered}</b></div><div className="flex items-center justify-between"><span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-[#4F7DF3]"/>已学未掌握</span><b className="text-[#4F7DF3]">{learnedUnmastered}</b></div><div className="flex items-center justify-between"><span className="flex items-center gap-2 text-[#8BA0BD]"><span className="h-2.5 w-2.5 rounded-full bg-[#DCE5F2]"/>未学习</span><b className="text-[#8BA0BD]">{unlearned}</b></div></div></div>;
   };
 
   return (
@@ -142,19 +164,17 @@ export const HomePreviewView: React.FC<{ navigate: (route: string) => void }> = 
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <button onClick={continueLast} className="group rounded-2xl border border-[#E3EBF8] bg-white p-4 text-left transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md">
               <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-3"><div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600"><BookOpen className="h-5 w-5" /></div><div><div className="font-bold">继续背单词</div><div className="mt-1 text-xs text-[#8094B2]">有学习记录时显示最近单元</div></div></div>
+                <div className="flex items-center gap-3"><div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600"><BookOpen className="h-5 w-5" /></div><div><div className="font-bold">{kind === 'words' ? (activeUnit ? '继续背单词' : '学个新单元') : (activeUnit ? '继续学句子' : '学个新单元')}</div><div className="mt-1 text-xs text-[#8094B2]">{quickUnit ? quickUnit.name : '所有单元已完成'}</div></div></div>
                 <ArrowRight className="h-5 w-5 text-blue-500 transition group-hover:translate-x-1" />
               </div>
-              <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-slate-100"><div className="h-full w-[80%] rounded-full bg-blue-500" /></div>
-              <div className="mt-2 flex justify-between text-xs text-[#8094B2]"><span>学习中</span><span>80%</span></div>
+              {quickUnit && <><div className="mt-4 h-1.5 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-blue-500" style={{ width: `${quickUnit.total ? Math.round(quickUnit.learned / quickUnit.total * 100) : 0}%` }} /></div><div className="mt-2 flex justify-between text-xs text-[#8094B2]"><span>{activeUnit ? '学习中' : '按课程顺序开始'}</span><span>{quickUnit.total ? Math.round(quickUnit.learned / quickUnit.total * 100) : 0}%</span></div></>}
             </button>
-            <button onClick={() => { const active = demoStages.sentences.flatMap(stage => stage.units).find(unit => unit.status === '学习中'); if (active) startUnit(active); else setNotice('暂无可继续的句子单元。你可以在下方切换到句子单元后选择一个未完成单元。'); }} className="group rounded-2xl border border-[#E3EBF8] bg-white p-4 text-left transition hover:-translate-y-0.5 hover:border-violet-300 hover:shadow-md">
+            <button onClick={() => { const sentenceUnits = demoStages.sentences.flatMap(stage => stage.units); const active = sentenceUnits.find(unit => unit.status === '学习中'); const next = active || sentenceUnits.find(unit => unit.status === '未开始'); if (next) { setKind('sentences'); startUnit(next); } else setNotice('所有句子单元都已完成。'); }} className="group rounded-2xl border border-[#E3EBF8] bg-white p-4 text-left transition hover:-translate-y-0.5 hover:border-violet-300 hover:shadow-md">
               <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-3"><div className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-50 text-violet-600"><GraduationCap className="h-5 w-5" /></div><div><div className="font-bold">继续学句子</div><div className="mt-1 text-xs text-[#8094B2]">有学习记录时显示最近单元</div></div></div>
+                <div className="flex items-center gap-3"><div className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-50 text-violet-600"><GraduationCap className="h-5 w-5" /></div><div><div className="font-bold">{demoStages.sentences.flatMap(stage => stage.units).some(unit => unit.status === '学习中') ? '继续学句子' : '学个新单元'}</div><div className="mt-1 text-xs text-[#8094B2]">{(() => { const units = demoStages.sentences.flatMap(stage => stage.units); return (units.find(unit => unit.status === '学习中') || units.find(unit => unit.status === '未开始'))?.name || '所有单元已完成'; })()}</div></div></div>
                 <ArrowRight className="h-5 w-5 text-violet-500 transition group-hover:translate-x-1" />
               </div>
-              <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-slate-100"><div className="h-full w-[38%] rounded-full bg-violet-500" /></div>
-              <div className="mt-2 flex justify-between text-xs text-[#8094B2]"><span>学习中</span><span>38%</span></div>
+              {(() => { const units = demoStages.sentences.flatMap(stage => stage.units); const target = units.find(unit => unit.status === '学习中') || units.find(unit => unit.status === '未开始'); const percent = target?.total ? Math.round(target.learned / target.total * 100) : 0; return target ? <><div className="mt-4 h-1.5 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-violet-500" style={{ width: `${percent}%` }} /></div><div className="mt-2 flex justify-between text-xs text-[#8094B2]"><span>{target.status === '学习中' ? '学习中' : '按课程顺序开始'}</span><span>{percent}%</span></div></> : null; })()}
             </button>
           </div>
           {notice && <div className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-800">{notice}</div>}
@@ -201,12 +221,17 @@ export const HomePreviewView: React.FC<{ navigate: (route: string) => void }> = 
                   {stage.units.map(unit => {
                     const percent = unit.total ? Math.round(unit.learned / unit.total * 100) : 0;
                     const isSelected = selected?.id === unit.id;
-                    return <button key={unit.id} onClick={() => startUnit(unit)} className={`rounded-2xl border p-4 text-left transition hover:-translate-y-0.5 hover:shadow-sm ${isSelected ? 'border-blue-400 bg-blue-50 ring-2 ring-blue-100' : 'border-[#E4ECF8] bg-white hover:border-blue-200'}`}>
-                      <div className="flex items-start justify-between gap-2"><span className="min-w-0 text-sm font-bold leading-5">{unit.name}</span><span className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-bold ${statusStyle[unit.status]}`}>{unit.status}</span></div>
-                      <div className="mt-3 flex items-center justify-between gap-2 text-xs text-[#8094B2]"><span>已学 {unit.learned}/{unit.total} · 已掌握 {unit.mastered}</span><span className="font-bold text-[#526987]">{percent}%</span></div>
-                      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100"><div className={`h-full rounded-full ${unit.status === '已完成' ? 'bg-emerald-500' : 'bg-blue-500'}`} style={{ width: percent + '%' }} /></div>
-                      <div className={`mt-3 flex items-center justify-between rounded-xl px-3 py-2 text-xs font-bold ${unit.status === '学习中' ? 'bg-blue-600 text-white' : 'bg-slate-50 text-[#526987]'}`}><span>{unit.status === '已完成' ? '复习单元' : unit.status === '未开始' ? '开始学习' : '继续学习'}</span><ArrowRight className="h-3.5 w-3.5" /></div>
-                    </button>;
+                    return <div key={unit.id} className={`rounded-2xl border p-4 transition hover:-translate-y-0.5 hover:shadow-sm ${isSelected ? 'border-blue-400 bg-blue-50 ring-2 ring-blue-100' : 'border-[#E4ECF8] bg-white hover:border-blue-200'}`}>
+                      <button type="button" onClick={() => startUnit(unit)} className="w-full text-left">
+                        <div className="flex items-start justify-between gap-2"><span className="min-w-0 text-sm font-bold leading-5">{unit.name}</span><span className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-bold ${statusStyle[unit.status]}`}>{unit.status}</span></div>
+                        <div className="mt-3 flex items-center justify-between gap-2 text-xs text-[#8094B2]"><span>已学 {unit.learned}/{unit.total} · 已掌握 {unit.mastered}</span><span className="font-bold text-[#526987]">{percent}%</span></div>
+                        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100"><div className={`h-full rounded-full ${unit.status === '已完成' ? 'bg-emerald-500' : 'bg-blue-500'}`} style={{ width: percent + '%' }} /></div>
+                      </button>
+                      <div className="mt-3 grid grid-cols-2 gap-2">
+                        <button type="button" onClick={() => startUnit(unit)} className={`flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-xs font-bold ${unit.status === '学习中' ? 'bg-blue-600 text-white' : 'bg-slate-50 text-[#526987]'}`}><span>{unit.status === '已完成' ? '复习单元' : unit.status === '未开始' ? '开始学习' : '继续学习'}</span><ArrowRight className="h-3.5 w-3.5"/></button>
+                        {unit.status === '学习中' ? <button type="button" onClick={() => { startUnit(unit); setNotice('预览：这里会重新开始当前单元；正式接入时保留原有重新开始逻辑。'); }} className="rounded-xl border border-[#DCE5F2] bg-white px-3 py-2.5 text-xs font-bold text-[#29466F] hover:bg-slate-50">重新开始</button> : <div />}
+                      </div>
+                    </div>;
                   })}
                 </div>}
               </div>;
