@@ -183,14 +183,12 @@ const LearningCard: React.FC<{
         </div>
       </div>
 
-      {footerExtra}
-
       {hideAction ? (
-        <div className="mt-6 rounded-2xl border border-dashed border-[#D5E0F0] bg-[#F8FAFF] py-3 text-center text-xs font-semibold text-[#8BA0BD]">
+        <div className="mt-5 rounded-2xl border border-dashed border-[#D5E0F0] bg-[#F8FAFF] py-3 text-center text-xs font-semibold text-[#8BA0BD]">
           已学完
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-5">
           <button
             type="button"
             onClick={active && onContinue ? onContinue : onStart}
@@ -210,6 +208,8 @@ const LearningCard: React.FC<{
           )}
         </div>
       )}
+
+      {footerExtra}
     </div>
   );
 };
