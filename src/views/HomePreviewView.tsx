@@ -1,12 +1,11 @@
 import React, { useMemo, useState } from 'react';
 import {
   ArrowRight, BookOpen, CheckCircle2, ChevronDown, ChevronRight,
-  Circle, Clock3, GraduationCap, Layers3, ListFilter, PlayCircle,
-  RotateCcw, Search, Settings2, Sparkles, Target, X
+  GraduationCap, Layers3, ListFilter, Search, Sparkles, Target, X
 } from 'lucide-react';
 
 type StudyKind = 'words' | 'sentences';
-type UnitStatus = '未开始' | '学习中' | '已完成' | '待强化';
+type UnitStatus = '未开始' | '学习中' | '已完成';
 type Unit = { id: string; name: string; total: number; learned: number; mastered: number; status: UnitStatus };
 type Stage = { id: string; name: string; units: Unit[] };
 
@@ -15,7 +14,7 @@ const demoStages: Record<StudyKind, Stage[]> = {
     { id: 'w1', name: '第一阶段 · 入门', units: [
       { id: 'w1-1', name: 'Lesson 1&2 Excurse me!', total: 25, learned: 25, mastered: 25, status: '已完成' },
       { id: 'w1-2', name: 'Lesson 3&4 Sorry, sir.', total: 15, learned: 12, mastered: 4, status: '学习中' },
-      { id: 'w1-3', name: 'Lesson 5&6 Nice to meet you.', total: 31, learned: 20, mastered: 5, status: '待强化' },
+      { id: 'w1-3', name: 'Lesson 5&6 Nice to meet you.', total: 31, learned: 20, mastered: 5, status: '学习中' },
       { id: 'w1-4', name: 'Lesson 7&8 Are you a teacher?', total: 21, learned: 0, mastered: 0, status: '未开始' },
       { id: 'w1-5', name: 'Lesson 9&10 How are you today?', total: 22, learned: 0, mastered: 0, status: '未开始' },
       { id: 'w1-6', name: 'Lesson 11&12 Is this your shirt?', total: 13, learned: 0, mastered: 0, status: '未开始' },
@@ -56,12 +55,11 @@ const statusStyle: Record<UnitStatus, string> = {
   '未开始': 'bg-slate-100 text-slate-500',
   '学习中': 'bg-blue-50 text-blue-700',
   '已完成': 'bg-emerald-50 text-emerald-700',
-  '待强化': 'bg-amber-50 text-amber-700'
 };
 
 export const HomePreviewView: React.FC<{ navigate: (route: string) => void }> = ({ navigate }) => {
   const [kind, setKind] = useState<StudyKind>('words');
-  const [filter, setFilter] = useState<'全部单元' | UnitStatus>('全部单元');
+  const [filter, setFilter] = useState<'全部' | '已完成' | '未完成'>('未完成');
   const [sortByProgress, setSortByProgress] = useState(false);
   const [expanded, setExpanded] = useState<string[]>(['w1']);
   const [query, setQuery] = useState('');
@@ -71,12 +69,12 @@ export const HomePreviewView: React.FC<{ navigate: (route: string) => void }> = 
 
   const visibleStages = useMemo(() => stages.map(stage => {
     let units = stage.units.filter(unit => {
-      const matchesFilter = filter === '全部单元' || unit.status === filter;
+      const matchesFilter = filter === '全部' || (filter === '已完成' ? unit.status === '已完成' : unit.status !== '已完成');
       const matchesQuery = unit.name.toLowerCase().includes(query.toLowerCase());
       return matchesFilter && matchesQuery;
     });
     if (sortByProgress) units = [...units].sort((a, b) => {
-      const order: Record<UnitStatus, number> = { '学习中': 0, '待强化': 1, '未开始': 2, '已完成': 3 };
+      const order: Record<UnitStatus, number> = { '学习中': 0, '未开始': 1, '已完成': 2 };
       return order[a.status] - order[b.status] || a.name.localeCompare(b.name, 'zh-CN', { numeric: true });
     });
     return { ...stage, units };
@@ -84,7 +82,7 @@ export const HomePreviewView: React.FC<{ navigate: (route: string) => void }> = 
 
   const switchKind = (next: StudyKind) => {
     setKind(next);
-    setFilter('全部单元');
+    setFilter('全部');
     setQuery('');
     setExpanded([next === 'words' ? 'w1' : 's1']);
     setSelected(null);
@@ -97,15 +95,22 @@ export const HomePreviewView: React.FC<{ navigate: (route: string) => void }> = 
   };
 
   const continueLast = () => {
-    const active = stages.flatMap(stage => stage.units).find(unit => unit.status === '学习中' || unit.status === '待强化');
+    const active = stages.flatMap(stage => stage.units).find(unit => unit.status === '学习中');
     if (active) startUnit(active);
-    else setNotice('当前没有未完成单元，可以从下方目录选择一个单元开始。');
+    else setNotice('暂无可继续的单元。你可以直接从下方目录选择一个未完成单元开始学习。');
   };
 
   const stagePercent = (stage: Stage) => {
     const total = stage.units.reduce((sum, unit) => sum + unit.total, 0);
     const learned = stage.units.reduce((sum, unit) => sum + unit.learned, 0);
     return total ? Math.round(learned / total * 100) : 0;
+  };
+
+  const wordStats = { total: 1021, learned: 60, mastered: 15 };
+  const sentenceStats = { total: 1128, learned: 11, mastered: 0 };
+  const Ring = ({ learned, total, mastered, color, label }: { learned: number; total: number; mastered: number; color: string; label: string }) => {
+    const percent = total ? Math.round(learned / total * 100) : 0;
+    return <div className="flex items-center gap-4"><div className="relative h-24 w-24 shrink-0"><svg viewBox="0 0 100 100" className="h-full w-full -rotate-90"><circle cx="50" cy="50" r="42" fill="none" stroke="#EAF0F8" strokeWidth="9"/><circle cx="50" cy="50" r="42" fill="none" stroke={color} strokeWidth="9" strokeLinecap="round" strokeDasharray={String(2 * Math.PI * 42)} strokeDashoffset={String(2 * Math.PI * 42 * (1 - percent / 100))}/></svg><div className="absolute inset-0 flex flex-col items-center justify-center"><span className="text-xl font-extrabold">{percent}%</span><span className="text-[10px] text-[#8094B2]">{label}</span></div></div><div className="min-w-0 flex-1"><p className="text-sm font-semibold text-[#8094B2]">总量 {total}</p><p className="mt-1 text-sm">已学 <b>{learned}</b></p><p className="mt-1 text-sm">已掌握 <b>{mastered}</b></p></div></div>;
   };
 
   return (
@@ -125,24 +130,8 @@ export const HomePreviewView: React.FC<{ navigate: (route: string) => void }> = 
         </div>
 
         <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
-          <section className="rounded-3xl border border-[#E4ECF8] bg-white p-5 shadow-sm sm:p-6">
-            <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-2xl">📚</div>
-              <div><p className="text-sm font-semibold text-[#8094B2]">单词总量</p><div className="text-3xl font-extrabold">1021</div></div>
-              <div className="ml-auto rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">已掌握 15</div>
-            </div>
-            <div className="mt-5 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full w-[6%] rounded-full bg-emerald-500" /></div>
-            <div className="mt-2 flex justify-between text-xs text-[#8094B2]"><span>已学 60</span><span>未学习 961</span></div>
-          </section>
-          <section className="rounded-3xl border border-[#E4ECF8] bg-white p-5 shadow-sm sm:p-6">
-            <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-50 text-2xl">💬</div>
-              <div><p className="text-sm font-semibold text-[#8094B2]">句子总量</p><div className="text-3xl font-extrabold">1128</div></div>
-              <div className="ml-auto rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">已学 11</div>
-            </div>
-            <div className="mt-5 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full w-[1%] rounded-full bg-blue-500" /></div>
-            <div className="mt-2 flex justify-between text-xs text-[#8094B2]"><span>已掌握 0</span><span>未学习 1117</span></div>
-          </section>
+          <section className="rounded-3xl border border-[#E4ECF8] bg-white p-5 shadow-sm sm:p-6"><div className="mb-4 flex items-center gap-2 font-extrabold"><BookOpen className="h-5 w-5 text-blue-600"/>单词学习进度</div><Ring {...wordStats} color="#4F7DFF" label="已学进度" /></section>
+          <section className="rounded-3xl border border-[#E4ECF8] bg-white p-5 shadow-sm sm:p-6"><div className="mb-4 flex items-center gap-2 font-extrabold"><GraduationCap className="h-5 w-5 text-violet-600"/>句子学习进度</div><Ring {...sentenceStats} color="#8B7CF6" label="已学进度" /></section>
         </div>
 
         <section className="mb-8 rounded-3xl border border-blue-100 bg-gradient-to-br from-white via-white to-blue-50 p-5 shadow-sm sm:p-6">
@@ -153,15 +142,15 @@ export const HomePreviewView: React.FC<{ navigate: (route: string) => void }> = 
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <button onClick={continueLast} className="group rounded-2xl border border-[#E3EBF8] bg-white p-4 text-left transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md">
               <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-3"><div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600"><BookOpen className="h-5 w-5" /></div><div><div className="font-bold">继续背单词</div><div className="mt-1 text-xs text-[#8094B2]">Lesson 3&4 · 已学 12/15</div></div></div>
+                <div className="flex items-center gap-3"><div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600"><BookOpen className="h-5 w-5" /></div><div><div className="font-bold">继续背单词</div><div className="mt-1 text-xs text-[#8094B2]">有学习记录时显示最近单元</div></div></div>
                 <ArrowRight className="h-5 w-5 text-blue-500 transition group-hover:translate-x-1" />
               </div>
               <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-slate-100"><div className="h-full w-[80%] rounded-full bg-blue-500" /></div>
               <div className="mt-2 flex justify-between text-xs text-[#8094B2]"><span>学习中</span><span>80%</span></div>
             </button>
-            <button onClick={continueLast} className="group rounded-2xl border border-[#E3EBF8] bg-white p-4 text-left transition hover:-translate-y-0.5 hover:border-violet-300 hover:shadow-md">
+            <button onClick={() => { const active = demoStages.sentences.flatMap(stage => stage.units).find(unit => unit.status === '学习中'); if (active) startUnit(active); else setNotice('暂无可继续的句子单元。你可以在下方切换到句子单元后选择一个未完成单元。'); }} className="group rounded-2xl border border-[#E3EBF8] bg-white p-4 text-left transition hover:-translate-y-0.5 hover:border-violet-300 hover:shadow-md">
               <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-3"><div className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-50 text-violet-600"><GraduationCap className="h-5 w-5" /></div><div><div className="font-bold">继续学句子</div><div className="mt-1 text-xs text-[#8094B2]">Lesson 5&6 · 已学 6/16</div></div></div>
+                <div className="flex items-center gap-3"><div className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-50 text-violet-600"><GraduationCap className="h-5 w-5" /></div><div><div className="font-bold">继续学句子</div><div className="mt-1 text-xs text-[#8094B2]">有学习记录时显示最近单元</div></div></div>
                 <ArrowRight className="h-5 w-5 text-violet-500 transition group-hover:translate-x-1" />
               </div>
               <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-slate-100"><div className="h-full w-[38%] rounded-full bg-violet-500" /></div>
@@ -189,7 +178,7 @@ export const HomePreviewView: React.FC<{ navigate: (route: string) => void }> = 
               <label className="flex min-w-0 items-center gap-2 rounded-xl border border-[#E2EAF5] px-3 py-2.5 text-sm">
                 <ListFilter className="h-4 w-4 text-[#8094B2]" />
                 <select value={filter} onChange={e => setFilter(e.target.value as any)} className="min-w-0 bg-transparent outline-none">
-                  <option>全部单元</option><option>学习中</option><option>待强化</option><option>未开始</option><option>已完成</option>
+                  <option>全部</option><option>未完成</option><option>已完成</option>
                 </select>
               </label>
               <button onClick={() => setSortByProgress(v => !v)} className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-semibold ${sortByProgress ? 'border-blue-200 bg-blue-50 text-blue-700' : 'border-[#E2EAF5] text-[#526987]'}`}><Layers3 className="h-4 w-4" /><span className="hidden sm:inline">{sortByProgress ? '按进度' : '课程顺序'}</span></button>
@@ -216,7 +205,7 @@ export const HomePreviewView: React.FC<{ navigate: (route: string) => void }> = 
                       <div className="flex items-start justify-between gap-2"><span className="min-w-0 text-sm font-bold leading-5">{unit.name}</span><span className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-bold ${statusStyle[unit.status]}`}>{unit.status}</span></div>
                       <div className="mt-3 flex items-center justify-between gap-2 text-xs text-[#8094B2]"><span>已学 {unit.learned}/{unit.total} · 已掌握 {unit.mastered}</span><span className="font-bold text-[#526987]">{percent}%</span></div>
                       <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100"><div className={`h-full rounded-full ${unit.status === '已完成' ? 'bg-emerald-500' : 'bg-blue-500'}`} style={{ width: percent + '%' }} /></div>
-                      <div className={`mt-3 flex items-center justify-between rounded-xl px-3 py-2 text-xs font-bold ${unit.status === '学习中' || unit.status === '待强化' ? 'bg-blue-600 text-white' : 'bg-slate-50 text-[#526987]'}`}><span>{unit.status === '已完成' ? '复习单元' : unit.status === '未开始' ? '开始学习' : unit.status === '待强化' ? '继续学习 · 有待强化内容' : '继续学习'}</span><ArrowRight className="h-3.5 w-3.5" /></div>
+                      <div className={`mt-3 flex items-center justify-between rounded-xl px-3 py-2 text-xs font-bold ${unit.status === '学习中' || unit.status === '待强化' ? 'bg-blue-600 text-white' : 'bg-slate-50 text-[#526987]'}`}><span>{unit.status === '已完成' ? '复习单元' : unit.status === '未开始' ? '开始学习' : '继续学习'}</span><ArrowRight className="h-3.5 w-3.5" /></div>
                     </button>;
                   })}
                 </div>}
