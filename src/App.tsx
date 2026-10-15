@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Navbar } from './components/Navbar.tsx';
 import { HomeView } from './views/HomeView.tsx';
+import { HomePreviewView } from './views/HomePreviewView.tsx';
 import { StudySessionView } from './views/StudySessionView.tsx';
 import { StudySetupModal } from './views/StudySetupModal.tsx';
 import { SentencePracticeSetupModal } from './views/SentencePracticeSetupModal.tsx';
@@ -214,6 +215,10 @@ export default function App() {
           }}
         />
       );
+    }
+
+    if (currentRoute === '/home-preview') {
+      return <HomePreviewView navigate={navigate} />;
     }
 
     if (currentRoute === '/') {
