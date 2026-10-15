@@ -223,6 +223,10 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const [wordDictionaryName, setWordDictionaryName] = useState('');
   const [wordChapters, setWordChapters] = useState<{ id: string; name: string; sequence?: number }[]>([]);
   const [loading, setLoading] = useState(true);
+  const [wordUnitSearch, setWordUnitSearch] = useState('');
+  const [sentenceUnitSearch, setSentenceUnitSearch] = useState('');
+  const [wordUnitFilter, setWordUnitFilter] = useState<'全部' | '已完成' | '未完成'>('未完成');
+  const [sentenceUnitFilter, setSentenceUnitFilter] = useState<'全部' | '已完成' | '未完成'>('未完成');
 
 
   useEffect(() => {
@@ -343,6 +347,25 @@ export const HomeView: React.FC<HomeViewProps> = ({
     return ch.learned > 0 ? 'text-[#4F7DF3]' : 'text-stone-400';
   };
 
+  const isUnitCompleted = (total: number, learned: number) => total > 0 && learned >= total;
+  const filteredWordChapters = [...wordChapters]
+    .sort((a, b) => (a.sequence ?? 0) - (b.sequence ?? 0))
+    .filter(ch => {
+      const progress = stats?.wordChapters?.find(item => item.id === ch.id);
+      const total = Math.max(0, progress?.total || 0);
+      const learned = Math.min(total, Math.max(0, progress?.learned || 0));
+      const completed = isUnitCompleted(total, learned);
+      return ch.name.toLowerCase().includes(wordUnitSearch.trim().toLowerCase())
+        && (wordUnitFilter === '全部' || (wordUnitFilter === '已完成' ? completed : !completed));
+    });
+  const filteredSentenceChapters = [...sentenceChapters]
+    .sort((a, b) => ((a as any).sequence ?? 0) - ((b as any).sequence ?? 0))
+    .filter(ch => {
+      const completed = isUnitCompleted(ch.total || 0, ch.learned || 0);
+      return ch.name.toLowerCase().includes(sentenceUnitSearch.trim().toLowerCase())
+        && (sentenceUnitFilter === '全部' || (sentenceUnitFilter === '已完成' ? completed : !completed));
+    });
+
   // 词库没有单元，或配置里残留了已删除的单元 ID 时，回退到整本词库，避免创建会话时报错。
   const effectiveWordChapterId = wordChapters.some(ch => ch.id === config.wordStudyChapterId)
     ? config.wordStudyChapterId
@@ -412,9 +435,10 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-8 py-8 sm:py-12 space-y-10 animate-fadeIn">
+    <div className="max-w-6xl mx-auto px-4 sm:px-8 py-6 sm:py-9 space-y-6 animate-fadeIn">
       <div>
         <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#29466F]">今天学一点</h1>
+        <p className="mt-2 text-sm text-[#8094B2]">继续上次的学习，或按课程顺序选择一个单元开始。</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -445,8 +469,14 @@ export const HomeView: React.FC<HomeViewProps> = ({
               {wordChapters.length > 0 ? (
                 <>
                   <p className="mb-2 text-xs text-[#8BA0BD]">各单元进度独立保留，点击单元即可开始学习</p>
+                  <div className="mb-3 grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+                    <input value={wordUnitSearch} onChange={e => setWordUnitSearch(e.target.value)} placeholder="搜索单词单元…" className="min-w-0 rounded-xl border border-[#E2EAF5] bg-white px-3 py-2 text-sm text-[#29466F] outline-none focus:border-blue-300" />
+                    <select value={wordUnitFilter} onChange={e => setWordUnitFilter(e.target.value as '全部' | '已完成' | '未完成')} className="rounded-xl border border-[#E2EAF5] bg-white px-3 py-2 text-sm text-[#29466F] outline-none">
+                      <option value="未完成">未完成</option><option value="已完成">已完成</option><option value="全部">全部</option>
+                    </select>
+                  </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {wordChapters.map(ch => {
+                    {filteredWordChapters.map(ch => {
                       const selected = (config.wordStudyChapterId || '') === ch.id;
                       const progress = stats?.wordChapters?.find(item => item.id === ch.id);
                       const total = Math.max(0, progress?.total || 0);
@@ -551,8 +581,14 @@ export const HomeView: React.FC<HomeViewProps> = ({
               {sentenceChapters.length > 0 ? (
                 <>
                   <p className="mb-2 text-xs text-[#8BA0BD]">每个单元独立记录进度，点击即可切换学习范围</p>
+                  <div className="mb-3 grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+                    <input value={sentenceUnitSearch} onChange={e => setSentenceUnitSearch(e.target.value)} placeholder="搜索句子单元…" className="min-w-0 rounded-xl border border-[#E2EAF5] bg-white px-3 py-2 text-sm text-[#29466F] outline-none focus:border-blue-300" />
+                    <select value={sentenceUnitFilter} onChange={e => setSentenceUnitFilter(e.target.value as '全部' | '已完成' | '未完成')} className="rounded-xl border border-[#E2EAF5] bg-white px-3 py-2 text-sm text-[#29466F] outline-none">
+                      <option value="未完成">未完成</option><option value="已完成">已完成</option><option value="全部">全部</option>
+                    </select>
+                  </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {sentenceChapters.map(ch => {
+                    {filteredSentenceChapters.map(ch => {
                       const selected = (config.sentenceChapterId || '') === ch.id;
                       const total = Math.max(0, ch.total || 0);
                       const learned = Math.min(total, Math.max(0, ch.learned || 0));
